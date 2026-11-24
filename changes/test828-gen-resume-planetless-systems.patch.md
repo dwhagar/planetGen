@@ -1,0 +1,4 @@
+**Headline:** The resume tests of the galaxy run build planet-less systems, so each case takes seconds, not a quarter of an hour.
+
+### Fixed
+- `tests/test_gen_resume.py` (TEST.23 and TEST.26): the cases that stop a run before a save, fail a save in its transaction, step with `--limit` and force a scatter built every star's planets, and with the air history (GEN.1745) a sector cost about 30 s, so a case of three runs of 12 to 14 sectors took over 17 minutes alone and the watchdog ended it (`[band]` on main). The runs now use planet-less systems (`forced_system_config(PLANETS=False)`, as the big-run tests do); the sectors, the systems, the bright-star links, the stop before the save and the resumed result are all still checked and the sizes are unchanged. Each case now takes 9 to 33 s.

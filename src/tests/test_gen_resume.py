@@ -33,7 +33,7 @@ from planetgen import tuning
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 
 from tests import first_fill, worker_patches
-from tests.bughunt_support import mysql_argv, run_cli
+from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.test_bright_star_scatter import EDGE_PC, _scatter_args, _seed_galaxy
 from tests.test_galaxy_gen import _seed_skeleton
@@ -86,8 +86,15 @@ interrupted, resumed and whole; shells 2 and 3 took 30 to 54 sectors and 5 to 15
 _Interrupted = worker_patches.Interrupted
 
 
+def _sectors(argv):
+    """`planetgen sectors argv` with planet-less systems (TEST.828): these tests are about a run that stops before a save and carries on, which the sectors and the systems in them show, not what orbits the stars. The
+    planets and their air history were most of a sector's cost (about 30 s a sector with planets, three runs of 12 to 14 sectors a case), which put each case past its limit."""
+    with forced_system_config(PLANETS=False):
+        run_cli("sectors", argv)
+
+
 def _galaxy(config, mode_argv):
-    run_cli("sectors", [*mode_argv, "--num-systems", str(NUM_SYSTEMS), *mysql_argv(config)])
+    _sectors([*mode_argv, "--num-systems", str(NUM_SYSTEMS), *mysql_argv(config)])
 
 
 def _snapshot(config):
@@ -239,12 +246,10 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
     _seed_skeleton(mysql_config, shells=SHELLS)
     total = sum(wedge_count(1, band) for band in (-1, 0, 1))
     for _ in range(-(-total // 4)):
-        run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
-                           *mysql_argv(mysql_config)])
+        _sectors([*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS), *mysql_argv(mysql_config)])
     # One more step has nothing left to do.
     before, *_rest = _snapshot(mysql_config)
-    run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
-                       *mysql_argv(mysql_config)])
+    _sectors([*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS), *mysql_argv(mysql_config)])
     assert _snapshot(mysql_config)[0] == before
     assert len(before) == total
     _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
@@ -295,21 +300,23 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     # still reach the skipped sectors next door.
     monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", (5.0, 8.0))
     first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
-    _seed_galaxy(mysql_config)
-    args = run_galaxy._default_generation_args(config=mysql_config)
-    args.num_systems = 1
-    for address in PRE_FILLED:
-        run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    before = _sector_rows(mysql_config)
+    # TEST.828: planet-less systems, as the resume cases above (what the fill and the backfill build is counted by sector, not by what orbits)
+    with forced_system_config(PLANETS=False):
+        _seed_galaxy(mysql_config)
+        args = run_galaxy._default_generation_args(config=mysql_config)
+        args.num_systems = 1
+        for address in PRE_FILLED:
+            run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+        before = _sector_rows(mysql_config)
 
-    forced = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
-    assert forced["total"] > 0
-    assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
+        forced = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
+        assert forced["total"] > 0
+        assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
-    # The band's first wedges, around and between the skipped sectors.
-    run_cli("sectors", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
-                        *mysql_argv(mysql_config)])
-    run_cli("backfill", mysql_argv(mysql_config))
+        # The band's first wedges, around and between the skipped sectors.
+        run_cli("sectors", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
+                            *mysql_argv(mysql_config)])
+        run_cli("backfill", mysql_argv(mysql_config))
 
     after = _sector_rows(mysql_config)
     new = sorted(set(after) - set(before))
