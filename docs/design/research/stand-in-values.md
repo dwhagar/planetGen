@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2018 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2020 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1991 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1993 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,14 +51,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 231 | 22 | 12 | 1 | 0 | 266 |
 | T2 | 185 | 76 | 4 | 0 | 0 | 265 |
-| T3 | 135 | 70 | 13 | 10 | 0 | 228 |
-| T4 | 93 | 17 | 10 | 25 | 13 | 158 |
+| T3 | 136 | 70 | 13 | 10 | 0 | 229 |
+| T4 | 94 | 17 | 10 | 25 | 13 | 159 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
 | T6 | 254 | 143 | 41 | 85 | 8 | 531 |
 | T7 | 76 | 44 | 11 | 31 | 0 | 162 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1148 | 423 | 105 | 276 | 66 | 2018 |
+| All | 1150 | 423 | 105 | 276 | 66 | 2020 |
 
 ## How the labels were given
 
@@ -1453,6 +1453,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CP2 | P | T6 | L1 | belt_history.SURFACE_DENSITY_SLOPE 1.5 (row BHS2) as the weight of a body's source distance in the annulus: the mass up to a goes as a^(2 - slope), so a little more of it is near the inner edge | slope 1 to 2 | every reservoir annulus | a captured population whose source distances sit far from this weighting | the annulus's own surface density from the architecture's disc | row BHS2 (minimum-mass nebula); no new constant | predicted only | - | - |
 | CP3 | P | T6 | L3 | captured_composition.PARENT_LUMPS 4: a family's parent is this many lumps, each from its own distance in the annulus with its own taxon, and a fragment is one lump | 3 to 8 | families of irregular moons | a family whose members are far more or less alike than the lumps give | the parent's formation as a rubble of the disc's bodies (belt design) | [R4041] abstract (read): the Himalia group's members differ in phyllosilicate content; the number is the group's four known members | predicted only | - | no data |
 | CP4 | D | T6 | L1 | a captured body's composition is belt_member.member (the GEN.473 taxon kernel) at its source distance and mass, then its water ice is reduced by moon_composition.CAPTURE_ICE_LOSS (uniform 0 to 0.5), one loss for a whole parent | loss 0 to 0.5 | every captured small body | a captured body whose volatiles are far from the kernel at its source after the loss | a heating model of the capture (energy deposited in the gas era or by the encounters) | [R0269], qualitative (the existing captured-moon rule); the kernel is GEN.473 (rows TK1 to TK6) | predicted only | - | - |
+| CP5 | P | T3 | L0 | small_body_composition.ROCK_FRACTION_LAWS icy-intact (0.70, 0.08, 0.45, 0.95): the rock mass fraction of a Kuiper belt object, class D body or dwarf planet is a truncated normal; the center is [R0390] read in full (a constant 70 percent matches 14 of 17 objects within 2 sigma, one system's objects), the width and limits are the repository's | width 0.05 to 0.12; lower limit 0.45 (the one object under pure ice is reached only there) | icy bodies of 60 to 480 km radius with a density from the compaction law, flagged beyond it | the share of the covered Kuiper belt objects within 2 sigma of the drawn density falls more than 2 sigma from 14 of 17 (test_kbo_rock_fraction) | a count of rock fractions of icy bodies of another system | [R0390] Table A.2 (17 densities and diameters) and the dwarf-planet statistics of [R0269] (mean 0.78, SD 0.12, seven bodies): test points, Solar System only | predicted only | - | - |
+| CP6 | B | T4 | L0 | small_body_composition.ROCK_FRACTION_LAWS icy-stripped (0.88, 0.05, 0.75, 0.98) and the weight 0.5 of icy-intact and icy-stripped for a dwarf planet: a body whose ice a collision removed, at half the dwarf planets; the draw's mean 0.79 and spread 0.11 match the seven measured dwarf planets (0.78, 0.12) | weight 0.3 to 0.6 (two of the seven densest are collisional) | dwarf planets and the binary partners of one | the draw's mean or spread of the dwarf-planet rock fraction falls more than 2 sigma from 0.78 or 0.12 (test_kbo_rock_fraction) | a count of dwarf planets that lost their ice in another system (none exists; NO FIXED CONTENT) | [R0269] qualitative (Haumea and Eris); the weight is no source's | predicted only | - | - |
 
 ## 6.120 Stand-ins of the asteroid belt page
 

@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4772+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The resume tests of the galaxy run build planet-less systems, so each case takes seconds, not a quarter of an hour.
+
+### Fixed
+- `tests/test_gen_resume.py` (TEST.23 and TEST.26): the cases that stop a run before a save, fail a save in its transaction, step with `--limit` and force a scatter built every star's planets, and with the air history (GEN.1745) a sector cost about 30 s, so a case of three runs of 12 to 14 sectors took over 17 minutes alone and the watchdog ended it (`[band]` on main). The runs now use planet-less systems (`forced_system_config(PLANETS=False)`, as the big-run tests do); the sectors, the systems, the bright-star links, the stop before the save and the resumed result are all still checked and the sizes are unchanged. Each case now takes 9 to 33 s.
+- One case keeps the planets: `test_a_run_stopped_before_a_save_resumes_with_the_planets_of_the_uninterrupted_run` (two sectors of one system each, the first save stopped, the second held and the run again), and checks that the planets with their orbits, masses, temperatures, pressures and recorded air history are the uninterrupted run's. About 53 s.
+
+## [8.0.4771+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The generated reference pages (`docs/references/fitted.json`, `overview.json`, `stand-ins.json`) are rebuilt after the citation-form fix of PR 7451 and the icy-body rock fraction row of GEN.522, so the generated-files check is green again.
+
+### Fixed
+
+- `scripts/regenerate_generated.py --only reference-pages` was out of date on main after PRs 7450 and 7451 (a citation form in `tuning_targets.json` feeds `fitted.json`; the GEN.522 rock fraction row feeds `stand-ins.json`). The three files are the builder's own output, nothing else changes.
+
+generation-output: unchanged
+
+## [8.0.4770+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Three citations written outside the registry's form (one author-year name and two bracketed forms) now use the registry form, so the citation guard is green again.
+
+### Fixed
+
+- `docs/design/systems/overlap-free-systems.md`, `physics/data/tuning_targets.json` and `physics/small_body_composition.py` cite [R1138], [R0390] and [R0269] in the form `scripts/rewrite_citations.py` writes (left by the GEN.1014 note and GEN.522).
+
+generation-output: unchanged
+
+## [8.0.4769+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The rock fraction of an icy body (Kuiper belt object, class D body, dwarf planet and the captured or binary moons that use it) now carries its source state and is checked against the published statistics, and no draw moves.
+
+### Changed
+
+- The two rows of the icy-body rock fraction table were open (no weight, no source). `icy-intact` is partly verified (the center 0.70 is the read-in-full fit of the 17 Kuiper belt object densities, [R0390]; the width and limits are stand-in CP5) and `icy-stripped` is a stand-in (CP6); both keep the half share a dwarf planet always gave them, so every draw is the same (GEN.522, row T19).
+- Three test points join the tuning-target table: the dwarf planets' rock fraction (mean 0.78, spread 0.12, seven bodies) and the share of 17 Kuiper belt objects within 2 sigma of the compaction law at 0.70 (14 of 17). They are of one system's bodies, so they are reported and never tuned to (NO FIXED CONTENT). The draw matches all three (0.790, 0.109 and 0.88 of the objects the law covers).
+- New design note `docs/design/composition/kbo-rock-fraction-tuning.md`, stand-ins CP5 and CP6 in the registry.
+
+generation-affects: none
+
+## [8.0.4768+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The nightly orbit update now moves the orbits of every star in a multi-star system, not only a pair's.
+
+### Added
+- **The orbit update advances the nodes of a built system's star tree (GEN.313).** Each due node of `orbit_nodes` turns its mean anomaly by 360 times the elapsed time over its period and takes the update's end as its epoch, so a triple's outer orbit and a quadruple's inner pairs no longer stand still while only the first pair's columns move. A node is due when the time its orbit takes to move 0.01 AU has passed since its epoch, which needs no new column. A scatter row's nodes are still never written. `cli.orbits` reports the step as "orbit node(s) of a star tree".
+
+### Changed
+- **The storage checksum leaves out the `orbit_nodes` columns the update now rewrites (`mean_anomaly_deg`, `epoch_unix`)**, so a tick of the orbit update never makes a sector look damaged.
+
+## [8.0.4767+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Zooming in on a cell nothing was generated in, when the scatters left objects in it, now opens it as Uncharted, as it opens a charted sector.
+
+### Fixed
+
+- The wheel opened only sectors that had been generated: the sector the camera came up to was chosen among the charted ones near the eye, so a cell holding a bright star, a black hole or a nebula but no generated sector never opened by zooming to it, and the charted neighbour opened instead (MAP.257). At the end of the zoom range the cell under the camera's middle now opens as "Uncharted" by the same path a click uses (MAP.162: the scene of `GET /galaxy/uncharted/<shell>/<band>/<wedge>/scene`, `enterSector` with no record); a cell the server says is empty stays unopened and the nearest charted sector opens as before.
+
+generation-output: unchanged
+
+## [8.0.4766+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Zooming out of an opened sector with the wheel now carries on at the same steady step instead of snapping the camera out to the whole galaxy.
+
+### Fixed
+
+- Leaving an opened sector by the wheel took the camera from a few parsecs to the whole-galaxy distance in one tick (MAP.257): the sector branch of the stage view's `up()` kept the camera but not its fit, so the next frame re-fitted it to the whole stage. It now keeps the fit as the system branch does, and the zoom floor no longer pushes a camera that left a system nearer than the sector's floor back up to it in one tick. A scroll from the whole galaxy to a sector, to a star's system and out again, or to an uncharted cell and out again, moves the camera the wheel's own step per tick all the way.
+
+generation-output: unchanged
+
+## [8.0.4765+db274.gen150.api14] - 2026-11-24
+
+**Headline:** A system of several stars is no longer drawn twice to check that its stars clear their orbits, because the tree and the build now read the same stars.
+
+### Changed
+- **The check that redrew a whole set of companions when a built star was wider than its orbit (GEN.1015).** `multistar.built_tree_clears`, the clearance branch of `StarSystem._companions_fit`, `StarSystem._built_stars_clear` and the redraw kind `companions.overlap` are gone, with no shim. Each companion is built from the record the tree drew it with (GEN.1009), so a built star is the star its orbit was drawn around and the check never failed; the independent verifier (`physics/clearance.py`) is what the tests now ask. Generated systems are unchanged.
+
 ## [8.0.4764+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The seven stand-ins of the white dwarf binaries now each have a registry row with a source, a tier and a test.

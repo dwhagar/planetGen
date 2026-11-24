@@ -1132,9 +1132,6 @@ class StarSystem:
         if wanted_kind is not None and self.binary_type != wanted_kind:
             draw.redrawn("companions.pair_kind")
             return False
-        if not self._built_stars_clear():
-            draw.redrawn("companions.overlap")
-            return False
         # A close pair whose whole habitable zone lies inside its circumbinary stability limit can't host a habitable world.
         # (a request for a habitable world keeps such a pair one time in `tuning.REQUEST_ODDS`, GEN.1130).
         if (self.binary_type == "close" and config.HABITABLE_WORLD is True and config.WIDE_BINARY is None
@@ -1142,20 +1139,6 @@ class StarSystem:
             draw.redrawn("companions.circumbinary_floor")
             return False
         return True
-
-    def _built_stars_clear(self):
-        """
-        Whether the stars as built clear the orbits of the tree they hang in. A drawn tree is built again from each member's
-        birth mass and the system's age, so a member the tree evolved on (a white dwarf, a stripped core) can come out a giant
-        wider than its orbit: the pair, or a third star about it, then lies inside a star (`multistar.built_tree_clears`).
-        """
-        if not self.orbit_nodes:
-            return True
-        slots = self.star_slots or tuple((self.orbit_nodes[0].node_no, slot) for slot in (0, 1))
-        stars = [(parent, _km_to_au(star.radius), _kg_to_msun(star.mass))
-                 for star, (parent, _slot) in zip(self.stars, slots)]
-        stars += [(dark.parent_node_no, dark.radius_au or 0.0, dark.mass_solar) for dark in self.dark_members]
-        return multistar.built_tree_clears(self.orbit_nodes, stars)
 
     def _remove_companions(self, placed_star):
         """Takes the companions back out: the system is `placed_star` alone again."""

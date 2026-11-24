@@ -67,6 +67,7 @@ A checksum says "these bytes are not the bytes we hashed" but not where, and can
 |---|---|
 | `planets`, `moons` | `orbital_phase_deg`, `position_x/y/z_km`, `velocity_x/y/z_kms` |
 | `stars` | `galactic_orbital_phase_deg`, `reflex_offset_x/y/z_km` |
+| `orbit_nodes` | `mean_anomaly_deg`, `epoch_unix` (GEN.313: the update advances the nodes of a star tree) |
 | `planets` | `reflex_offset_x/y/z_km` (from their moons) |
 | `star_systems` | `binary_mutual_orbital_phase_deg`, `binary_mutual_position_*`, `binary_primary_position_*`, `binary_secondary_position_*`, `binary_planetary_wobble_*`, `binary_galactic_orbital_phase_deg`; from the galactic move also `position_x/y/z_mpc`, `quadrant`, `velocity_*` and `sector_id` |
 | `black_holes`, `neutron_stars`, `nebulae`, `supernova_remnants`, `rogue_planets`, `interstellar_comets`, `asteroid_fields` | `galactic_orbital_phase_deg`; from the galactic move also `center_*_pc`, `galactic_radius_pc` and `sector_id` |

@@ -59,6 +59,7 @@ VOLATILE_COLUMNS = {
     "sectors": ("storage_checksum", "parity_dirty", "leaf_digest", "content_leaf", "modified_at"),
     "star_systems": ("sector_id", "position_x_mpc", "position_y_mpc", "position_z_mpc", "galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc", "quadrant", "location", "velocity_x_kms",
                      "velocity_y_kms", "velocity_z_kms", "modified_at") + _BINARY + _CLOCKS,
+    "orbit_nodes": ("mean_anomaly_deg",) + _CLOCKS,                  # GEN.313: the orbit update advances a node of a star tree
     "stars": ("galactic_orbital_phase_deg", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km") + _CLOCKS,
     "planets": _POSITION + ("distance_km", "orbital_speed_kms", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km") + _CLOCKS,
     "moons": _POSITION + ("distance_km", "orbital_speed_kms") + _CLOCKS,
