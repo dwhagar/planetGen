@@ -56693,6 +56693,52 @@
       "title": "Stand-ins of the halo globular clusters' radial law (GEN.297)"
     },
     {
+      "key": "6.336",
+      "number": "6.336",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_BRIGHT_FLOOR_SOL 35, the faint edge of HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL: the luminosity a globular cluster's stars are pre-placed from, whatever the galaxy's floor, applied in one place (star_population.population_floor) to the pass, the fill's share of placed stars and the fill's luminosity cap"
+            ],
+            [
+              "The range it moves in",
+              "30 to 50 (the branch's range; a floor over 50 leaves the branch to the fill)"
+            ],
+            [
+              "Where it holds",
+              "the cluster population in a pass with no upper limit and no mass range"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster whose white dwarfs are brighter than 35 solar luminosities (none in a 10 Gy old population: a white dwarf of 35 is under half a million years old)"
+            ],
+            [
+              "What replaces it",
+              "none: a choice of where placed stars end, needed so the branch is placed"
+            ],
+            [
+              "Evidence",
+              "chosen from the model's own range so the output (a cluster's giants and horizontal branch) exists at plan time; no source gives a floor, the shares are the model's; the pass and the fill read it in one function so no star is drawn twice"
+            ]
+          ],
+          "id": "HB1",
+          "key": "6.336:HB1",
+          "kind": "B",
+          "slug": "6-336-hb1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BRIGHT_FLOOR_SOL 35, the faint edge of HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL: the luminosity a globular cluster's stars are pre-placed from, whatever the galaxy's floor, applied in one place (star_population.population_floor) to the pass, the fill's share of placed stars and the fill's luminosity cap"
+        }
+      ],
+      "slug": "6-336-stand-ins-of-the-globular-clusters-own-bright-floor-gen-161",
+      "title": "Stand-ins of the globular clusters' own bright floor (GEN.161)"
+    },
+    {
       "key": "6.95",
       "number": "6.95",
       "rows": [

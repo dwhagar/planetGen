@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2021 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2022 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1994 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1995 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -57,8 +57,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 254 | 143 | 40 | 85 | 8 | 530 |
 | T7 | 76 | 44 | 10 | 31 | 0 | 161 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
-| T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1154 | 423 | 102 | 276 | 66 | 2021 |
+| T9 | 55 | 20 | 6 | 117 | 42 | 240 |
+| All | 1155 | 423 | 102 | 276 | 66 | 2022 |
 
 ## How the labels were given
 
@@ -2508,6 +2508,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | GC1 | D | T2 | L0 | tuning.CLUSTER_HALO_SLOPE 4.0 and CLUSTER_HALO_CORE_PC 1800: the number density of the metal-poor halo clusters is `(1 + D / Dc)^-gamma` between the halo's limits, drawn by `generation/clusters._halo_distance` | gamma 3.5 to 4.0; Dc 0.5 to 2 kpc (gamma 3.5 with Dc 0.9 to 1.0; gamma 4.0 with Dc 1.7 to 1.9) | the halo group of a generated galaxy, any size (distances scale with the galaxy) | a measured halo cluster system of a Milky Way mass galaxy whose median distance is far from 6.5 kpc, or a profile steeper than 4.9 | a fit to the halo clusters of other galaxies with their own slope and break | [R5363: Eq. 1, Table 2] (read: `rho = rho0 (1 + D / Dc)^-gamma`, fixed gamma 4.0 gives Dc 1.7 to 1.9 kpc, fixed 3.5 gives 0.9 to 1.0 kpc, free fit 3.7 to 4.9); [R5361] (the outer fall-off is R^-3.9 and the inner distribution flattens inside 2 kpc, abstract read); gives a median 6.5 kpc and 16th to 84th percentiles 2.1 to 24 kpc against the file's metal-poor 7.1 and 2.1 to 21.4; the halo group alone is fitted, as the sources fit it ([Fe/H] under -0.8) | predicted only | - | - |
+
+## 6.336 Stand-ins of the globular clusters' own bright floor (GEN.161)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| HB1 | B | T9 | L0 | tuning.CLUSTER_BRIGHT_FLOOR_SOL 35, the faint edge of `HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL`: the luminosity a globular cluster's stars are pre-placed from, whatever the galaxy's floor, applied in one place (`star_population.population_floor`) to the pass, the fill's share of placed stars and the fill's luminosity cap | 30 to 50 (the branch's range; a floor over 50 leaves the branch to the fill) | the `cluster` population in a pass with no upper limit and no mass range | a cluster whose white dwarfs are brighter than 35 solar luminosities (none in a 10 Gy old population: a white dwarf of 35 is under half a million years old) | none: a choice of where placed stars end, needed so the branch is placed | chosen from the model's own range so the output (a cluster's giants and horizontal branch) exists at plan time; no source gives a floor, the shares are the model's; the pass and the fill read it in one function so no star is drawn twice | predicted only | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 
