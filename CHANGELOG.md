@@ -2,6 +2,26 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4768+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The nightly orbit update now moves the orbits of every star in a multi-star system, not only a pair's.
+
+### Added
+- **The orbit update advances the nodes of a built system's star tree (GEN.313).** Each due node of `orbit_nodes` turns its mean anomaly by 360 times the elapsed time over its period and takes the update's end as its epoch, so a triple's outer orbit and a quadruple's inner pairs no longer stand still while only the first pair's columns move. A node is due when the time its orbit takes to move 0.01 AU has passed since its epoch, which needs no new column. A scatter row's nodes are still never written. `cli.orbits` reports the step as "orbit node(s) of a star tree".
+
+### Changed
+- **The storage checksum leaves out the `orbit_nodes` columns the update now rewrites (`mean_anomaly_deg`, `epoch_unix`)**, so a tick of the orbit update never makes a sector look damaged.
+
+## [8.0.4767+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Zooming in on a cell nothing was generated in, when the scatters left objects in it, now opens it as Uncharted, as it opens a charted sector.
+
+### Fixed
+
+- The wheel opened only sectors that had been generated: the sector the camera came up to was chosen among the charted ones near the eye, so a cell holding a bright star, a black hole or a nebula but no generated sector never opened by zooming to it, and the charted neighbour opened instead (MAP.257). At the end of the zoom range the cell under the camera's middle now opens as "Uncharted" by the same path a click uses (MAP.162: the scene of `GET /galaxy/uncharted/<shell>/<band>/<wedge>/scene`, `enterSector` with no record); a cell the server says is empty stays unopened and the nearest charted sector opens as before.
+
+generation-output: unchanged
+
 ## [8.0.4766+db274.gen150.api14] - 2026-11-24
 
 **Headline:** Zooming out of an opened sector with the wheel now carries on at the same steady step instead of snapping the camera out to the whole galaxy.
