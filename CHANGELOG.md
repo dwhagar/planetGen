@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4777+db275.gen150.api14] - 2026-11-24
+
+**Headline:** An active comet now has a coma: the water its light sublimates, the gas of every ice its nucleus holds, and how far each gas travels before the light breaks it, for the comets of a system and the interstellar ones alike
+
+### Added
+
+- GEN.455 part A: `physics/comet_coma` computes the water production at 1 AU lit distance from the light the nucleus absorbs over the latent heat of water ice (the table of materials), over a drawn active share of the surface, with the nucleus albedo drawn too. Each other species is the water rate times the nucleus ratio the comet already stored (`comet_population`, `comet_species`), so a gas the nucleus lacks is never in the coma. The parent scale length of each gas is the outflow speed times its photolysis lifetime (`photolysis`) at the comet's lit distance (`comet_activity`), so a cool or hot host changes which gases survive. Water and the gases that ride on it stop beyond 3 AU lit distance; CO2 and CO (the colder ice lines) go on.
+- Stored on `comets` and `interstellar_comets`: `water_production_1au_per_s`, `coma_active_area_fraction`, `coma_outflow_1au_kms`, `nucleus_albedo`, and the child tables `comet_coma` and `interstellar_comet_coma` (species, production at 1 AU, scale length at 1 AU). The rate and length at any other distance are computed from them by `production_at` and `scale_length_at`. An inactive comet, and a comet made before this change, has none.
+- Stand-ins CZ1 (active share, log-uniform 0.003 to 1), CZ2 (outflow speed, log-uniform 0.4 to 1 km/s at 1 AU) and CZ3 (nucleus Bond albedo, 0.02 to 0.10) in section 6.327.
+- The draws are on their own keyed stream, so no other number of a run moves; no epoch bump (a lock item of a generator train).
+
 ## [8.0.4776+db275.gen150.api14] - 2026-11-24
 
 **Headline:** The test that saves a rogue planet and a moon no longer depends on seed 3's system having a moon.
