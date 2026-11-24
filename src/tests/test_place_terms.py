@@ -238,11 +238,11 @@ def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
     assert here.close == pytest.approx(companion_classes.odds(1.0, 0.44, 0.0, 11_400.0).close)
     # The tree of stars keeps no axis the place cannot (GEN.631): a dense place has a pair or none, and no wide one beyond.
     pairs = [system for system in _systems(terms=dense, count=400) if system.binary_type == "wide"]
-    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system) for system in pairs)
+    assert all(system.pair_orbit.separation_au <= _widest_limit(dense, system) for system in pairs)
     # A forced companion in a place that keeps little still keeps the place's limit.
     crowded = place_terms.PlaceTerms(60_000.0, 150.0)
     forced = [system for system in _systems(terms=crowded, BINARY_SYSTEM=True, count=60) if system.binary_type == "wide"]
-    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system) for system in forced)
+    assert all(system.pair_orbit.separation_au <= _widest_limit(crowded, system) for system in forced)
 
 
 def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_lines():

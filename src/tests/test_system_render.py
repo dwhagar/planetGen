@@ -19,11 +19,9 @@ from planetgen.db import store
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import describe_system, render_star_system, render_system_text
 from planetgen.describe.model import split_by_body
-from planetgen.generation.wide_binary import WideBinaryPair
 
 _VARIANTS = [
     dict(BINARY_SYSTEM=False, MOONS=True, COMETS=True, ASTEROID_BELT=True),
@@ -83,9 +81,7 @@ def _swapped_pair(mysql_config, wide):
     primary, secondary = system.primary_star, system.secondary_star
     heavy, light = max(primary.mass, secondary.mass), min(primary.mass, secondary.mass)
     primary.mass, secondary.mass = light, heavy
-    if wide:
-        system.wide_binary.primary, system.wide_binary.secondary = secondary, primary
-    else:
+    if not wide:     # a wide pair is read from its node, which the stars' masses do not turn
         system.star._primary, system.star._secondary = secondary, primary
     # The stability windows are worked out from the masses, which were just swapped by hand, so work them out again (the reload does).
     system.build_ledger()
@@ -106,13 +102,6 @@ def test_binary_orientation_survives_the_round_trip(mysql_config, wide):
 
 
 def test_from_dict_puts_the_heavier_star_first():
-    cfg = SystemConfig()
-    light, heavy = Star(cfg), Star(cfg)
-    light.mass, heavy.mass = 1.0e30, 2.0e30
-
-    pair = WideBinaryPair.from_dict({}, cfg, light, heavy)
-    assert pair.primary is heavy and pair.secondary is light
-
     proxy_cfg = _config(BINARY_SYSTEM=True, WIDE_BINARY=False, PLANETS=False)
     proxy = StarSystem(system_config=proxy_cfg).star
     data = proxy.to_dict()

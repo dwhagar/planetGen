@@ -10,6 +10,7 @@ and end-to-end generation/round-trip through `WIDE_BINARY_SYSTEM=True`.
 
 Run with: pytest src/tests/test_wide_binary.py
 """
+import dataclasses
 import math
 import statistics
 
@@ -20,6 +21,7 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from planetgen.generation import wide_binary
 from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
 from planetgen.generation import place_terms, validation
 from planetgen.generation.comet import Comet
@@ -242,11 +244,18 @@ class _StubPlanet:
         self.lower_limit = lower_limit if lower_limit is not None else distance
 
 
+def _set_pair(system, separation_au, eccentricity):
+    """Put the pair's node on an orbit of this axis and eccentricity (GEN.640 slice b: the pair is read from its node)."""
+    number = system.pair_node_no()
+    system.orbit_nodes = tuple(
+        dataclasses.replace(node, separation_km=separation_au * constants.AU_TO_KM, eccentricity=eccentricity) if node.node_no == number else node
+        for node in system.orbit_nodes)
+
+
 def _wide_system_for_clearance_test(separation_au, primary_a_crit_au, secondary_a_crit_au):
     system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, PLANETS=False))
-    system.wide_binary.separation_au = separation_au
+    _set_pair(system, separation_au, 0.0)
     # A circular stand-in: the clearance rule reads the closest approach (GEN.228).
-    system.wide_binary.periapsis_au = separation_au
     system.primary_star.a_crit_au = primary_a_crit_au
     system.secondary_star.a_crit_au = secondary_a_crit_au
     return system
@@ -380,19 +389,19 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
         assert system.binary_type == "wide"
         assert system.star is system.primary_star
         assert system.secondary_star.mass <= system.primary_star.mass
-        assert system.wide_binary is not None
+        assert system.pair_orbit is not None
 
         # GEN.103: the widest axis is the place's survival limit (a forced wide pair keeps at least the lower edge).
         lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
-        hi = max(lo, system.wide_binary.max_separation_au)
-        assert lo <= system.wide_binary.separation_au <= hi
-        assert 0 <= system.wide_binary.eccentricity < tuning.WIDE_BINARY_ECCENTRICITY_MAX
-        assert system.wide_binary.periapsis_au <= system.wide_binary.separation_au <= system.wide_binary.apoapsis_au
+        hi = max(lo, wide_binary.wide_pair_limit_au(system.system_config, system.primary_star, system.secondary_star))
+        assert lo <= system.pair_orbit.separation_au <= hi
+        assert 0 <= system.pair_orbit.eccentricity < tuning.WIDE_BINARY_ECCENTRICITY_MAX
+        assert system.pair_orbit.periapsis_au <= system.pair_orbit.separation_au <= system.pair_orbit.apoapsis_au
 
         assert system.primary_star.a_crit_au is not None
         assert system.secondary_star.a_crit_au is not None
-        assert system.primary_star.a_crit_au < system.wide_binary.separation_au
-        assert system.secondary_star.a_crit_au < system.wide_binary.separation_au
+        assert system.primary_star.a_crit_au < system.pair_orbit.separation_au
+        assert system.secondary_star.a_crit_au < system.pair_orbit.separation_au
 
         for planet in system.primary.orbiters:
             assert _orbit_edge(planet) <= system._orbit_ceiling_au(system.primary_star) + 1e-6
@@ -433,8 +442,8 @@ def test_wide_binary_round_trips_through_to_dict_from_dict():
     assert reloaded.secondary_star.mass == system.secondary_star.mass
     assert reloaded.primary_star.a_crit_au == system.primary_star.a_crit_au
     assert reloaded.secondary_star.a_crit_au == system.secondary_star.a_crit_au
-    assert reloaded.wide_binary.separation_au == system.wide_binary.separation_au
-    assert reloaded.wide_binary.eccentricity == system.wide_binary.eccentricity
+    assert reloaded.pair_orbit.separation_au == system.pair_orbit.separation_au
+    assert reloaded.pair_orbit.eccentricity == system.pair_orbit.eccentricity
     assert len(reloaded.primary.orbiters) == len(system.primary.orbiters)
     assert len(reloaded.secondary.orbiters) == len(system.secondary.orbiters)
     assert render_support.text(reloaded) == render_support.text(system)
@@ -444,7 +453,7 @@ def test_close_binary_default_still_reachable_when_wide_binary_forced_false():
     system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=False))
     assert system.binary_type == "close"
     assert system.secondary is None
-    assert system.wide_binary is None
+    assert system.binary_type != "wide"
 
 
 # ---------------------------------------------------------------------------
@@ -464,7 +473,7 @@ def test_hill_radius_in_pair_shrinks_at_periapsis():
 def test_each_star_limit_is_inside_its_hill_sphere_and_the_fit():
     for _ in range(10):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
-        pair = system.wide_binary
+        pair = system.pair_orbit
         total = pair.primary.mass + pair.secondary.mass
         for star, other in ((pair.primary, pair.secondary), (pair.secondary, pair.primary)):
             hill = hill_radius_in_pair_au(pair.separation_au, star.mass / total, pair.eccentricity)
@@ -476,7 +485,7 @@ def test_cross_star_clearance_uses_the_closest_approach():
     # Far apart on average (200 AU) but 100 AU at periapsis: two planets at
     # 49.99 AU leave 0.02 AU between them when the stars are closest.
     system = _wide_system_for_clearance_test(separation_au=200.0, primary_a_crit_au=50.0, secondary_a_crit_au=50.0)
-    system.wide_binary.periapsis_au = 100.0
+    _set_pair(system, 200.0, 0.5)   # 100 AU at periapsis
     system.primary.orbiters = [_StubPlanet(distance=49.99)]
     system.secondary.orbiters = [_StubPlanet(distance=49.99)]
 
@@ -531,7 +540,7 @@ def test_wide_binaries_never_overlap():
         if system.binary_type != "wide":
             continue
         wide += 1
-        pair = system.wide_binary
+        pair = system.pair_orbit
         for star, planets, comets in ((system.primary_star, system.primary.orbiters, system.comets),
                                       (system.secondary_star, system.secondary.orbiters, system.secondary_comets)):
             for body in planets:

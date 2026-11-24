@@ -81,7 +81,7 @@ def binary_nodes(star_system, epoch_unix):
                                     pair.binary_mutual_orbital_ascending_node_deg, pair.binary_mutual_orbital_phase_deg)
         period = pair.binary_mutual_orbital_period_years
     else:
-        pair = star_system.wide_binary
+        pair = star_system.pair_orbit      # (a wide pair's orbit is its node's: GEN.640 slice b)
         separation_au, eccentricity = pair.separation_au, pair.eccentricity
         inclination, node, phase, period = pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years
     mass_solar = sum(star.mass for star in star_system.stars) / SOLAR_MASS_KG
@@ -170,7 +170,7 @@ def star_places(star_system):
                                 pair.binary_primary_position_z), 0),
                 (ROOT_NODE_NO, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
                                 pair.binary_secondary_position_z), 1)]
-    pair = star_system.wide_binary
+    pair = star_system.pair_orbit
     return [(ROOT_NODE_NO, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au), 0),
             (ROOT_NODE_NO, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au), 1)]
 
@@ -220,7 +220,8 @@ def pair_places_km(conn, star_system_id):
     stars = {row["role"]: row for row in conn.execute(
         "SELECT role, mass_kg, parent_node_id, slot FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')",
         (star_system_id,)).fetchall()}
-    fraction = stars["secondary"]["mass_kg"] / (stars["primary"]["mass_kg"] + stars["secondary"]["mass_kg"])
+    total = stars["primary"]["mass_kg"] + stars["secondary"]["mass_kg"]
+    fraction = min(stars["primary"]["mass_kg"], stars["secondary"]["mass_kg"]) / total    # the pair classes' primary is the heavier star, whichever role it has
     mutual = [_au_to_km(value) for value in system_tree.node_relative_au(node, node.epoch_unix)]
     if _slot_under(nodes, stars["primary"], node_no) == 1:
         mutual = [-value for value in mutual]    # the node is the orbit of its slot-1 child about its slot-0 child; the pair is the second star about the first

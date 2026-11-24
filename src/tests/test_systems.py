@@ -241,7 +241,7 @@ def assert_cross_star_clearance_holds(system):
     outer_p = max(system.primary.orbiters, key=edge_au)
     outer_s = max(system.secondary.orbiters, key=edge_au)
 
-    a_bin = system.wide_binary.separation_au
+    a_bin = system.pair_orbit.separation_au
     worst_case_gap_au = a_bin - edge_au(outer_p) - edge_au(outer_s)
 
     if outer_p.body_type == 'a' or outer_s.body_type == 'a':
