@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4780+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The stellar-to-halo relation of the galaxy chain was checked against measured spirals and kept.
+
+### Changed
+- GEN.1167: the four published stellar-to-halo fits [R0319, R1578, R2598, R3181] were set against the halos fitted to the rotation curves of 110 spirals [R5352]. Below 1e11 solar masses of stars the relation of the chain, [R3181], sits 0.09 dex from the measured median halo; the offsets are 0.09 for [R2598], 0.11 for [R0319] and 0.17 for [R1578] (0.1 to 0.24 dex too light in every bin), so the relation stays and its row (HF3) keeps tier T1. The design note and the registry row carry the check table; the spiral bend of GEN.618 covers the largest spirals, where every fit gives a group's halo. No generated galaxy changes.
+
+generation-output: unchanged
+
 ## [8.0.4779+db275.gen150.api14] - 2026-11-24
 
 **Headline:** A moon that a Kozai pump, a resonance or the replay of the moons' history left outside its planet's stable range is now lost, so a generated system no longer fails its own lunar check.
