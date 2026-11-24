@@ -142,9 +142,9 @@ def test_a_belt_stands_in_a_gap_never_on_a_planets_orbit():
     seen = 0
     for _ in range(4):
         system = StarSystem(system_config=_make_config("M2V", PLANETS=True, MAX_PLANETS=True, MOONS=False))
-        belts = [body for body in system.planets if body.body_type == 'a']
+        belts = [body for body in system.primary.orbiters if body.body_type == 'a']
         for belt in belts:
             seen += 1
             assert belt.origin in belt_origin.CAUSES
-            assert not any(belt.lower_limit < body.distance < belt.upper_limit for body in system.planets if body.body_type != 'a' and body.belt_rank is None)      # GEN.1510: a belt member promoted to a planet stays inside its belt's ring
+            assert not any(belt.lower_limit < body.distance < belt.upper_limit for body in system.primary.orbiters if body.body_type != 'a' and body.belt_rank is None)      # GEN.1510: a belt member promoted to a planet stays inside its belt's ring
     assert seen

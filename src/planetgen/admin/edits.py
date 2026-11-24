@@ -52,7 +52,7 @@ def find_body(system, kind, body_id):
     Raises:
         BodyNotFound: If the system has no such body.
     """
-    for _star, planets in validation.star_lists(system):
+    for _star, planets in system.hosts:
         for body in planets:
             if body.body_type == 'a':
                 if kind == "belt" and getattr(body, "db_id", None) == body_id:
@@ -150,7 +150,7 @@ def regenerate_moon(system, moon, planet):
 def regenerate_belt(system, belt, owner):
     """Replaces an asteroid belt with a fresh roll (density and
     composition) over the same span, keeping its row."""
-    star = system.star if owner is system.planets else system.secondary_star
+    star = system.star if owner is system.primary.orbiters else system.secondary_star
     fresh = AsteroidBelt(system.system_config, star, belt.distance, belt.lower_limit, belt.upper_limit)
     fresh.db_id = belt.db_id
     owner[owner.index(belt)] = fresh
@@ -266,7 +266,7 @@ def change_star(system, star_type):
 
     factor = (new.luminosity / old.luminosity) ** 0.5
     mass_ratio = new.mass / old.mass
-    planets = system.planets
+    planets = system.primary.orbiters
     for body in planets:
         if body.body_type == 'a':
             _scale_belt(body, factor)

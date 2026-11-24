@@ -39,7 +39,7 @@ def _save_systems(mysql_config, wanted=("close", "wide", None)):
             system = StarSystem(cfg, galactic_center_dist_ly=26000.0)
         kind = system.binary_type
         if kind in wanted and kind not in saved and any(
-                getattr(p, "body_type", None) == "t" and p.phi4 is not None for p in system.planets):
+                getattr(p, "body_type", None) == "t" and p.phi4 is not None for p in system.primary.orbiters):
             saved[kind] = store.save_system(system, cfg, config=mysql_config)
     assert set(saved) == set(wanted), "could not generate each kind of system"
     return saved
@@ -207,7 +207,7 @@ def test_a_generated_body_stores_the_score_of_its_final_conditions():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets + system.secondary_planets:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             for body in [planet] + list(getattr(planet, "moons", [])):
                 if getattr(body, "body_type", None) != "t" or getattr(body, "phi4", None) is None:
                     continue

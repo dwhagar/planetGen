@@ -24,13 +24,13 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(getattr(p, "moons", None) for p in system.planets) and any(p.body_type == "g" for p in system.planets):
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters) and any(p.body_type == "g" for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a giant and a moon in 60 seeds")
 
 
 def _compositions(system):
-    return [bc.bulk_fractions(body) for planet in system.planets if hasattr(planet, "moons") for body in [planet, *planet.moons]]
+    return [bc.bulk_fractions(body) for planet in system.primary.orbiters if hasattr(planet, "moons") for body in [planet, *planet.moons]]
 
 
 def test_a_saved_system_keeps_every_bodys_composition(mysql_config):

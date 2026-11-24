@@ -35,7 +35,7 @@ def sample_bodies(systems, seed, habitable_share=0.0):
         if index < habitable_share * systems:
             config.HABITABLE_WORLD = True
         system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "planet_class"):
                 continue  # an asteroid belt
             bodies.append((planet, False))

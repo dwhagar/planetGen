@@ -29,7 +29,7 @@ def _planet_sector(mysql_config, name, center_pc):
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(p.body_type != "a" for p in system.planets):
+        if any(p.body_type != "a" for p in system.primary.orbiters):
             break
     sector = SpaceSector(name, edge_ly=10.0)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)

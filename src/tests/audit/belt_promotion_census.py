@@ -36,7 +36,7 @@ def _star_class(star):
 def system_counts(seed):
     """Counts for one seed (see the module): `{key: number}`; the keys are tuples `(kind, what)`."""
     from planetgen import tuning
-    from planetgen.generation import irregular_moons, validation
+    from planetgen.generation import irregular_moons
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.physics import body_strength, envelope_share
@@ -48,7 +48,7 @@ def system_counts(seed):
     counts = collections.Counter()
     counts[("total", "systems")] += 1
     counts[("total", "seconds_x1000")] += int((time.monotonic() - started) * 1000)
-    for star, bodies in validation.star_lists(system):
+    for star, bodies in ((host.star, host.orbiters) for host in system.hosts):
         kind = _star_class(star)
         belts = irregular_moons.belts_of(bodies)
         promoted = [body for body in bodies if getattr(body, "belt_rank", None) is not None]

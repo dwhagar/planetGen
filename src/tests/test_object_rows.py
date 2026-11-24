@@ -248,7 +248,7 @@ def test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_wri
 
 def _check_bodies(system, checked):
     context = {"star_system_id": 1, "star_id": 2, "orbital_index": 0}
-    for body in system.planets:
+    for body in system.primary.orbiters:
         if hasattr(body, "moons"):
             row = _stored(store.PLANET_FIELDS, body, context)
             row["id"] = 7

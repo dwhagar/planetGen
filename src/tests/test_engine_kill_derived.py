@@ -32,7 +32,7 @@ def _systems():
     for seed in range(200):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if system.planets:
+        if system.primary.orbiters:
             made.append(system)
         if len(made) == SYSTEMS:
             return made, cfg

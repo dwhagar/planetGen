@@ -111,7 +111,7 @@ def _system_with_a_moon():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(getattr(p, "moons", None) for p in system.planets):
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a moon in 60 seeds")
 
@@ -119,7 +119,7 @@ def _system_with_a_moon():
 @pytest.mark.fresh_database
 def test_a_saved_system_keeps_its_ledger_and_deleting_the_system_takes_the_rows(mysql_config):
     system, cfg = _system_with_a_moon()
-    planet = next(p for p in system.planets if getattr(p, "moons", None))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "moons", None))
     moon = planet.moons[0]
     system.effect_ledger = ledger.EffectLedger()      # generation fills light and ultraviolet itself; this test sets its own numbers
     system.effect_ledger.add("light", planet, system.star, 1361.0)
@@ -186,7 +186,7 @@ def test_a_generated_system_notes_the_light_and_ultraviolet_of_each_star_on_each
         assert all(value > 0.0 for _, value in sources)
         assert system.star in [source for source, _ in sources]
     again, _ = _system_with_a_moon()      # the same seeds: the ledger is a record, so the system is what it was
-    assert [p.distance for p in again.planets] == [p.distance for p in system.planets]
+    assert [p.distance for p in again.primary.orbiters] == [p.distance for p in system.primary.orbiters]
 
 
 def _binary_system_with_planets():
@@ -199,7 +199,7 @@ def _binary_system_with_planets():
             system = StarSystem(system_config=cfg)
         # Rows are written for a body that two sources light (`EffectLedger.rows`: a lone source is implied away), and which binaries have such a planet is the draw's, so the system is the first
         # that has one (Train 22 moved what the first seeds draw: seed 0's planets were all lit by their own star alone).
-        if len(system.stars) > 1 and system.planets and any(sum(1 for _source, value in pairs if value > 0.0) > 1 for _receiver, pairs in system.effect_ledger.contributions("light")):
+        if len(system.stars) > 1 and system.primary.orbiters and any(sum(1 for _source, value in pairs if value > 0.0) > 1 for _receiver, pairs in system.effect_ledger.contributions("light")):
             return system, cfg
     pytest.fail("no binary system with planets that two stars light in 60 seeds")
 
@@ -276,7 +276,7 @@ def test_a_planet_beside_a_brown_dwarf_gets_the_dwarfs_light_in_its_ledger():
         config = SystemConfig()
         with draw.bound(seed):
             system = StarSystem(system_config=config)
-        if system.dark_members and system.dark_members[0].kind == "brown-dwarf" and system.planets:
+        if system.dark_members and system.dark_members[0].kind == "brown-dwarf" and system.primary.orbiters:
             break
     else:
         pytest.skip("no system with a brown dwarf and planets among the seeds tried")
@@ -298,7 +298,7 @@ def test_a_saved_system_with_a_brown_dwarf_keeps_the_dwarfs_light_rows_and_the_r
         config = SystemConfig()
         with draw.bound(seed):
             system = StarSystem(system_config=config)
-        if system.dark_members and system.dark_members[0].kind == "brown-dwarf" and system.planets:
+        if system.dark_members and system.dark_members[0].kind == "brown-dwarf" and system.primary.orbiters:
             break
     else:
         pytest.skip("no system with a brown dwarf and planets among the seeds tried")

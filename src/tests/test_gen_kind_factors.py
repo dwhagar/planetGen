@@ -348,7 +348,7 @@ def _mean_planets_of_a_g_dwarf(population, systems):
             system = StarSystem(system_config=cfg)
         # Class D tiny bodies (about 1e-4 Earth masses, ten or more to a system) are not planets that metallicity makes or withholds:
         # they are left over from the disk whatever the star is made of, so they are not counted. Belts are rows of small bodies too.
-        counts.append(sum(1 for p in system.planets if p.body_type != "a" and getattr(p, "planet_class", None) != "D"))
+        counts.append(sum(1 for p in system.primary.orbiters if p.body_type != "a" and getattr(p, "planet_class", None) != "D"))
     return sum(counts) / len(counts)
 
 

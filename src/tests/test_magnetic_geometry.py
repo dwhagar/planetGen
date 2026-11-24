@@ -121,7 +121,7 @@ def test_every_generated_body_with_a_dipole_has_a_direction_and_one_without_has_
         cfg.MOONS = True
         cfg.MAX_PLANETS = True
         system = StarSystem(system_config=cfg)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "a":
                 continue
             for body in (planet, *planet.moons):

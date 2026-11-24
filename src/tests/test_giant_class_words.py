@@ -40,7 +40,7 @@ def test_the_stored_gas_dwarfs_are_mostly_solid_under_a_small_share_of_envelope(
     config.STAR_TYPE, config.PLANETS, config.COMETS, config.BINARY_SYSTEM = "G2V", True, False, False
     with draw.bound(2001):
         system = StarSystem(system_config=config)
-    dwarfs = [p for p in system.planets if getattr(p, "planet_class", "") == "T"]
+    dwarfs = [p for p in system.primary.orbiters if getattr(p, "planet_class", "") == "T"]
     assert dwarfs, "the seed no longer makes a gas dwarf; pick another"
     for body in dwarfs:
         solids = 1.0 - (body.envelope_mass_fraction or 0.0)

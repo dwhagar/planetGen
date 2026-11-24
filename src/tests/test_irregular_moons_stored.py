@@ -62,7 +62,7 @@ def test_a_saved_planet_reads_back_its_irregular_moons(mysql_config, make):
     for seed in range(1, 30):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        planets = [body for body in system.planets if body.body_type != 'a' and not body.is_moon and body.belt_rank is None]
+        planets = [body for body in system.primary.orbiters if body.body_type != 'a' and not body.is_moon and body.belt_rank is None]
         if not planets:
             continue
         for other in planets[1:]:
@@ -72,7 +72,7 @@ def test_a_saved_planet_reads_back_its_irregular_moons(mysql_config, make):
         saved = store.save_system(system, config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             loaded = store.load_star_system(conn, saved)
-        read = [body for body in loaded.planets if body.body_type != 'a' and not body.is_moon and body.belt_rank is None]
+        read = [body for body in loaded.primary.orbiters if body.body_type != 'a' and not body.is_moon and body.belt_rank is None]
         assert _approx_dict(held.to_dict()) == read[0].irregulars.to_dict()
         assert len(read) == len(planets)
         for body, before in zip(read[1:], generated):

@@ -189,7 +189,7 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
             config = SystemConfig()
             config.MOONS = True
             system = StarSystem(system_config=config)
-            for planet in system.planets + system.secondary_planets:
+            for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
                 if planet.body_type == "a":
                     continue
                 for moon in planet.moons:
@@ -230,7 +230,7 @@ def generated_moons():
             config.STAR_TYPE = "G2V"
             config.BINARY_SYSTEM = False
             system = StarSystem(system_config=config)
-            for planet in system.planets:
+            for planet in system.primary.orbiters:
                 if planet.body_type != "a":
                     moons.extend(planet.build.born_moons or planet.moons)      # the moons as generated: the tide has since removed some (GEN.959)
     return moons
@@ -289,7 +289,7 @@ def test_the_same_seed_gives_the_same_moons():
                 config.MOONS = True
                 system = StarSystem(system_config=config)
                 out.extend((moon.moon_origin, moon.mass, moon.orbital_inclination_deg)
-                           for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
+                           for planet in system.primary.orbiters if planet.body_type != "a" for moon in planet.moons)
         return out
     assert masses() == masses()
 

@@ -94,7 +94,7 @@ def bodies(mysql_config):
         cfg.COMETS = True        # GEN.1775: a star holds comets only where its outer disk was scattered, so the comets are asked for (the search ran for hours without)
         with draw.bound(f"api-object-ids-{attempt}"):      # TEST.737: fixed streams, the same system in every run
             system = StarSystem(system_config=cfg)
-        if len(system.stars) > 1 and system.comets and any(getattr(p, "moons", None) for p in system.planets):
+        if len(system.stars) > 1 and system.comets and any(getattr(p, "moons", None) for p in system.primary.orbiters):
             break
     else:
         pytest.fail("none of 400 fixed streams drew a binary with comets and a moon")

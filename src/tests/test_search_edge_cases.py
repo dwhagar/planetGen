@@ -141,7 +141,7 @@ def test_operator_characters_on_every_object_panel(db_client, mysql_config):
     cfg.MOONS = True
     for _attempt in range(20):
         system = StarSystem(system_config=cfg)
-        if any(getattr(planet, "moons", None) for planet in system.planets):  # belts have no moons
+        if any(getattr(planet, "moons", None) for planet in system.primary.orbiters):  # belts have no moons
             break
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config)

@@ -53,7 +53,7 @@ def _saved_system(mysql_config, want=None):
     it has at least one planet)."""
     if want is None:
         def want(system):
-            return any(p.body_type != 'a' for p in system.planets)
+            return any(p.body_type != 'a' for p in system.primary.orbiters)
     for attempt in range(300):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
@@ -78,7 +78,7 @@ def _saved_system(mysql_config, want=None):
 
 
 def _with_moons(system):
-    return any(p.body_type != 'a' and p.moons for p in system.planets)
+    return any(p.body_type != 'a' and p.moons for p in system.primary.orbiters)
 
 
 def _rows(mysql_config, sql, params=()):
@@ -119,7 +119,7 @@ def test_save_system_edits_round_trips_an_unchanged_system(mysql_config):
     after = _load(mysql_config, system_id)
     assert sorted(r["id"] for r in _rows(mysql_config, "SELECT id FROM planets WHERE star_system_id = ?",
                                          (system_id,))) == planet_ids
-    for old, new in zip(before.planets, after.planets):
+    for old, new in zip(before.primary.orbiters, after.primary.orbiters):
         assert getattr(old, "name", None) == getattr(new, "name", None)
         assert getattr(old, "planet_class", None) == getattr(new, "planet_class", None)
         assert old.distance == pytest.approx(new.distance)
@@ -127,7 +127,7 @@ def test_save_system_edits_round_trips_an_unchanged_system(mysql_config):
 
 def test_regenerate_planet_keeps_its_row_and_name(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a' and p.moons)
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != 'a' and p.moons)
     other_ids = {r["id"] for r in _rows(mysql_config, "SELECT id FROM planets WHERE star_system_id = ? AND id <> ?",
                                         (system_id, planet.db_id))}
     response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/regenerate")
@@ -144,7 +144,7 @@ def test_regenerate_planet_keeps_its_row_and_name(admin, mysql_config):
 
 def test_delete_planet_takes_its_moons(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a' and p.moons)
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != 'a' and p.moons)
     response = admin.delete(f"/api/planets/{pid('planet', planet.db_id)}")
     assert response.status_code == 200, response.get_json()
     assert _rows(mysql_config, "SELECT id FROM planets WHERE id = ?", (planet.db_id,)) == []
@@ -154,7 +154,7 @@ def test_delete_planet_takes_its_moons(admin, mysql_config):
 
 def test_regenerate_and_delete_a_moon(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a' and p.moons)
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != 'a' and p.moons)
     moon = planet.moons[0]
     response = admin.post(f"/api/moons/{pid('moon', moon.db_id)}/regenerate")
     assert response.status_code in (200, 409), response.get_json()
@@ -165,8 +165,8 @@ def test_regenerate_and_delete_a_moon(admin, mysql_config):
 
 
 def test_regenerate_and_delete_a_belt(admin, mysql_config):
-    _sector_id, system_id = _saved_system(mysql_config, lambda s: any(p.body_type == 'a' for p in s.planets))
-    belt = next(p for p in _load(mysql_config, system_id).planets if p.body_type == 'a')
+    _sector_id, system_id = _saved_system(mysql_config, lambda s: any(p.body_type == 'a' for p in s.primary.orbiters))
+    belt = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type == 'a')
     response = admin.post(f"/api/belts/{pid('belt', belt.db_id)}/regenerate")
     assert response.status_code == 200, response.get_json()
     row = _rows(mysql_config, "SELECT lower_limit_km FROM asteroid_belts WHERE id = ?", (belt.db_id,))[0]
@@ -177,7 +177,7 @@ def test_regenerate_and_delete_a_belt(admin, mysql_config):
 
 def test_delete_refuses_to_drop_facilities_unless_told(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a')
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != 'a')
     response = admin.post("/api/facilities", json={
         "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "planet",
         "host_id": pid("planet", planet.db_id)})
@@ -188,7 +188,7 @@ def test_delete_refuses_to_drop_facilities_unless_told(admin, mysql_config):
 
 def test_regenerate_planet_keeps_facilities_on_the_planet(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a')
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != 'a')
     assert admin.post("/api/facilities", json={
         "name": "Relay Two", "kind": "station", "placement": "orbital", "host_type": "planet",
         "host_id": pid("planet", planet.db_id)}).status_code == 201
@@ -199,7 +199,7 @@ def test_regenerate_planet_keeps_facilities_on_the_planet(admin, mysql_config):
 def test_regenerated_system_validates(mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
     system = _load(mysql_config, system_id)
-    planet = next(p for p in system.planets if p.body_type != 'a')
+    planet = next(p for p in system.primary.orbiters if p.body_type != 'a')
     body, owner = adminEdits.find_body(system, "planet", planet.db_id)
     result = adminEdits.regenerate_planet(system, body, owner)
     assert result.removed == []
@@ -337,7 +337,7 @@ def test_edit_panel_shows_only_for_an_admin(web_app, mysql_config):
 
 def test_system_page_regenerates_a_planet(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a')
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != 'a')
     # TEST.71: a drawn name can hold an apostrophe, which the page escapes;
     # give it one every time.
     conn = store.get_connection(mysql_config)
@@ -348,7 +348,7 @@ def test_system_page_regenerates_a_planet(web_app, mysql_config):
         conn.close()
     # An asteroid belt's id comes from its own table and can equal the
     # planet's, so match the body type too.
-    planet = next(p for p in _load(mysql_config, system_id).planets
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters
                   if p.body_type != 'a' and p.db_id == planet.db_id)
     assert planet.name == "Ilq'Ot"
     client = _web_admin(web_app, mysql_config)
@@ -404,11 +404,11 @@ def test_phenomenon_page_regenerates_and_deletes(web_app, mysql_config):
 # ---------------------------------------------------------------------
 
 def _first_planet(system):
-    return next(p for p in system.planets if p.body_type != 'a')
+    return next(p for p in system.primary.orbiters if p.body_type != 'a')
 
 
 def _with_planet(system):
-    return any(p.body_type != 'a' for p in system.planets)
+    return any(p.body_type != 'a' for p in system.primary.orbiters)
 
 
 def test_change_star_derives_the_classes_again_and_saves_the_type(admin, mysql_config):
@@ -421,7 +421,7 @@ def test_change_star_derives_the_classes_again_and_saves_the_type(admin, mysql_c
     after = _load(mysql_config, system_id)
     assert after.star.type.split()[0] == "K2V"
     assert after.star.name == before.star.name
-    for planet in after.planets:  # GEN.646: the class follows the new light (made again by the edit), so it is not pinned to the old one
+    for planet in after.primary.orbiters:  # GEN.646: the class follows the new light (made again by the edit), so it is not pinned to the old one
         if planet.body_type != 'a':
             assert planet.planet_class in tuning.PLANET_CLASSES
     assert not validation.check_star_system(after) or body["warnings"]
@@ -477,21 +477,21 @@ def test_a_body_added_after_a_delete_gets_its_own_uid(mysql_config):
     """GEN.173 and GEN.174: delete a planet, then add one: the new row is saved with an ID (it was NULL), and
     not one another planet already has (it ranked among the current rows and took a used one)."""
     import copy
-    _sector_id, system_id = _saved_system(mysql_config, lambda s: sum(p.body_type != 'a' for p in s.planets) >= 3)
+    _sector_id, system_id = _saved_system(mysql_config, lambda s: sum(p.body_type != 'a' for p in s.primary.orbiters) >= 3)
     conn = store.get_connection(mysql_config)
     try:
         system = store.load_star_system(conn, system_id)
-        planets = [p for p in system.planets if p.body_type != 'a']
-        system.planets.remove(planets[0])                       # delete one, not the last
+        planets = [p for p in system.primary.orbiters if p.body_type != 'a']
+        system.primary.orbiters.remove(planets[0])                       # delete one, not the last
         with conn:
             editStore.save_system_edits(conn, system_id, system)
         system = store.load_star_system(conn, system_id)
-        added = copy.deepcopy([p for p in system.planets if p.body_type != 'a'][-1])
+        added = copy.deepcopy([p for p in system.primary.orbiters if p.body_type != 'a'][-1])
         added.db_id = None
         added.name = "Added Planet"
         for moon in added.moons:
             moon.db_id = None
-        system.planets.append(added)
+        system.primary.orbiters.append(added)
         with conn:
             editStore.save_system_edits(conn, system_id, system)
     finally:

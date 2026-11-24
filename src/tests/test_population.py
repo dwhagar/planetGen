@@ -56,7 +56,7 @@ def test_a_timeline_needs_both_ages():
 def test_timeline_of_reads_real_generated_planets():
     """A generated planet's stored structure reads back as a timeline."""
     for system, _config in _civilized_candidates():
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             timeline = population.timeline_of(getattr(planet, "life_stage", None),
                                               getattr(planet, "life_system_age_gyr", None),
                                               getattr(planet, "life_milestone_age_gyr", None))
@@ -253,7 +253,7 @@ def _candidate(number):
 
 
 def _has_civilization(system):
-    return any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.planets)
+    return any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.primary.orbiters)
 
 
 

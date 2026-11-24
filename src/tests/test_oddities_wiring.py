@@ -136,11 +136,11 @@ def test_a_planet_keeps_its_oddities_through_to_dict_and_from_dict():
     from planetgen.generation.system import StarSystem
     from tests.test_serialization import make_system
 
-    system = next(candidate for candidate in (make_system() for _ in range(20)) if any(p.body_type != "a" for p in candidate.planets))
-    planet = next(p for p in system.planets if p.body_type != "a")
+    system = next(candidate for candidate in (make_system() for _ in range(20)) if any(p.body_type != "a" for p in candidate.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if p.body_type != "a")
     planet.oddities = ("W10",)      # (whatever it rolled for itself is replaced: the test is the round trip)
     reloaded = StarSystem.from_dict(json.loads(json.dumps(system.to_dict())))
-    again = next(p for p in reloaded.planets if p.body_type != "a" and p.distance == planet.distance)
+    again = next(p for p in reloaded.primary.orbiters if p.body_type != "a" and p.distance == planet.distance)
     assert again.oddities == ("W10",)
 
 
@@ -162,7 +162,7 @@ def test_the_ids_are_saved_with_a_planet_and_a_moon_and_the_api_names_them(mysql
     from tests.test_storage_checksum import _system
 
     system, config = _system()
-    planets = [p for p in system.planets if p.body_type != "a"]
+    planets = [p for p in system.primary.orbiters if p.body_type != "a"]
     assert planets, "the test system holds a planet"
     planets[0].oddities = ("W10",)
     if planets[0].moons:
@@ -172,13 +172,13 @@ def test_the_ids_are_saved_with_a_planet_and_a_moon_and_the_api_names_them(mysql
         system_id = store.insert_star_system(conn, system, config)
         conn.commit()
         row = conn.execute("SELECT id, oddities FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()
-        first = row[system.planets.index(planets[0])]
+        first = row[system.primary.orbiters.index(planets[0])]
         assert first["oddities"] == "W10"
         found = routes.oddities_of(conn, "planet", first["id"])
         assert [item["id"] for item in found] == ["W10"] and "mantle" in found[0]["text"]
         assert routes.oddities_of(conn, "star", 1) == []
         loaded = store.load_star_system(conn, system_id)
-        assert loaded.planets[system.planets.index(planets[0])].oddities == ("W10",)
+        assert loaded.primary.orbiters[system.primary.orbiters.index(planets[0])].oddities == ("W10",)
         if planets[0].moons:
             assert conn.execute("SELECT COUNT(*) AS n FROM moons WHERE oddities = 'W10'").fetchone()["n"] == 1
     finally:
@@ -196,7 +196,7 @@ def _systems_with_a_merged_rocky_planet(force):
         config = SystemConfig()
         config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "G2V", False, force
         system = StarSystem(system_config=config)
-        found.extend(p for p in system.planets if p.body_type == "t" and p.collision_count >= 1 and p.mass < 10 * 5.972e24)
+        found.extend(p for p in system.primary.orbiters if p.body_type == "t" and p.collision_count >= 1 and p.mass < 10 * 5.972e24)
         if len(found) >= 4:
             break
     assert found, "no rocky planet with a recorded merger came out in 60 systems"
@@ -218,7 +218,7 @@ def test_a_planet_with_no_recorded_merger_never_gets_the_iron_rich_core_even_whe
     config = SystemConfig()
     config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "G2V", False, ("W10",)
     for _ in range(10):
-        for planet in StarSystem(system_config=config).planets:
+        for planet in StarSystem(system_config=config).primary.orbiters:
             if planet.body_type == "t" and planet.collision_count == 0:
                 assert "W10" not in planet.oddities
 

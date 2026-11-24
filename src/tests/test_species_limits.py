@@ -217,7 +217,7 @@ def _species(conn, planet_id, system_id, name, tech):
 def galaxy(mysql_config):
     """One saved system with three rocky planets: an Earth-like one that is a species' homeworld, a hot one that is
     another species' homeworld, and a harsh one. Returns the ids."""
-    _sector_id, system_id = _saved_system(mysql_config, want=lambda s: sum(p.body_type != "a" for p in s.planets) >= 3)
+    _sector_id, system_id = _saved_system(mysql_config, want=lambda s: sum(p.body_type != "a" for p in s.primary.orbiters) >= 3)
     conn = store.get_connection(mysql_config)
     try:
         planets = [r["id"] for r in conn.execute(

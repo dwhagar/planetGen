@@ -27,7 +27,7 @@ def _living_planet_system(mysql_config, monkeypatch, client):
         config.BINARY_SYSTEM = False
         with draw.bound(f"life-air-history:{attempt}"):      # TEST.709: the same systems every run, not a fresh draw that sometimes has no methane row
             system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "t" and (planet.atmospheric_pressure or 0) > 20000.0 and planet.greenhouse_factor is not None:
                 bo.store_air(planet, {"N2": 70000.0, "CO2": 30000.0})
                 system.star.age = 3.0
@@ -77,7 +77,7 @@ def test_a_planet_without_a_living_class_has_no_history(client, mysql_config):
     for attempt in range(40):
         with draw.bound(f"life-air-no-class-{attempt}"):      # TEST.737: fixed streams, the same system in every run
             system = StarSystem(system_config=config)
-        if any(p.body_type != "a" and p.life_stage is None for p in system.planets):
+        if any(p.body_type != "a" and p.life_stage is None for p in system.primary.orbiters):
             break
     else:
         pytest.fail("none of 40 fixed streams drew a system with a planet that has no life stage")
@@ -145,7 +145,7 @@ def test_a_planet_with_a_stored_history_and_no_living_class_still_answers_from_i
     for attempt in range(40):
         with draw.bound(f"life-air-no-class-{attempt}"):
             system = StarSystem(system_config=config)
-        if any(p.body_type != "a" and p.life_stage is None for p in system.planets):
+        if any(p.body_type != "a" and p.life_stage is None for p in system.primary.orbiters):
             break
     else:
         pytest.fail("none of 40 fixed streams drew a system with a planet that has no life stage")

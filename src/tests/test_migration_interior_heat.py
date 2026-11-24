@@ -24,16 +24,16 @@ def test_a_saved_system_keeps_every_bodys_heat(mysql_config):
     for seed in range(40):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(p.body_type == "t" for p in system.planets):
+        if any(p.body_type == "t" for p in system.primary.orbiters):
             break
     conn = store.get_connection(mysql_config)
     try:
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
         loaded = store.load_star_system(conn, system_id)
-        made = {p.name: p for p in system.planets if p.body_type == "t"}
+        made = {p.name: p for p in system.primary.orbiters if p.body_type == "t"}
         assert made
-        for planet in loaded.planets:
+        for planet in loaded.primary.orbiters:
             if planet.body_type == "t" and planet.name in made:
                 before = made[planet.name]
                 for name in (*COLUMNS, "urey_ratio"):

@@ -31,16 +31,16 @@ def saved_belt(mysql_config):
     for seed in range(1, 30):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        made = [body for body in system.planets if getattr(body, "belt_rank", None) is not None]
+        made = [body for body in system.primary.orbiters if getattr(body, "belt_rank", None) is not None]
         if not made:
             continue
         saved = store.save_system(system, config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             loaded = store.load_star_system(conn, saved)
-            order = next(b for b in loaded.planets if getattr(b, "belt_rank", None) is not None).belt_order
-            belt = list(irregular_moons.belts_of(loaded.planets).items())
+            order = next(b for b in loaded.primary.orbiters if getattr(b, "belt_rank", None) is not None).belt_order
+            belt = list(irregular_moons.belts_of(loaded.primary.orbiters).items())
             belt = dict(belt)[order]
-            return belt.db_id, [p for p in loaded.planets if getattr(p, "belt_rank", None) is not None], mysql_config
+            return belt.db_id, [p for p in loaded.primary.orbiters if getattr(p, "belt_rank", None) is not None], mysql_config
     pytest.fail("no belt that made planets in 29 systems")
 
 
@@ -83,7 +83,7 @@ def test_a_planet_made_from_a_belt_names_that_belt_on_its_sheet(saved_belt):
         belt_uid = object_uid.from_bytes(conn.execute("SELECT uid FROM asteroid_belts WHERE id = ?", (belt_id,)).fetchone()["uid"])
         found = sheet_module.sheet(conn, "planet", planet.db_id)
         rows = [row for group in found["groups"] for row in group["rows"] if row["key"] == sheet_module.BELT_ORIGIN_KEY]
-        kept = next(b for b in store.load_star_system(conn, conn.execute("SELECT star_system_id FROM planets WHERE id = ?", (planet.db_id,)).fetchone()["star_system_id"]).planets if getattr(b, "belt_rank", None) is None and b.body_type != "a")
+        kept = next(b for b in store.load_star_system(conn, conn.execute("SELECT star_system_id FROM planets WHERE id = ?", (planet.db_id,)).fetchone()["star_system_id"]).primary.orbiters if getattr(b, "belt_rank", None) is None and b.body_type != "a")
         plain = sheet_module.sheet(conn, "planet", kept.db_id)
     assert len(rows) == 1 and object_uid.designation(belt_uid, planet.belt_rank) in rows[0]["text"]
     assert not [row for group in plain["groups"] for row in group["rows"] if row["key"] == sheet_module.BELT_ORIGIN_KEY]

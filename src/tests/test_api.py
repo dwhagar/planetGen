@@ -411,7 +411,7 @@ def test_the_description_splits_into_every_body(client, mysql_config):
     # or comet despite the flags above, so draw until one has every kind.
     for _ in range(50):
         system = StarSystem(system_config=cfg)
-        bodies = system.planets or []
+        bodies = system.primary.orbiters or []
         if (any(getattr(b, "moons", None) for b in bodies)
                 and any(b.body_type == "a" for b in bodies) and system.comets):
             break
@@ -1327,7 +1327,7 @@ def test_galaxy_locate_and_search_give_planet_and_moon_hits_a_reference_and_pare
     cfg.BINARY_SYSTEM = False
     for _ in range(60):
         system = StarSystem(system_config=cfg)
-        if any(p.body_type != "a" and p.moons for p in system.planets):
+        if any(p.body_type != "a" and p.moons for p in system.primary.orbiters):
             break
     sector = SpaceSector("Zorbulon Field", edge_ly=10.0)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
@@ -2093,7 +2093,7 @@ def _save_wide_binary_with_moons(mysql_config):
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = True
         system = StarSystem(system_config=cfg)
-        if any(p.body_type != "a" and p.moons for p in system.planets):
+        if any(p.body_type != "a" and p.moons for p in system.primary.orbiters):
             return _db.save_system(system, cfg, config=mysql_config)
     raise AssertionError("could not generate a wide binary with a moon")
 
@@ -2482,7 +2482,7 @@ def test_a_planet_and_a_moon_name_their_life_class_and_the_scores_of_every_class
     cfg.BINARY_SYSTEM = False
     for _ in range(50):
         system = StarSystem(system_config=cfg)
-        if any(getattr(b, "moons", None) for b in (system.planets or [])):
+        if any(getattr(b, "moons", None) for b in (system.primary.orbiters or [])):
             break
     system_id = _db.save_system(system, cfg, config=mysql_config)
     conn = _db.get_connection(mysql_config)

@@ -189,7 +189,7 @@ def _make_system_with_planets():
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(p.body_type != "a" for p in system.planets):
+        if any(p.body_type != "a" for p in system.primary.orbiters):
             return system
     raise AssertionError("could not generate a system with a real (non-belt) planet after 30 attempts")
 

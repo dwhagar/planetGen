@@ -28,6 +28,7 @@ steps) live in `test_db_persistence.py` instead, alongside every other
 `store.py` test.
 """
 
+from planetgen.generation.hosts import Host
 import math
 import types
 
@@ -63,7 +64,7 @@ def _generate_systems_with_moons(n=N_SYSTEMS):
         cfg.MAX_PLANETS = True
         with draw.bound(f"orbital-motion:{attempt}"):      # a failure replays: the same attempt number makes the same system
             system = StarSystem(system_config=cfg)
-        planets = [obj for obj in system.planets if obj.body_type != "a"]
+        planets = [obj for obj in system.primary.orbiters if obj.body_type != "a"]
         if any(p.moons for p in planets):
             systems.append(system)
     if not systems:
@@ -75,7 +76,7 @@ def _all_planets_and_moons(systems):
     planets = []
     moons = []
     for system in systems:
-        for obj in system.planets:
+        for obj in system.primary.orbiters:
             if obj.body_type == "a":
                 continue
             planets.append(obj)
@@ -408,11 +409,11 @@ def test_a_moon_the_kozai_pass_changed_sits_on_the_ellipse_it_ends_with():
         return StarSystem(system_config=cfg)
 
     def has_pumped_moon(system):
-        return any(moon.build.kozai is not None for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
+        return any(moon.build.kozai is not None for planet in system.primary.orbiters if planet.body_type != "a" for moon in planet.moons)
 
     _, system = first_seed_with(build, has_pumped_moon, seeds=range(60), what="a moon the Kozai-Lidov pass cycled")
     checked = 0
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if planet.body_type == "a":
             continue
         for moon in planet.moons:
@@ -590,7 +591,7 @@ def test_moonless_planet_and_every_moon_has_zero_reflex_offset(bodies):
 def test_planet_hosting_star_reflex_offset_matches_manual_formula(systems_with_moons):
     checked_any = False
     for system in systems_with_moons:
-        real_planets = [p for p in system.planets if p.body_type != "a"]
+        real_planets = [p for p in system.primary.orbiters if p.body_type != "a"]
         if not real_planets or system.binary_type is not None:
             continue
         star = system.primary_star
@@ -610,7 +611,7 @@ def test_star_with_no_planets_has_zero_reflex_offset():
     for attempt in range(30):
         with draw.bound(f"reflex-offset-{attempt}"):
             system = StarSystem(system_config=cfg)
-        if not [p for p in system.planets if p.body_type != "a"]:
+        if not [p for p in system.primary.orbiters if p.body_type != "a"]:
             assert system.primary_star.reflex_offset_x == 0.0
             assert system.primary_star.reflex_offset_y == 0.0
             assert system.primary_star.reflex_offset_z == 0.0
@@ -700,7 +701,7 @@ def test_a_planet_whose_moons_all_went_loses_the_wobble_they_gave_it():
     planet = SimpleNamespace(body_type="p", moons=[], mass=6.0e24, position_x=1.0, position_y=0.0, position_z=0.0,
                              reflex_offset_x=3.0e-5, reflex_offset_y=-2.0e-5, reflex_offset_z=1.0e-6)
     star = SimpleNamespace(mass=2.0e30, reflex_offset_x=0.0, reflex_offset_y=0.0, reflex_offset_z=0.0)
-    system = SimpleNamespace(all_planets=[planet], planets=[planet], secondary_planets=[], binary_type=None, star=star, primary_star=star,
-                             member_hosts=lambda: [], _reflex_children=StarSystem._reflex_children)
+    system = SimpleNamespace(all_planets=[planet], primary=Host(star, "primary", [planet]), secondary=None, binary_type=None, star=star, primary_star=star,
+                             hosts_of=lambda role: [], _reflex_children=StarSystem._reflex_children)
     StarSystem._refresh_wobble(system)
     assert (planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z) == (0.0, 0.0, 0.0)

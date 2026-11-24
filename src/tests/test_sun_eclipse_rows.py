@@ -44,7 +44,7 @@ def _binary_with_an_eclipsed_sun():
             system = StarSystem(system_config=cfg)
         if len(system.stars) < 2:
             continue
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if getattr(planet, "body_type", None) == "a" or getattr(planet, "star", None) is None or not getattr(planet, "moons", None) or planet.spin_axis_x is None:
                 continue
             if _expected(planet):

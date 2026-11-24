@@ -27,7 +27,7 @@ def _config():
 
 
 def _bodies(system):
-    return [b for p in system.planets if p.body_type != 'a' for b in [p, *p.moons]]
+    return [b for p in system.primary.orbiters if p.body_type != 'a' for b in [p, *p.moons]]
 
 
 def _system(seed=None):

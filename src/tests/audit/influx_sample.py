@@ -26,7 +26,7 @@ def system_rows(seed):
     draw.set_run_seed(seed)
     system = StarSystem(system_config=SystemConfig())
     star = system.star
-    bodies = list(system.planets)
+    bodies = list(system.primary.orbiters)
     belts = [b for b in bodies if b.body_type == 'a' and b.mass_kg]
     reservoirs = [influx.Reservoir("belt", b.mass_kg, b.lower_limit, b.upper_limit, star.age * 1.0e9) for b in belts]
     reservoirs += [influx.Reservoir("comet", c.mass_kg, c.perihelion_distance_au, c.perihelion_distance_au) for c in system.comets if c.mass_kg]

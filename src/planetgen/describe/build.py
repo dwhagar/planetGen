@@ -28,6 +28,7 @@ from planetgen.describe.model import (
 )
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
+from planetgen.generation.hosts import MEMBER, NODE
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.stellar_object import supported_evolutionary_scales
 from planetgen.names.bodies import close_pair_label
@@ -816,13 +817,13 @@ def _overview_sentences(system):
 
 def _member_sections(system):
     """The stars beyond the pair, each with its own planets and belts as children (GEN.332)."""
-    return [_star_section(star, [_body_section(body) for body in bodies]) for star, bodies in system.member_hosts()]
+    return [_star_section(star, [_body_section(body) for body in bodies]) for star, bodies in system.hosts_of(MEMBER)]
 
 
 def _node_sections(system):
     """The pairs of the inner nodes of the tree that hold planets, each a `pair` section named for its stars with the planets round it (GEN.332, slice A)."""
     return [section("pair", None, system.node_label(host), [], [_body_section(body) for body in bodies])
-            for host, bodies in system.node_planet_hosts()]
+            for host, bodies in system.hosts_of(NODE)]
 
 
 def describe(system):
@@ -840,8 +841,8 @@ def describe(system):
         children += [_star_section(star) for star in system.stars[:2]] + _member_sections(system)
     elif system.binary_type == "wide":
         children = [_wide_pair_section(system.wide_binary)]
-        for star, planets, comets in ((system.primary_star, system.planets, system.comets),
-                                      (system.secondary_star, system.secondary_planets, system.secondary_comets)):
+        for star, planets, comets in ((system.primary_star, system.primary.orbiters, system.comets),
+                                      (system.secondary_star, system.secondary.orbiters, system.secondary_comets)):
             children.append(_star_section(star, [_body_section(body) for body in planets]
                                           + [_comet_section(comet) for comet in comets]))
         children += _member_sections(system)    # GEN.631: the stars beyond the pair
@@ -849,7 +850,7 @@ def describe(system):
         children = [_star_section(system.star)]
     children += _node_sections(system)
     if system.binary_type != "wide":
-        children += [_body_section(body) for body in system.planets]
+        children += [_body_section(body) for body in system.primary.orbiters]
         children += [_comet_section(comet) for comet in system.comets]
 
     return model.document("system", _ref("system", system), system.name,

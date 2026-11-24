@@ -28,7 +28,7 @@ def _make(seed):
 
 
 def _rocks_and_giants(system):
-    return [p for p in system.planets if p.body_type != "a"]
+    return [p for p in system.primary.orbiters if p.body_type != "a"]
 
 
 def _bodies(system):

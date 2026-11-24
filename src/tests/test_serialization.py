@@ -126,7 +126,7 @@ def test_binary_star_proxy_round_trip_snapshots_without_recomputing():
 
 def test_asteroid_belt_round_trip_preserves_composition_as_tuples():
     system, belt = _first_matching(
-        lambda s: next((o for o in s.planets if o.body_type == "a"), None),
+        lambda s: next((o for o in s.primary.orbiters if o.body_type == "a"), None),
         lambda: make_system("G2V", ASTEROID_BELT=True, PLANETS=True),
     )
 
@@ -148,7 +148,7 @@ def test_asteroid_belt_round_trip_preserves_composition_as_tuples():
 
 def test_planet_round_trip_preserves_frozen_life_data():
     system, planet = _first_matching(
-        lambda s: next((p for p in s.planets if p.body_type != "a" and p.life_class), None),
+        lambda s: next((p for p in s.primary.orbiters if p.body_type != "a" and p.life_class), None),
         lambda: make_system("G2V", HABITABLE_WORLD=True, PLANETS=True),
     )
 
@@ -162,7 +162,7 @@ def test_planet_round_trip_preserves_frozen_life_data():
 
 def test_moon_nesting_invariant_is_preserved_through_round_trip():
     def find_planet_with_moon(s):
-        return next((p for p in s.planets if p.body_type != "a" and p.moons), None)
+        return next((p for p in s.primary.orbiters if p.body_type != "a" and p.moons), None)
 
     system, planet = _first_matching(
         find_planet_with_moon,
@@ -188,8 +188,8 @@ def test_moon_nesting_invariant_is_preserved_through_round_trip():
 
 def test_star_system_round_trip_single_star_full_fidelity():
     def rich_enough(s):
-        belts = [o for o in s.planets if o.body_type == "a"]
-        moons = [m for p in s.planets if p.body_type != "a" for m in p.moons]
+        belts = [o for o in s.primary.orbiters if o.body_type == "a"]
+        moons = [m for p in s.primary.orbiters if p.body_type != "a" for m in p.moons]
         return s if (belts and moons) else None
 
     system, _ = _first_matching(
@@ -206,7 +206,7 @@ def test_star_system_round_trip_single_star_full_fidelity():
     # distance (not name) is the one attribute common to both Planet and
     # AsteroidBelt, so it's the shared key for an order check across the
     # mixed planets/belts list.
-    original_distances_in_order = [obj.distance for obj in system.planets]
+    original_distances_in_order = [obj.distance for obj in system.primary.orbiters]
     original_render = render_support.text(system)
 
     reloaded = StarSystem.from_dict(system.to_dict())
@@ -220,11 +220,11 @@ def test_star_system_round_trip_single_star_full_fidelity():
     assert reloaded.comet_count == system.comet_count
 
     # Orbital order preserved.
-    assert [obj.distance for obj in reloaded.planets] == original_distances_in_order
+    assert [obj.distance for obj in reloaded.primary.orbiters] == original_distances_in_order
 
     # Shared back-references: the SAME star/system_config instance everywhere.
     assert reloaded.star is reloaded.primary_star
-    for obj in reloaded.planets:
+    for obj in reloaded.primary.orbiters:
         assert obj.system_config is reloaded.system_config
         if obj.body_type != "a":
             assert obj.star is reloaded.star

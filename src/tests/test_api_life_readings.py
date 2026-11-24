@@ -21,7 +21,7 @@ def _save_with_life(mysql_config, scores):
         config.BINARY_SYSTEM = False
         with draw.bound(f"api-life-readings-{attempt}"):      # TEST.737: fixed streams, the same system in every run
             system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "t" and planet.surface_temperature is not None:
                 planet.life_class, planet.life_class_variant, planet.life_stage = 1, "a", "multicellularity"
                 planet.life_microbial, planet.life_flora, planet.life_fauna, planet.life_sentient = scores

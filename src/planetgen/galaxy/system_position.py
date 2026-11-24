@@ -14,6 +14,7 @@ while its sector and galactic coordinates follow.
 
 import math
 
+from planetgen.generation.hosts import MEMBER, NODE
 from planetgen.physics import system_tree, vec3
 from planetgen.physics.position import SpatialPosition3D
 from planetgen.util import draw
@@ -102,8 +103,7 @@ def set_system_epoch(system, epoch_unix):
     if not hasattr(system, "primary_star"):
         return
     bodies = list(getattr(system, "stars", None) or [system.primary_star])
-    for planet in getattr(system, "all_planets", None) or (
-            list(getattr(system, "planets", []) or []) + list(getattr(system, "secondary_planets", []) or [])):
+    for planet in system.all_planets:
         bodies.append(planet)
         bodies.extend(getattr(planet, "moons", []) or [])
     bodies.extend(getattr(system, "comets", []) or [])
@@ -187,15 +187,15 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     primary_v = star_velocities[id(system.primary_star)]
     secondary_v = star_velocities.get(id(secondary), system_velocity) if secondary is not None else system_velocity
     groups = [
-        (getattr(system, "planets", []) or [], getattr(system, "comets", []) or [],
+        (system.primary.orbiters, getattr(system, "comets", []) or [],
          primary_at if hosted else center_au, primary_v if hosted else system_velocity),
-        (getattr(system, "secondary_planets", []) or [], getattr(system, "secondary_comets", []) or [],
+        (system.secondary.orbiters if system.secondary else [], getattr(system, "secondary_comets", []) or [],
          secondary_at, secondary_v),
     ]
-    for member, bodies in system.member_hosts() if hasattr(system, "member_hosts") else ():    # GEN.332
-        groups.append((bodies, [], star_centers.get(id(member), center_au), star_velocities.get(id(member), system_velocity)))
-    for _host, bodies in system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else ():    # GEN.332, slice A: round the node's pair, placed at the system's center
-        groups.append((bodies, [], center_au, system_velocity))
+    for host in system.hosts_of(MEMBER):    # GEN.332
+        groups.append((host.orbiters, [], star_centers.get(id(host.star), center_au), star_velocities.get(id(host.star), system_velocity)))
+    for host in system.hosts_of(NODE):    # GEN.332, slice A: round the node's pair, placed at the system's center
+        groups.append((host.orbiters, [], center_au, system_velocity))
     for planets, comets, anchor, anchor_v in groups:
         for planet in planets:
             placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v, report=True)

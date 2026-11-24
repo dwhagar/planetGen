@@ -79,7 +79,7 @@ def _first(predicate):
 
 
 def test_a_planets_advance_is_the_state_step_its_batch_update_takes():
-    planet = _first(lambda s: next((p for p in s.planets if isinstance(p, Planet)), None))
+    planet = _first(lambda s: next((p for p in s.primary.orbiters if isinstance(p, Planet)), None))
     start = (planet.position_x, planet.position_y, planet.position_z)
     velocity = (planet.velocity_x_kms, planet.velocity_y_kms, planet.velocity_z_kms)
     seconds = 0.3 * planet.period * constants.SECONDS_PER_YEAR
@@ -90,7 +90,7 @@ def test_a_planets_advance_is_the_state_step_its_batch_update_takes():
 
 
 def test_a_planet_comes_back_after_one_period_and_a_step_back_undoes_a_step():
-    planet = _first(lambda s: next((p for p in s.planets if isinstance(p, Planet)), None))
+    planet = _first(lambda s: next((p for p in s.primary.orbiters if isinstance(p, Planet)), None))
     start = (planet.position_x, planet.position_y, planet.position_z)
     period_s = planet.period * constants.SECONDS_PER_YEAR
     planet.advance(period_s)
@@ -101,7 +101,7 @@ def test_a_planet_comes_back_after_one_period_and_a_step_back_undoes_a_step():
 
 
 def test_a_moon_advances_about_its_planet_by_the_same_function():
-    planet = _first(lambda s: next((p for p in s.planets if getattr(p, "moons", None)), None))
+    planet = _first(lambda s: next((p for p in s.primary.orbiters if getattr(p, "moons", None)), None))
     moon = planet.moons[0]
     start = (moon.position_x, moon.position_y, moon.position_z)
     moon.advance(0.25 * moon.period * constants.SECONDS_PER_YEAR)
@@ -147,7 +147,7 @@ def _planets_with_state(seed=1):
     from planetgen.util import draw
     draw.set_run_seed(seed)
     system = StarSystem(system_config=SystemConfig())
-    return [p for p in system.planets if isinstance(p, Planet) and p.spatial is not None
+    return [p for p in system.primary.orbiters if isinstance(p, Planet) and p.spatial is not None
             and p.spatial.get_velocity_vector("system") is not None]
 
 

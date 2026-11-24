@@ -25,7 +25,7 @@ def _sector_with_moons():
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         system = StarSystem(system_config=cfg)
-        if any(getattr(p, "moons", None) for p in system.planets):
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters):
             break
     sector.add_system(system, position=(1.25, -0.5, 0.75), system_config=cfg)
     sector.place_in_galaxy(tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M for c in CENTER_PC))
@@ -50,8 +50,8 @@ def test_a_saved_sector_loads_back_with_every_entry_and_body_in_place(mysql_conf
     assert after.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
         before.spatial.get_coordinates("galactic", "cartesian"), rel=1e-9)
     assert after.spatial.mass_kg == pytest.approx(before.spatial.mass_kg, rel=1e-9)
-    planets = [p for p in after.star_system.planets if getattr(p, "spatial", None)]
-    original = [p for p in before.star_system.planets if getattr(p, "spatial", None)]
+    planets = [p for p in after.star_system.primary.orbiters if getattr(p, "spatial", None)]
+    original = [p for p in before.star_system.primary.orbiters if getattr(p, "spatial", None)]
     assert len(planets) == len(original) and planets
     for loaded_planet, planet in zip(planets, original):
         assert loaded_planet.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
@@ -91,9 +91,9 @@ def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
         system = StarSystem(system_config=cfg)
         sector.add_system(system, position=(1.0, -0.5, 0.5), system_config=cfg)
         sector.place_in_galaxy(tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M for c in center_pc))
-        if any(getattr(p, "spatial", None) for p in system.planets):
+        if any(getattr(p, "spatial", None) for p in system.primary.orbiters):
             break
-    assert any(getattr(p, "spatial", None) for p in system.planets)
+    assert any(getattr(p, "spatial", None) for p in system.primary.orbiters)
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": float((center_pc[0] ** 2 + center_pc[1] ** 2 + center_pc[2] ** 2) ** 0.5),
@@ -113,8 +113,8 @@ def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
         assert star.spatial.sector_address == address
         assert star.spatial.get_velocity_vector("galactic") == pytest.approx(
             original.spatial.get_velocity_vector("galactic"), rel=1e-6)
-    planets = [p for p in after.star_system.planets if getattr(p, "spatial", None)]
-    originals = [p for p in before.star_system.planets if getattr(p, "spatial", None)]
+    planets = [p for p in after.star_system.primary.orbiters if getattr(p, "spatial", None)]
+    originals = [p for p in before.star_system.primary.orbiters if getattr(p, "spatial", None)]
     assert planets
     for planet, original in zip(planets, originals):
         assert planet.spatial.sector_address == address
@@ -142,6 +142,6 @@ def test_a_loaded_sector_carries_the_time_its_orbits_were_last_advanced(mysql_co
     assert entry.spatial.epoch_unix == epoch
     system = entry.star_system
     assert all(star.spatial.epoch_unix == epoch for star in system.stars)
-    bodies = [p for p in system.planets if getattr(p, "spatial", None)]
+    bodies = [p for p in system.primary.orbiters if getattr(p, "spatial", None)]
     assert bodies and all(p.spatial.epoch_unix == epoch for p in bodies)
     assert all(m.spatial.epoch_unix == epoch for p in bodies for m in p.moons)

@@ -157,7 +157,7 @@ def test_starsystem_children_have_no_unlisted_attributes():
         cfg.STAR_TYPE = random.choice(_STAR_TYPES)
         system = StarSystem(system_config=cfg)
         bodies = list(system.stars)
-        for obj in system.planets:
+        for obj in system.primary.orbiters:
             bodies.append(obj)
             bodies.extend(getattr(obj, "moons", None) or [])
         for body in bodies:
@@ -181,7 +181,7 @@ def test_starsystem_star_and_planet_roundtrip_fuzz():
         for star in system.stars:
             _assert_roundtrip(star, Star, f"Star seed={seed} type={star_type}", cfg)
 
-        for obj in system.planets:
+        for obj in system.primary.orbiters:
             if isinstance(obj, AsteroidBelt):
                 _assert_roundtrip(obj, type(obj), f"{type(obj).__name__} seed={seed}", cfg)       # GEN.1150: a trojan region is a belt with its own class
             elif isinstance(obj, Planet):

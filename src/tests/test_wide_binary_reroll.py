@@ -26,7 +26,7 @@ def _wide_system():
     cfg.WIDE_BINARY = True
     for _ in range(40):
         system = StarSystem(system_config=cfg)
-        if system.binary_type == "wide" and system.planets and system.secondary_planets:
+        if system.binary_type == "wide" and system.primary.orbiters and system.secondary.orbiters:
             return system, cfg
     raise AssertionError("could not generate a wide binary with planets at both stars")
 

@@ -94,9 +94,9 @@ def _saved_system(mysql_config):
     for seed in range(1, 60):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        belts = [b for b in system.planets if b.body_type == 'a' and b.mass_kg]
+        belts = [b for b in system.primary.orbiters if b.body_type == 'a' and b.mass_kg]
         # a small planet the belt's dust reaches: one inside its outer edge (a planet beyond it gets nothing from it)
-        if any(b.body_type not in ('a', 'g') and b.distance < belt.upper_limit for b in system.planets for belt in belts):
+        if any(b.body_type not in ('a', 'g') and b.distance < belt.upper_limit for b in system.primary.orbiters for belt in belts):
             return store.save_system(system, config, config=mysql_config)
     pytest.fail("no system with a belt that reaches a small planet in 59 seeds")
 
@@ -121,7 +121,7 @@ def test_a_giant_has_no_influx_row(mysql_config):
     for seed in range(1, 60):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        if any(b.body_type == 'g' for b in system.planets):
+        if any(b.body_type == 'g' for b in system.primary.orbiters):
             saved = store.save_system(system, config, config=mysql_config)
             with store.get_connection(mysql_config) as conn:
                 giant = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND body_type = 'g'", (saved,)).fetchone()["id"]

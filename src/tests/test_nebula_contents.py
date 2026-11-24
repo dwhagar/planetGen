@@ -174,7 +174,7 @@ def test_each_sector_builds_only_the_members_inside_it_and_together_they_make_ev
     for entry in built:
         star = entry.star_system.primary_star
         assert star.yerkes_class == "protostar" and star.disk_kind in ("class-0", "class-i")
-        assert [p for p in entry.star_system.planets if p.body_type != "a"] == []
+        assert [p for p in entry.star_system.primary.orbiters if p.body_type != "a"] == []
 
 
 def test_a_cloud_without_protostars_adds_no_system():

@@ -224,6 +224,16 @@ def test_a_body_last_stepped_before_the_scene_epoch_is_carried_on_to_it():
     assert norm(here) == pytest.approx(5.0 * AU_KM, rel=1e-9)
 
 
+def _center_of(scene, here, around):
+    """What a body goes round: the barycenter, a star or body of `here`, or the center of mass of a tree node (`node:N`, the planets of an inner pair of a triple), which `here` does not hold (TEST.818 family: a three-star draw hit a KeyError)."""
+    if around == "barycenter":
+        return [0.0, 0.0, 0.0]
+    if around.startswith("node:"):
+        from planetgen.physics.body_positions import _node_center_km
+        return _node_center_km(scene["tree"], here, int(around[5:]))
+    return here[around]
+
+
 def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
     from planetgen.db import store
     from planetgen.galaxy.sector import SpaceSector
@@ -239,7 +249,7 @@ def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
         cfg.MOONS = True
         cfg.COMETS = True  # a comet by construction, not by the draw (TEST.130)
         system = StarSystem(system_config=cfg)
-        if any(getattr(p, "moons", None) for p in system.planets) and system.comets and len(system.stars) > 1:
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters) and system.comets and len(system.stars) > 1:
             break
     else:
         pytest.fail("400 systems built and none had a planet with moons, a comet and a second star")
@@ -255,14 +265,14 @@ def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
         if star["orbit"] is not None and star["orbit"]["around"] == "barycenter":
             assert here[star["ref"]] == pytest.approx(star["position_km"], rel=1e-6, abs=1e4)
     for planet in scene["planets"]:
-        origin = here[planet["orbit"]["around"]] if planet["orbit"]["around"] != "barycenter" else [0.0, 0.0, 0.0]
+        origin = _center_of(scene, here, planet["orbit"]["around"])
         assert sub(here[planet["ref"]], origin) == pytest.approx(planet["position_km"], rel=1e-6, abs=1e4)
         for moon in planet["moons"]:
             assert sub(here[moon["ref"]], here[planet["ref"]]) == pytest.approx(moon["position_km"], rel=1e-6, abs=1e4)
     for comet in scene["comets"]:
         # Like a planet's, a comet's stored position is relative to what it goes round (GEN.165: a comet
         # round the second star of a wide pair was compared against the barycenter and missed by 64 AU).
-        origin = here[comet["orbit"]["around"]] if comet["orbit"]["around"] != "barycenter" else [0.0, 0.0, 0.0]
+        origin = _center_of(scene, here, comet["orbit"]["around"])
         assert sub(here[comet["ref"]], origin) == pytest.approx(comet["position_km"], rel=1e-5, abs=1e6)
 
 

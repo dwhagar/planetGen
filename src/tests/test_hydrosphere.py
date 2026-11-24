@@ -194,7 +194,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
     for seed in range(40):
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:

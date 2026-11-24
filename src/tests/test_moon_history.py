@@ -46,7 +46,7 @@ def _systems(seeds=range(16)):
 def _planet_where(wanted, what):
     """TEST.714: the first planet, over the first 64 seeds, that `wanted` accepts: a case a seed draws rarely is searched for, not pinned to the seed that once had it."""
     def find(system):
-        return next((planet for planet in system.planets if planet.body_type != "a" and wanted(planet)), None)
+        return next((planet for planet in system.primary.orbiters if planet.body_type != "a" and wanted(planet)), None)
 
     _seed, found = first_seed_with(lambda seed: find(_system(seed)), lambda planet: planet is not None, what=what)
     return found
@@ -96,7 +96,7 @@ def test_every_planet_with_moons_ends_with_moons_it_can_keep():
     for number, system in enumerate(_systems(range(64))):
         if number >= 16 and seen_moons > 5 and seen_fallen > 0:
             break      # TEST.714: the first 16 seeds always run; more only while the sample has not yet held a fallen moon and enough moons
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "a":
                 continue
             fallen = getattr(planet, "fallen_moons", ()) or ()

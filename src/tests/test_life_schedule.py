@@ -26,7 +26,7 @@ def _bodies(count, **overrides):
             setattr(config, key, value)
         with deterministic_entropy(7100 + seed):
             system = StarSystem(system_config=config)
-        for planet in system.planets + system.secondary_planets:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if planet.body_type == "a":
                 continue
             yield planet
@@ -217,7 +217,7 @@ def test_every_class_that_lives_on_a_body_is_supported_by_its_final_air_on_seed_
     config.MOONS = True
     with deterministic_entropy(5007):
         system = StarSystem(system_config=config)
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         for body in (planet, *getattr(planet, "moons", ())):
             for entry in getattr(body, life_classes.LIVING_FIELD, None) or ():
                 found = life_classes.score_classes(body).get(entry["life_class"])

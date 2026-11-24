@@ -151,7 +151,7 @@ def test_no_generated_description_contradicts_its_own_habitability_index():
     for seed in range(40):
         with deterministic_entropy(1000 + seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets + system.secondary_planets:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             for body in [planet] + list(getattr(planet, "moons", ())):
                 if body.body_type == "a" or getattr(body, "phi_bio", None) is None:
                     continue

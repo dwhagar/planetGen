@@ -11,7 +11,7 @@ pytestmark = pytest.mark.db
 
 
 def _bodies(system):
-    return [body for body in system.planets if getattr(body, "body_type", "a") != "a"]
+    return [body for body in system.primary.orbiters if getattr(body, "body_type", "a") != "a"]
 
 
 def test_a_loaded_planet_keeps_its_collision_count(mysql_config):

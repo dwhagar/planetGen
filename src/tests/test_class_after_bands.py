@@ -88,7 +88,7 @@ def test_a_moon_is_classed_after_its_water_is_remade_at_the_final_age(monkeypatc
         events.clear()
         with draw.bound(seed):
             system = StarSystem(system_config=config)
-        moons = [moon for planet in system.planets for moon in getattr(planet, "moons", ())]
+        moons = [moon for planet in system.primary.orbiters for moon in getattr(planet, "moons", ())]
         if moons:
             break
     assert moons, "no moon in the first 40 seeds"
