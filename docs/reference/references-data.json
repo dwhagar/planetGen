@@ -280170,6 +280170,40 @@
    "volume": "",
    "year": 2018
   },
+  "arXiv:1805.01227": {
+   "arxiv": "1805.01227",
+   "authors": [
+    [
+     "Kilic",
+     "M."
+    ],
+    [
+     "Hambly",
+     "N. C."
+    ],
+    [
+     "Bergeron",
+     "P."
+    ],
+    [
+     "Genest-Beaulieu",
+     "C."
+    ],
+    [
+     "Rowell",
+     "N."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Gaia Reveals Evidence for Merged White Dwarfs",
+   "type": "preprint",
+   "volume": "",
+   "year": 2018
+  },
   "arXiv:1807.08593": {
    "arxiv": "1807.08593",
    "authors": [
@@ -283570,6 +283604,56 @@
    "page": "",
    "src": "arxiv",
    "title": "The TROY project III. Exploring co-orbitals around low-mass stars",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
+  "arXiv:2407.04827": {
+   "arxiv": "2407.04827",
+   "authors": [
+    [
+     "Jewett",
+     "G."
+    ],
+    [
+     "Kilic",
+     "M."
+    ],
+    [
+     "Bergeron",
+     "P."
+    ],
+    [
+     "Moss",
+     "A."
+    ],
+    [
+     "Blouin",
+     "S."
+    ],
+    [
+     "Brown",
+     "W. R."
+    ],
+    [
+     "Kosakowski",
+     "A."
+    ],
+    [
+     "Toonen",
+     "S."
+    ],
+    [
+     "Agüeros",
+     "M. A."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Massive White Dwarfs in the 100 pc Sample: Magnetism, Rotation, Pulsations, and the Merger Fraction",
    "type": "preprint",
    "volume": "",
    "year": 2024
@@ -287835,7 +287919,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5350,
+ "id_next": 5356,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -293636,6 +293720,7 @@
   "arxiv:1804.08627": "R3227",
   "arxiv:1804.10589": "R2177",
   "arxiv:1804.11176": "R0044",
+  "arxiv:1805.01227": "R5354",
   "arxiv:1805.01453": "R1477",
   "arxiv:1805.03671": "R2315",
   "arxiv:1805.07094": "R3872",
@@ -294139,6 +294224,7 @@
   "arxiv:2406.06885": "R0974",
   "arxiv:2406.14134": "R4535",
   "arxiv:2407.04677": "R0248",
+  "arxiv:2407.04827": "R5355",
   "arxiv:2407.05853": "R1893",
   "arxiv:2407.08518": "R0323",
   "arxiv:2407.11680": "R3243",

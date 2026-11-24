@@ -26685,6 +26685,16 @@
       "kind": "paper",
       "label": "Knigge et al. 2011",
       "title": "THE EVOLUTION OF CATACLYSMIC VARIABLES AS REVEALED BY THEIR DONOR STARS"
+    },
+    "R5354": {
+      "kind": "paper",
+      "label": "Kilic et al. 2018",
+      "title": "Gaia Reveals Evidence for Merged White Dwarfs"
+    },
+    "R5355": {
+      "kind": "paper",
+      "label": "Jewett et al. 2024",
+      "title": "Massive White Dwarfs in the 100 pc Sample: Magnetism, Rotation, Pulsations, and the Merger Fraction"
     }
   }
 }
