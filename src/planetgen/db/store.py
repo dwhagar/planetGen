@@ -125,7 +125,6 @@ from planetgen.galaxy.straight_line import straight_line_position_pc
 from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
-from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
 from planetgen.util.format import format_duration_seconds
 from planetgen.util import detmath
@@ -4763,13 +4762,13 @@ def _mutual_orbit_fields_from_wide_binary(pair):
     The same 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
     `binary_secondary_position_*`/`binary_secondary_mass_fraction` columns
     as `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
-    `wide_binary.WideBinaryPair` instead -- these columns are reused
+    `generation.pair_orbit.PairOrbit` instead -- these columns are reused
     unchanged across both binary configurations (see `schema.sql`'s "v15"
     header note): a wide pair's own (circular-approximation) mutual orbit
     fits the exact same shape a close pair's already occupies.
 
     Args:
-        pair (WideBinaryPair): The system's wide-binary orbital pair.
+        pair (PairOrbit): The system's pair orbit.
 
     Returns:
         tuple: 16 values, ready to splice into the `INSERT` parameters.
@@ -5084,11 +5083,12 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
         periapsis_km = apoapsis_km = separation_km
     elif binary_configuration == "wide":
         proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
-        mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(star_system.wide_binary)
-        separation_km = _au_to_km(star_system.wide_binary.separation_au)
-        eccentricity = star_system.wide_binary.eccentricity
-        periapsis_km = _au_to_km(star_system.wide_binary.periapsis_au)
-        apoapsis_km = _au_to_km(star_system.wide_binary.apoapsis_au)
+        pair = star_system.pair_orbit
+        mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(pair)
+        separation_km = _au_to_km(pair.separation_au)
+        eccentricity = pair.eccentricity
+        periapsis_km = _au_to_km(pair.periapsis_au)
+        apoapsis_km = _au_to_km(pair.apoapsis_au)
     else:
         proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
         mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
@@ -10488,35 +10488,6 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
     }
 
 
-def _wide_binary_row_to_dict(star_system_row, pair):
-    """
-    Maps a `star_systems` row's `binary_*` columns that do not change (`binary_separation_km`, `binary_eccentricity`, `binary_periapsis_km`,
-    `binary_apoapsis_km`, `binary_mutual_orbital_speed_kms`, `binary_mutual_min_update_interval_years`) and the pair's orbit tree place
-    (`pair`, `orbit_trees.pair_places_km`: its phase and positions as the last orbit update left the pair's node, GEN.640 slice a) to
-    `WideBinaryPair.from_dict`'s expected dict shape (its `SERIALIZABLE_FIELDS`). Only ever called for a `binary_configuration == 'wide'` row
-    -- see `load_star_system`.
-    """
-    row = star_system_row
-    node = pair["node"]
-    mutual, primary, secondary = (tuple(_km_to_au(value) for value in pair[key]) for key in ("mutual_km", "primary_km", "secondary_km"))
-    return {
-        "separation_au": _km_to_au(row["binary_separation_km"]),
-        "eccentricity": row["binary_eccentricity"],
-        "period_years": node.period_years,
-        "speed_kms": row["binary_mutual_orbital_speed_kms"],
-        "periapsis_au": _km_to_au(row["binary_periapsis_km"]),
-        "apoapsis_au": _km_to_au(row["binary_apoapsis_km"]),
-        "inclination_deg": node.inclination_deg,
-        "ascending_node_deg": node.ascending_node_deg,
-        "phase_deg": node.mean_anomaly_deg,
-        "min_update_interval_years": row["binary_mutual_min_update_interval_years"],
-        "position_x_au": mutual[0], "position_y_au": mutual[1], "position_z_au": mutual[2],
-        "primary_position_x_au": primary[0], "primary_position_y_au": primary[1], "primary_position_z_au": primary[2],
-        "secondary_position_x_au": secondary[0], "secondary_position_y_au": secondary[1], "secondary_position_z_au": secondary[2],
-        "secondary_mass_fraction": pair["secondary_mass_fraction"],
-    }
-
-
 def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
     """
     Maps a `planets` or `moons` row (identical column shape -- see
@@ -10680,7 +10651,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     binary_configuration = row["binary_configuration"]
 
     secondary_star = None
-    wide_binary = None
 
     if binary_configuration == "close":
         primary_row = conn.execute(
@@ -10702,9 +10672,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         ).fetchone()
         star = Star.from_dict(_star_row_to_dict(primary_row, speed_kms), system_config)
         secondary_star = Star.from_dict(_star_row_to_dict(secondary_row, speed_kms), system_config)
-        wide_binary = WideBinaryPair.from_dict(
-            _wide_binary_row_to_dict(row, orbit_trees.pair_places_km(conn, star_system_id)), system_config, star, secondary_star
-        )
     else:
         star = _load_single_star(conn, star_system_id, system_config, speed_kms)
 
@@ -10723,7 +10690,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.system_config = system_config
     system.star = star
     system.binary_type = binary_configuration
-    system.wide_binary = wide_binary
     system.orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
     system.dark_members = orbit_trees.read_dark_members(conn, star_system_id)    # GEN.1013
 

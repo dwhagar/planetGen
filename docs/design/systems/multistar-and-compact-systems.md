@@ -71,7 +71,7 @@ were rerun while writing this document.
   (GEN.53). The orbit lives in `binary_*` columns on `star_systems`; the proxy has
   no `stars` row ([database-schema.md](../../reference/database-schema.md), "Binary
   configuration").
-- **Wide (S-type) pair.** `WideBinaryPair` (`generation/wide_binary.py`):
+- **Wide (S-type) pair.** Its draws are in `generation/wide_binary.py` (the pair's orbit is a node of the tree, read as `generation.pair_orbit.PairOrbit`, GEN.640 slice b):
   separation from Moe and Di Stefano's companions per decade of period, between
   0.25 AU and the place's survival limit (GEN.448; it was log-uniform from 50 to 10,000
   AU), thermal eccentricity capped at 0.8, live position circular ("a deliberate,

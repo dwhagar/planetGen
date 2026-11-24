@@ -47,7 +47,7 @@ from planetgen.physics import activity, bulk_draw, capture_windows, clearance_le
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
-from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.generation import pair_orbit
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 from planetgen.util.format import format_duration_seconds, format_period_years
@@ -104,7 +104,10 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 8 -> 9 to add `node_planets` (GEN.332, slice A): the circumbinary planets of the inner pair nodes of a tree, a list of
 # `{"node_no", "planets"}` dicts. A pre-v9 save has no key and reads as none.
-SERIALIZATION_SCHEMA_VERSION = 9
+#
+# Bumped 9 -> 10 to drop `wide_binary` (GEN.640, slice b): a wide pair's orbit is its node's (`pair_orbit`), already in `orbit_nodes`, so the key is no longer
+# written or read.
+SERIALIZATION_SCHEMA_VERSION = 10
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -355,7 +358,6 @@ class StarSystem:
         self.effect_ledger = effect_ledger.EffectLedger()  # GEN.1465: what each effect's code computed per body and source; written by `store.insert_star_system`, not read back
         self.architectures = []  # GEN.1111: `[(star, Architecture)]` of the plan each star's planets were built from, one per star in the order they were first planned; not stored (see `ejected_losses`). A list and not a dict keyed by `id(star)`: an address in a key made the sector differ from run to run (TEST.569)
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
-        self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
         # The nebula or supernova remnant around the system (the dict of `generation.cloud`): set by
         # `store.load_star_system`, and by `apply_cloud` when generation placed the system inside one (GEN.357).
         self.surrounding_cloud = None
@@ -876,6 +878,22 @@ class StarSystem:
             node_no = parent[node_no]
         return node_no
 
+    @property
+    def pair_orbit(self):
+        """The orbit of the system's own pair (`pair_orbit.PairOrbit`), read from its node (GEN.640 slice b), `None` for a single star."""
+        node_no = self.pair_node_no()
+        if node_no is None:
+            return None
+        node = next(node for node in self.orbit_nodes if node.node_no == node_no)
+        turned = False
+        if self.star_slots is not None:
+            parent = {n.node_no: (n.parent_node_no, n.slot) for n in self.orbit_nodes}
+            at, slot = self.star_slots[0]
+            while at != node_no:
+                at, slot = parent[at]
+            turned = slot == 1
+        return pair_orbit.pair_orbit(node, self.primary_star.mass, self.secondary_star.mass, turned)
+
     @staticmethod
     def _draw_star_words(first_word, slots):
         """The branch words of a tree with wide splits (GEN.312): one for each child of each wide node, `slots` in order (`tree_names.word_slots`). The slot-0 child, the
@@ -1162,7 +1180,6 @@ class StarSystem:
         self.stars = [placed_star]
         self.__dict__.pop("secondary_star", None)
         self.binary_type = None
-        self.wide_binary = None
         self._ledger = None
         self.member_stars = ()
         self.dark_members = ()
@@ -1267,11 +1284,7 @@ class StarSystem:
         if self.binary_type == "close":
             self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
-        else:
-            # An S-type pair never merges into one effective star -- self.star stays the primary Star itself, and
-            # WideBinaryPair.__init__ sets primary_star.a_crit_au / secondary_star.a_crit_au directly on the two Star
-            # instances (see Star.a_crit_au's own docstring).
-            self.wide_binary = WideBinaryPair(config, primary, secondary, orbit=pair_node)
+        # (An S-type pair never merges into one effective star: self.star stays the primary Star itself, and the pair's orbit is `pair_orbit`, read from its node.)
 
     def _tidal_spin_of_stars(self, nodes, slots, stars):
         """
@@ -1921,7 +1934,7 @@ class StarSystem:
         "central mass") is taken as the pair's COMBINED mass
         (`primary_star.mass + secondary_star.mass`) -- the same
         "combined mass governs the pair's local dynamics" reasoning
-        `WideBinaryPair` already applies via `mu` in the Holman & Wiegert
+        the wide pair's stability limit already applies via `mu` in the Holman & Wiegert
         formula, and a reasonable proxy specifically near the gap between
         the two disks, where both stars' gravity is comparably significant
         (that's the entire reason `a_crit_au` exists in the first place).
@@ -1995,7 +2008,7 @@ class StarSystem:
         `binary_type` (`None`/`"close"`/`"wide"`) is the authoritative
         discriminator; `is_binary` is stored alongside it and means "this
         system has two stars", true for either configuration. `secondary_star` and
-        `wide_binary` are only non-null when `binary_type == "wide"` (a
+        `secondary_planets` are only non-empty when `binary_type == "wide"` (a
         P-type binary's secondary is already nested inside `star`, the
         `BinaryStarProxy` dict). `secondary_planets` is the wide binary
         secondary's own independently-generated planet list -- empty for
@@ -2020,7 +2033,7 @@ class StarSystem:
 
         Returns:
             dict: `schema_version`, `name`, `star_words`, `system_config`, `star`, `is_binary`,
-                 `binary_type`, `secondary_star`, `wide_binary`, `planets`,
+                 `binary_type`, `secondary_star`, `planets`,
                  `secondary_planets`, `comets`, `secondary_comets`,
                  `system_flavor_text`.
         """
@@ -2034,7 +2047,6 @@ class StarSystem:
             "is_binary": self.binary_type is not None,
             "binary_type": self.binary_type,
             "secondary_star": self.secondary_star.to_dict() if is_wide else None,
-            "wide_binary": self.wide_binary.to_dict() if is_wide else None,
             "planets": [obj.to_dict() for obj in self.primary.orbiters],
             "secondary_planets": [obj.to_dict() for obj in self.secondary.orbiters] if is_wide else [],
             "comets": [comet.to_dict() for comet in self.comets],
@@ -2123,18 +2135,13 @@ class StarSystem:
             system.primary_star = star._primary
             system.secondary_star = star._secondary
             system.stars = [star._primary, star._secondary]
-            system.wide_binary = None
         elif binary_type == "wide":
             system.primary_star = star
             system.secondary_star = Star.from_dict(data["secondary_star"], system_config)
             system.stars = [system.primary_star, system.secondary_star]
-            system.wide_binary = WideBinaryPair.from_dict(
-                data["wide_binary"], system_config, system.primary_star, system.secondary_star
-            )
         else:
             system.primary_star = star
             system.stars = [star]
-            system.wide_binary = None
 
         def _load_objects(obj_data_list, obj_star):
             objects = []
