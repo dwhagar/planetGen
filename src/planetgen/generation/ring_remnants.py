@@ -13,6 +13,7 @@ from planetgen.db import store
 from planetgen.galaxy import resolution as galaxyResolution, seed as galaxySeed
 from planetgen.galaxy.profile import sector_profile
 from planetgen.generation import phenomenon_scatter
+from planetgen.generation.phenomenon_cuts import as_cuts
 
 
 def rows_for(conn, skeleton, limits, seed, min_mass_solar, addresses, held=None, on_sector=None):
@@ -25,7 +26,7 @@ def rows_for(conn, skeleton, limits, seed, min_mass_solar, addresses, held=None,
     Args:
         limits (ScatterLimits): The galaxy scatter's limits by place (`run_plan._scatter_limits_and_seed`): the mass limit a cell's resolution reads.
         seed (int): The phenomenon scatter's seed (`store.phenomenon_scatter_settings`).
-        min_mass_solar (float or None): The scatter's cut; `None` draws nothing.
+        min_mass_solar (float, `phenomenon_cuts.Cuts` or None): The scatter's cut, by place for `Cuts` (GEN.377: each sector takes its own band's); `None` draws nothing.
         held (set or None): The cells that already hold below-cut remnants.
         on_sector (callable or None): Called once per address visited (a progress tick).
 
@@ -35,16 +36,18 @@ def rows_for(conn, skeleton, limits, seed, min_mass_solar, addresses, held=None,
     rows = []
     if min_mass_solar is None:
         return rows
+    cuts = as_cuts(min_mass_solar)
     for address in addresses:
         address = tuple(address)
         if on_sector is not None:
             on_sector()
-        if (address in held) if held is not None else store.sector_holds_below_cut_remnants(conn, address, min_mass_solar):
+        cut = cuts.cut_at(address[0], address[1])      # GEN.377: the cut of the sector's own band
+        if (address in held) if held is not None else store.sector_holds_below_cut_remnants(conn, address, cut):
             continue
         profile = sector_profile(address, skeleton)
         with galaxySeed.seeded(skeleton.galaxy_seed, "sector", address, disk_scale_length_pc=skeleton.shape.disk_scale_length_pc, shape=skeleton.shape):
             resolution = galaxyResolution.cell_resolution(profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol, limits.mass_limit_at(address[0], address[1]))
         if resolution.capped:
             continue
-        rows.extend(phenomenon_scatter.ring_remnant_rows(address, profile.position_pc, profile.shape, profile.expected_systems, min_mass_solar, seed, skeleton.edge_pc))
+        rows.extend(phenomenon_scatter.ring_remnant_rows(address, profile.position_pc, profile.shape, profile.expected_systems, cut, seed, skeleton.edge_pc))
     return rows

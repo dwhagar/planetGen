@@ -25,6 +25,7 @@ import time
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation import phenomenon_cuts as phenomenonCuts
 from planetgen.generation import bodybeat
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, engine, itemfile, splitter, units as queueUnits, wrapper
@@ -345,6 +346,9 @@ def _fill_context(args, address):
         if settings is not None:
             phenomena = store.phenomena_for_sector(conn, *address)
             seed, min_mass_solar = settings
+            if min_mass_solar is not None:
+                # GEN.377: the cut of the sector's own band (the core, the baseline or the halo), as the scatter placed its phenomena.
+                min_mass_solar = phenomenonCuts.Cuts.of(skeleton, min_mass_solar).cut_at(address[0], address[1])
             if min_mass_solar is not None and not resolution.capped and not store.sector_holds_below_cut_remnants(conn, address, min_mass_solar):
                 # GEN.168: what the scatter left below its cut, at the
                 # density it used (the plan's, not this sector's own roll). A capped cell makes no remnant of its

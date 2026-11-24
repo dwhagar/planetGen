@@ -295,3 +295,26 @@ at 2 Msun (the table's constants as given; it does not matter for a visibility r
 ## What a run at the default cut places (GEN.677)
 
 A run at the 14 solar mass cut placed about 86,000 stellar black holes per pair of inner shells and no neutron star that is not a magnetar, which read as an inverted ratio. It is the cut, not the rates. The scatter places a class only above the cut (`share_above`): the stellar black holes draw 5 to 20 solar masses, so 40% of them (14 to 20) are scattered; the neutron stars draw 1.1 to 2.2, so none is, and the sector that holds one draws it when it is filled (`below_cut_draws`, at the rate of `tuning.phenomenon_rate_per_star`). Each class is placed at the count its model rate gives (the stellar remnant model of `galaxy/remnant_density.py`): at the default cut the black hole count is within 1% of `shell_expected_by_class`, and with every mass scattered (cut 1) the neutron stars outnumber the black holes about 2 to 1 on the toy galaxy of the tests, as the model has them. The stage line now says what the cut leaves to the sectors (`phenomenon_scatter.cut_summary`), the magnetars being scattered at every cut. No generated value changes.
+
+## The cut by place (GEN.377)
+
+GEN.333 gave the star scatter three limits by place (core, baseline, halo); the compact objects kept one global cut. The cut is now the tier limit of the band
+an object is placed in: `generation/phenomenon_cuts.Cuts` holds the three numbers, from the same settings the Generate page shows (the baseline cut, the core's
+`--core-mass-limit` or the baseline times `tuning.CORE_TIER_FACTOR`, and the halo, which has no mass limit of its own and takes the baseline's:
+`scatter_limits.ScatterLimits.of`), and a band's tier is chosen by its dominant population as for the stars (`scatter_limits.tier_indices`). No extra setting.
+
+Where each pass reads it:
+- **The band walk** (`phenomenon_scatter._band_rows`): each band's mean for a class is its rate at the lowest of the three cuts times the share its tier keeps
+  (`tier_shares`: `share_above` at the tier's cut over the lowest's), and the masses of its objects are drawn above the tier's cut.
+- **The reach beyond the outline and the clusters and satellites** (`phenomenon_reach`, `component_pass`): the candidates are drawn at the lowest cut's rate and each is
+  kept with the share its band's tier keeps, from a draw of its own, as the star pass keeps by tier; its mass is drawn above the band's cut.
+- **The fill** (`run_galaxy._fill_context`) and **the backfill ring's remnants** (`ring_remnants`): a sector draws what lies under its own band's cut (`BelowCut`,
+  `ring_remnant_rows`), and `store.addresses_holding_below_cut_remnants` counts a cell as holding some when a row is under that cell's cut.
+- **The plan and the log**: the expected rows and the progress weights use the lowest cut's rates, per band the tier's share; the log line gives the baseline cut and,
+  when they differ, the core's and the halo's.
+
+Three equal cuts draw exactly what one cut drew, with no tier looked up. With a different core cut the rows of the other bands are the rows they were only where the stream
+is not shared: a class's stream runs band by band, so a band after a changed core band draws other random numbers (the counts are Poisson means that did not change). The
+phenomenon scatter's recorded setting is still the baseline cut (`galaxy_shape.phenomenon_min_mass_solar`); the core's follows the galaxy's core setting at the time the
+scatter, the backfill and the fill read it, as the stars' does.
+

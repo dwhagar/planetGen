@@ -7684,16 +7684,20 @@ def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
 
 def addresses_holding_below_cut_remnants(conn, min_mass_solar):
     """
-    `sector_holds_below_cut_remnants` for every cell at once: the set of `(shell, band, wedge)` whose scatter rows include a below-cut neutron star or black hole, from one read of the table. For the unit that draws
+    `sector_holds_below_cut_remnants` for every cell at once: the set of `(shell, band, wedge)` whose scatter rows include a below-cut neutron star or black hole, from one read of the table (`min_mass_solar` is a number, or `phenomenon_cuts.Cuts` for a cut that differs by place, GEN.377: a cell is held when a row is under its own band's cut). For the unit that draws
     the ring remnants while the table has no indexes (a read per cell would be a scan each).
     """
     if min_mass_solar is None:
         return set()
+    by_place = hasattr(min_mass_solar, "tiers")       # GEN.377: a `phenomenon_cuts.Cuts`, the cut of each band's tier
+    highest = max(min_mass_solar.tiers) if by_place else float(min_mass_solar)
     marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
     rows = conn.execute(
-        f"SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ?",
-        (*BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchall()
-    return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows}
+        f"SELECT shell_index, band_index, wedge_index, MIN(mass_solar) AS lightest FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ? "
+        "GROUP BY shell_index, band_index, wedge_index",
+        (*BELOW_CUT_REMNANT_KINDS, highest)).fetchall()
+    return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows
+            if not by_place or float(row["lightest"]) < min_mass_solar.cut_at(int(row["shell_index"]), int(row["band_index"]))}
 
 
 def backfilled_uncharted_addresses(conn):
