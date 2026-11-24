@@ -170,3 +170,45 @@ def star_places(star_system):
     pair = star_system.wide_binary
     return [(ROOT_NODE_NO, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au), 0),
             (ROOT_NODE_NO, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au), 1)]
+
+
+def pair_node_no(conn, star_system_id):
+    """The node of the system's own pair (the stars of roles `primary` and `secondary`): the node both hang in, else the lowest
+    node above them (a dark member or a sub-pair between them), `None` for a single star or a system with no stored tree."""
+    rows = conn.execute(
+        "SELECT role, parent_node_id FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')",
+        (star_system_id,)).fetchall()
+    places = {row["role"]: row["parent_node_id"] for row in rows}
+    if len(places) < 2 or None in places.values():
+        return None
+    nodes = conn.execute("SELECT node_no, parent_node_no FROM orbit_nodes WHERE star_system_id = ?", (star_system_id,)).fetchall()
+    if not nodes:
+        return None
+    return stored_trees.lowest_node_above(
+        [OrbitNode(node_no=n["node_no"], parent_node_no=n["parent_node_no"], slot=None, mass_solar=0.0, separation_km=0.0,
+                   eccentricity=0.0, inclination_deg=0.0, ascending_node_deg=0.0, arg_periapsis_deg=0.0, mean_anomaly_deg=0.0,
+                   epoch_unix=0.0, period_years=0.0) for n in nodes],
+        places["primary"], places["secondary"])
+
+
+def pair_places_km(conn, star_system_id):
+    """
+    The system's own pair as the orbit tree places it (GEN.640 slice a), the reader the `star_systems.binary_mutual_*`,
+    `binary_primary_position_*` and `binary_secondary_position_*` columns were: `None` for a single star, else a dict
+    `{"node": OrbitNode, "mutual_km", "primary_km", "secondary_km", "secondary_mass_fraction"}`. `mutual_km` is the secondary's
+    position relative to the primary at the pair node's own epoch (the orbit as the last update left it), and the two stars sit
+    either side of the pair's center of mass in proportion to the other's mass, as the columns held them. The pair node's mean
+    anomaly is what `store.advance_orbital_phases` turns, so no column of the pair needs an update of its own.
+    """
+    node_no = pair_node_no(conn, star_system_id)
+    if node_no is None:
+        return None
+    node = next(node for node in read_nodes(conn, star_system_id) if node.node_no == node_no)
+    masses = {row["role"]: row["mass_kg"] for row in conn.execute(
+        "SELECT role, mass_kg FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')", (star_system_id,)).fetchall()}
+    fraction = masses["secondary"] / (masses["primary"] + masses["secondary"])
+    mutual = [_au_to_km(value) for value in system_tree.node_relative_au(node, node.epoch_unix)]
+    return {
+        "node": node, "mutual_km": mutual, "secondary_mass_fraction": fraction,
+        "primary_km": [-fraction * value for value in mutual], "secondary_km": [(1.0 - fraction) * value for value in mutual],
+    }
