@@ -2,6 +2,71 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4765+db274.gen150.api14] - 2026-11-24
+
+**Headline:** A system of several stars is no longer drawn twice to check that its stars clear their orbits, because the tree and the build now read the same stars.
+
+### Changed
+- **The check that redrew a whole set of companions when a built star was wider than its orbit (GEN.1015).** `multistar.built_tree_clears`, the clearance branch of `StarSystem._companions_fit`, `StarSystem._built_stars_clear` and the redraw kind `companions.overlap` are gone, with no shim. Each companion is built from the record the tree drew it with (GEN.1009), so a built star is the star its orbit was drawn around and the check never failed; the independent verifier (`physics/clearance.py`) is what the tests now ask. Generated systems are unchanged.
+
+## [8.0.4764+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The seven stand-ins of the white dwarf binaries now each have a registry row with a source, a tier and a test.
+
+### Changed
+
+- GEN.707: the cataclysmic variable and AM CVn donor ranges, the lobe fill factor, the hot subdwarf share, the barium and symbiotic giant mass limit and the two orbital period ranges are rows WK1 to WK7 of section 6.329 of the stand-in registry, with the tier, tweak level, validity, falsifier test and what would replace each. A test fails when one of the constants has no row. The donor range of a cataclysmic variable matches the donor sequence (0.069 solar masses at the period minimum to 0.7 at 5.9 h); the barium period range cuts the longest orbits (4e4 d); the hot subdwarf share and the symbiotic periods have no source read. No generated value changes.
+
+## [8.0.4763+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The mantle assemblages of simulated rocky bodies are checked against the polluted white dwarfs; they sit in the Earth-like region and do not reach the exotic tail.
+
+### Changed
+
+- GEN.1841: `scripts/white_dwarf_assemblage.py` draws 2,000 bodies round hosts of 1 to 3 solar masses with the generator's own star model and rock oxides and reads the mineral norm of each. Every mantle is olivine, orthopyroxene and clinopyroxene (the region of 11 of the 23 white dwarfs of Putirka and Xu); 1 of 2,000 has 10 percent quartz or periclase against 12 of 23 white dwarfs, a tail the newer Trierweiler study does not ask for (15 to 21 of 31 chondritic) and the generator should not be tuned to. The per-star tables of both studies are not reachable, so the test is on their stated counts. No generated value changes. See `docs/design/composition/surface-composition.md`.
+
+## [8.0.4762+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The generator's M-dwarf planets are checked against the three density modes of Luque and Palle and reproduce all three.
+
+### Changed
+
+- GEN.1839: `scripts/m_dwarf_density_modes.py` draws M-dwarf systems with the real generator, weights each small planet by its chance to transit, measures it with the precision model of GEN.505 and compares the density groups with the published modes (rocky 0.94, water 0.47, puffy 0.24). All three agree within about one published error in density and radius. The middle group is mostly planets with a thin envelope, not water worlds (15 percent hold 10 percent water or more), and has no gap at 0.65 that a sample of 34 would see. The "switch" of decision D1 is settled as a registry bracket, not a runtime option. No generated value changes. See `docs/design/composition/water-delivery-tuning.md` section 3.
+
+## [8.0.4761+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The iron branch of a rocky planet is checked against the published samples at 20 times the simulated planets, and its coreless end is registered.
+
+### Changed
+
+- GEN.820 (the residuals of the bulk iron branch table, GEN.512): at 60,000 simulated planets per case the shipped knobs (enriched weight 0.01, scatter 0.05 dex) still reproduce both published shares (z -0.01 and -1.38); a test now holds it at 20,000 planets. A core spread of 0.2 dex and an enriched weight of 0.23 fail the within-1-sigma share, which bounds the registered ranges of row BC8.
+- New registry row BC25: the coreless branch is not drawn (share 0, no published count, tier T4, tweak L0). The slope stays 1 (row BC8, fill 3). The design note `docs/design/composition/iron-branch-tuning.md` has the table of runs. No generated value changes.
+
+## [8.0.4760+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The angles the region and window walks take for a small ball far from the core keep their digits, so a ball of a few parsecs at 262 kpc no longer loses cells to rounding.
+
+### Fixed
+
+- The walks that list the cells a ball reaches (`galaxy/region.py` through `spherical.sphere_shells` and `band_window`, and `window.cells_in_ball`) took each angle as the arccos of a cosine; below 1e-3 rad that cosine is within a few ulps of 1 and keeps hardly any digits (the angle of a 3 pc ball at 262 kpc was off by 4e-7 of itself). Below 1e-3 rad they now use the haversine form (GEN.376); larger angles are unchanged, and the cells a walk lists are still tested by distance, so no stored or generated value changes.
+
+generation-output: unchanged
+
+## [8.0.4759+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The composition design note names the Bern population synthesis, not a refractory paper, as the source of water against formation distance.
+
+### Changed
+
+- In `docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md` the research group R2 (volatile delivery versus formation distance) listed [R4335] as its data; that paper is about refractory condensation and gives no water against distance. It now names the Bern population of [R0600] and [R0601, R1268], which is the data of GEN.802, and says what [R4335] is for. Documentation only, no generated value changes (GEN.515, row R2).
+
+## [8.0.4758+db274.gen150.api14] - 2026-11-24
+
+**Headline:** A test now pins the pigment band times the star's spectrum on the life classes' energy term (GEN.878).
+
+### Added
+- **The closing evidence for GEN.878.** `tests/test_life_classes.py::test_the_visible_pigment_is_penalised_under_a_red_dwarf_and_the_near_infrared_one_is_not_beaten_by_it` checks that under a 3,000 K star Chlorophyll's (class 1a) energy term falls against the Sun's, that the near-infrared class (2) overtakes it, and that under the Sun the visible pigment is the better. generation-output: unchanged (a test only; the code already did this).
+
 ## [8.0.4757+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The scene-position test no longer fails when a drawn system has planets round the inner pair of a triple star.

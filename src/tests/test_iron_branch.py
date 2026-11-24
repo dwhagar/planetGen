@@ -30,6 +30,14 @@ def test_the_shipped_branch_reproduces_the_published_sample(target_id):
     assert result.passed, (target_id, result.simulated, target.value, result.z)
 
 
+@pytest.mark.parametrize("target_id", SAMPLE_TARGETS)
+def test_the_shipped_branch_still_reproduces_the_sample_at_twenty_thousand_planets(target_id):
+    """GEN.820: the tuning sample was 3,000 simulated planets; at 20,000 the noise of the simulated share is a third of what it was and the shipped knobs still pass both targets."""
+    target = th.TARGETS.get(target_id)
+    result = th.simulate_and_compare(target, it.sampler(bd.IRON_ENRICHED_WEIGHT, bd.IRON_SCATTER_DEX), n=20000)
+    assert result.passed, (target_id, result.simulated, target.value, result.z)
+
+
 def test_a_branch_that_is_far_too_common_is_refused_by_the_outlier_share():
     target = th.TARGETS.get("t5-outlier-share")
     result = th.simulate_and_compare(target, it.sampler(0.6, bd.IRON_SCATTER_DEX), n=3000)

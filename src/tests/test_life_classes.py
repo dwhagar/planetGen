@@ -184,6 +184,19 @@ def test_a_cool_red_star_favours_the_far_red_pigment_relative_to_the_visible_one
     assert hot["1b"].band_ratio > hot["1c"].band_ratio
 
 
+def test_the_visible_pigment_is_penalised_under_a_red_dwarf_and_the_near_infrared_one_is_not_beaten_by_it():
+    """GEN.878: the energy term reads the class's own pigment band times the star's spectrum, so Chlorophyll (1a, 400 to 700 nm) under a 3,000 K star loses the
+    light it cannot use, and the near-infrared class (2, 800 to 1050 nm) overtakes it there; the far-red class 1c (700 to 800 nm, efficiency 0.8) is a narrow band and does not. A dim flux is used
+    so that the energy curve is not on its flat top, where every pigment scores 1."""
+    def energy(teff, class_id):
+        return life_classes.score_classes(world(star_teff_k=teff, energy_flux_w_m2=2.0, star_luminosity_w=None))[class_id].terms["energy"]
+
+    assert energy(3000.0, "1a") < energy(5772.0, "1a")  # Chlorophyll under the red dwarf is penalised against the Sun
+    assert energy(3000.0, "2") > energy(3000.0, "1a")  # the near-infrared pigment sees what Chlorophyll does not
+    assert energy(5772.0, "1a") > energy(5772.0, "2")  # and under the Sun the visible pigment is the better one
+    assert energy(3000.0, "1a") > energy(3000.0, "1c")  # class 1c's band is only 100 nm wide: the red dwarf's light beyond 800 nm is class 2's, not its
+
+
 def test_the_share_of_photons_in_a_band_follows_the_blackbody():
     sun = life_classes.band_fraction(5772.0, (400.0, 700.0))
     assert 0.15 < sun < 0.35
