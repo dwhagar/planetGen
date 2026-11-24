@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4763+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The mantle assemblages of simulated rocky bodies are checked against the polluted white dwarfs; they sit in the Earth-like region and do not reach the exotic tail.
+
+### Changed
+
+- GEN.1841: `scripts/white_dwarf_assemblage.py` draws 2,000 bodies round hosts of 1 to 3 solar masses with the generator's own star model and rock oxides and reads the mineral norm of each. Every mantle is olivine, orthopyroxene and clinopyroxene (the region of 11 of the 23 white dwarfs of Putirka and Xu); 1 of 2,000 has 10 percent quartz or periclase against 12 of 23 white dwarfs, a tail the newer Trierweiler study does not ask for (15 to 21 of 31 chondritic) and the generator should not be tuned to. The per-star tables of both studies are not reachable, so the test is on their stated counts. No generated value changes. See `docs/design/composition/surface-composition.md`.
+
+## [8.0.4762+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The generator's M-dwarf planets are checked against the three density modes of Luque and Palle and reproduce all three.
+
+### Changed
+
+- GEN.1839: `scripts/m_dwarf_density_modes.py` draws M-dwarf systems with the real generator, weights each small planet by its chance to transit, measures it with the precision model of GEN.505 and compares the density groups with the published modes (rocky 0.94, water 0.47, puffy 0.24). All three agree within about one published error in density and radius. The middle group is mostly planets with a thin envelope, not water worlds (15 percent hold 10 percent water or more), and has no gap at 0.65 that a sample of 34 would see. The "switch" of decision D1 is settled as a registry bracket, not a runtime option. No generated value changes. See `docs/design/composition/water-delivery-tuning.md` section 3.
+
+## [8.0.4761+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The iron branch of a rocky planet is checked against the published samples at 20 times the simulated planets, and its coreless end is registered.
+
+### Changed
+
+- GEN.820 (the residuals of the bulk iron branch table, GEN.512): at 60,000 simulated planets per case the shipped knobs (enriched weight 0.01, scatter 0.05 dex) still reproduce both published shares (z -0.01 and -1.38); a test now holds it at 20,000 planets. A core spread of 0.2 dex and an enriched weight of 0.23 fail the within-1-sigma share, which bounds the registered ranges of row BC8.
+- New registry row BC25: the coreless branch is not drawn (share 0, no published count, tier T4, tweak L0). The slope stays 1 (row BC8, fill 3). The design note `docs/design/composition/iron-branch-tuning.md` has the table of runs. No generated value changes.
+
 ## [8.0.4760+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The angles the region and window walks take for a small ball far from the core keep their digits, so a ball of a few parsecs at 262 kpc no longer loses cells to rounding.
