@@ -26685,6 +26685,66 @@
       "kind": "paper",
       "label": "Knigge et al. 2011",
       "title": "THE EVOLUTION OF CATACLYSMIC VARIABLES AS REVEALED BY THEIR DONOR STARS"
+    },
+    "R5352": {
+      "kind": "paper",
+      "label": "Posti et al. 2019",
+      "title": "Peak star formation efficiency and no missing baryons in massive spirals"
+    },
+    "R5353": {
+      "kind": "paper",
+      "label": "Posti and Fall 2021",
+      "title": "Dynamical evidence for a morphology-dependent relation between the stellar and halo masses of galaxies"
+    },
+    "R5354": {
+      "kind": "paper",
+      "label": "Kilic et al. 2018",
+      "title": "Gaia Reveals Evidence for Merged White Dwarfs"
+    },
+    "R5355": {
+      "kind": "paper",
+      "label": "Jewett et al. 2024",
+      "title": "Massive White Dwarfs in the 100 pc Sample: Magnetism, Rotation, Pulsations, and the Merger Fraction"
+    },
+    "R5357": {
+      "kind": "paper",
+      "label": "Sormani et al. 2020",
+      "title": "Jeans modelling of the Milky Way’s nuclear stellar disc"
+    },
+    "R5358": {
+      "kind": "paper",
+      "label": "Ma et al. 2018",
+      "title": "Connections between Star Cluster Populations and Their Host Galaxy Nuclear Rings"
+    },
+    "R5359": {
+      "kind": "paper",
+      "label": "Comerón et al. 2010",
+      "title": "AINUR: Atlas of Images of NUclear Rings"
+    },
+    "R5360": {
+      "kind": "paper",
+      "label": "Laing and Wilson 2025",
+      "title": "Increased molecular gas velocity dispersion and star formation efficiency in barred galaxy centres"
+    },
+    "R5361": {
+      "kind": "paper",
+      "label": "Bica et al. 2006",
+      "title": "Globular cluster system and Milky Way properties revisited"
+    },
+    "R5362": {
+      "kind": "paper",
+      "label": "Rhode et al. 2005",
+      "title": "Metal-poor Globular Clusters and the Formation of Their Host Galaxies"
+    },
+    "R5363": {
+      "kind": "paper",
+      "label": "Parmentier and Grebel 2005",
+      "title": "On the origin of the radial mass density profile of the Galactic halo globular cluster system"
+    },
+    "R5364": {
+      "kind": "paper",
+      "label": "Reylé et al. 2021",
+      "title": "The 10 parsec sample in the Gaia era"
     }
   }
 }

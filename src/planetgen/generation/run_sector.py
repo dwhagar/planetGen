@@ -1264,6 +1264,7 @@ def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
         build_forced=lambda count: generate_sector(_forced_args(args, count), **kwargs)[1])
     where = f" {galaxySeed.address_text(address)}" if address is not None else ""
     log.normal(f"Sector{where}: {outcome.describe()}.")
+    sector.directive_record = directives.record_of(directive, outcome, sector)    # GEN.179: stored with the sector
     return sector.name, sector
 
 

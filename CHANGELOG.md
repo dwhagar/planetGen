@@ -2,6 +2,140 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4780+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The stellar-to-halo relation of the galaxy chain was checked against measured spirals and kept.
+
+### Changed
+- GEN.1167: the four published stellar-to-halo fits [R0319, R1578, R2598, R3181] were set against the halos fitted to the rotation curves of 110 spirals [R5352]. Below 1e11 solar masses of stars the relation of the chain, [R3181], sits 0.09 dex from the measured median halo; the offsets are 0.09 for [R2598], 0.11 for [R0319] and 0.17 for [R1578] (0.1 to 0.24 dex too light in every bin), so the relation stays and its row (HF3) keeps tier T1. The design note and the registry row carry the check table; the spiral bend of GEN.618 covers the largest spirals, where every fit gives a group's halo. No generated galaxy changes.
+
+generation-output: unchanged
+
+## [8.0.4779+db275.gen150.api14] - 2026-11-24
+
+**Headline:** A moon that a Kozai pump, a resonance or the replay of the moons' history left outside its planet's stable range is now lost, so a generated system no longer fails its own lunar check.
+
+### Fixed
+
+- The settle pass of a system drops the moons whose orbit lies outside the stable range of the eccentricities the pumps gave (`planets.drop_unstable_moons`, after the tide has worn them as far as it will). Nothing checked them before: the planet's pump and the moons' pump raise the eccentricity of a planet and its moons, the Domingos limit falls with both and can reach 0, and the moon stayed (found on the Train 61 gate as `test_wide_binaries_never_overlap`: a moon at 1.3e4 km in a stable range of 6765 to 0 km).
+- The replay of the moons' history (`moon_history._settle`) holds each moon to the same limit as the lunar check, the semi-major axis the fit allows for the moon's own eccentricity, so a moon the drop took cannot come back when a planet's end stages are made again (`refinish_rocky`).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4778+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The biggest spiral galaxies now sit in halos like the biggest spirals really do, ten times lighter than before.
+
+### Changed
+- GEN.618: a spiral of 1.5 to 2e11 solar masses of stars drew a halo of 1.4e13 to 2.8e13 (and up to 6e13 at the high end of the scatter), because the stellar-to-halo relation of Moster and others is fitted to all galaxies and at that mass its halos are a group's. The rotation curves of 110 spirals put the largest ones, 1 to 3e11 solar masses of stars, in halos of 2 to 5e12 ([R5352], read), and "virtually none" of the late types sit above 5e12 ([R5353], read); Andromeda's is 0.6 to 2.8e12. `mass_chain` now bends the spiral's median halo onto 2.5e12 (`SPIRAL_HALO_CEILING_SOLAR`, row HF5 of 6.131, tier T3, tweak L1) with a sharpness of 4 (HF6, tier T9, tweak L3) and squeezes the scatter above the median so no halo passes 5e12. Measured on this change, halo mass at the median (16th to 84th percentile): 5e10 solar masses of stars 1.57e12 to 1.51e12 (0.9 to 2.75e12), 1e11 5.7e12 to 2.5e12 (1.2 to 4.4e12), 2e11 2.8e13 to 2.5e12 (1.1 to 4.5e12). Lighter galaxies change by under 4 percent. Spiral is the only family built; a later family reads its own relation.
+- The references list gains [R5352, R5353] (the two papers the ceiling rests on).
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4777+db275.gen150.api14] - 2026-11-24
+
+**Headline:** An active comet now has a coma: the water its light sublimates, the gas of every ice its nucleus holds, and how far each gas travels before the light breaks it, for the comets of a system and the interstellar ones alike
+
+### Added
+
+- GEN.455 part A: `physics/comet_coma` computes the water production at 1 AU lit distance from the light the nucleus absorbs over the latent heat of water ice (the table of materials), over a drawn active share of the surface, with the nucleus albedo drawn too. Each other species is the water rate times the nucleus ratio the comet already stored (`comet_population`, `comet_species`), so a gas the nucleus lacks is never in the coma. The parent scale length of each gas is the outflow speed times its photolysis lifetime (`photolysis`) at the comet's lit distance (`comet_activity`), so a cool or hot host changes which gases survive. Water and the gases that ride on it stop beyond 3 AU lit distance; CO2 and CO (the colder ice lines) go on.
+- Stored on `comets` and `interstellar_comets`: `water_production_1au_per_s`, `coma_active_area_fraction`, `coma_outflow_1au_kms`, `nucleus_albedo`, and the child tables `comet_coma` and `interstellar_comet_coma` (species, production at 1 AU, scale length at 1 AU). The rate and length at any other distance are computed from them by `production_at` and `scale_length_at`. An inactive comet, and a comet made before this change, has none.
+- Stand-ins CZ1 (active share, log-uniform 0.003 to 1), CZ2 (outflow speed, log-uniform 0.4 to 1 km/s at 1 AU) and CZ3 (nucleus Bond albedo, 0.02 to 0.10) in section 6.327.
+- The draws are on their own keyed stream, so no other number of a run moves; no epoch bump (a lock item of a generator train).
+
+## [8.0.4776+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The test that saves a rogue planet and a moon no longer depends on seed 3's system having a moon.
+
+### Fixed
+- `test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_to_share_an_orbit_with` drew a G2V system at seed 3 and took its first moon; the ring coefficient of GEN.1202 moved that system's draws and it has no moon any more. The test now tries seeds 3 up to 14 and takes the first system that has a moon. No generator change.
+
+## [8.0.4775+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The Galaxy's disc keeps the gas the Milky Way is measured to have at the Sun's radius, so the heaviest cluster it can form is a little higher.
+
+### Changed
+- GEN.1202: the item's 4.3 solar masses of gas per pc2 at 8 kpc was out of date (GEN.999 and GEN.1230 had taken it to 10.3), but 10.3 still sat under the measured 11.9 +- 1.6 ([R3002: Table 2]). The thin disk's rings now use `tuning.DISK_LAW_COEFFICIENT_SHARE` 0.95 of the Schmidt-Kennicutt coefficient of [R2321] ((2.5 +- 0.7)e-4, so 28% either way; the Milky Way sits below the plain law at the Sun's radius), a registered tweak (row GI4 of 6.124a, tier T2, tweak L1). Milky Way shape, measured on this change: gas at 8 kpc 10.26 to 10.7, depletion time 3.36 to 3.43 Gy (measured 1.0 to 4.2), present rate over the mean 0.453 to 0.461 (the test bound is 0.49), and the cluster cap of `_disk_maximum_masses` at 8 kpc 3.5e3 to 3.7e3 (7.3e3 to 7.8e3 over the whole disc). The central ring's inflow is the same gas, so its heaviest cluster rises from 8.2e4 to 9.7e4, under the 1e5 ceiling; a lower share (0.9) would reach the ceiling, so 0.95 is as far as the nudge goes. The cap is still under the observed 1e4 to 4e4 of the heaviest disc clusters: row CMX8 now says so with the new numbers. The satellites keep the plain coefficient.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4774+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The moon tests build their systems without the record of the air history, which was most of a system's cost.
+
+### Fixed
+- `tests/test_moon_composition.py`: the 60-system origin and orbit test and the seeded-moons fixture build their systems with `air_record.record_of` giving no record (`tests/air_history_off.py`). The record is made at the end of a body's build, from the finished body, on streams of its own: the moons of the seeded systems (60 systems and 978 moons for the origin test; 40 systems and 1,199 moons for the fixture) and the next draw are identical with and without it. The origin test fell from over 900 s (the limit) to 485 s alone.
+
+## [8.0.4773+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The young-star system types now name the young stars of the satellite galaxies as hosts, so a Magellanic cell has them at the Cloud's own young share and a dwarf without young stars has none.
+
+### Changed
+- GEN.534: the system-type registry (`generation/phenomena/system_types.py`) named only the disk's young, intermediate and old populations as hosts of the types the age gates, so `satellite_young` (and its intermediate and old twins) appeared in no row. Each type that names a disk population now names its satellite twin too (the satellite's stars of the same ages: GEN.526); the generator already draws a type by the star's age, so the types a Cloud or dwarf draws are unchanged. The weight is the profile's own mix, which carries the satellite's young share from its star formation history (the Large Cloud's 1.4%, the Fornax dwarf's none), and nothing is typed in. A test pins the twin rule, the Cloud's host share against its young share, a dwarf's none, and that the young stars the Cloud draws fall inside the young gate.
+
+## [8.0.4772+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The resume tests of the galaxy run build planet-less systems, so each case takes seconds, not a quarter of an hour.
+
+### Fixed
+- `tests/test_gen_resume.py` (TEST.23 and TEST.26): the cases that stop a run before a save, fail a save in its transaction, step with `--limit` and force a scatter built every star's planets, and with the air history (GEN.1745) a sector cost about 30 s, so a case of three runs of 12 to 14 sectors took over 17 minutes alone and the watchdog ended it (`[band]` on main). The runs now use planet-less systems (`forced_system_config(PLANETS=False)`, as the big-run tests do); the sectors, the systems, the bright-star links, the stop before the save and the resumed result are all still checked and the sizes are unchanged. Each case now takes 9 to 33 s.
+- One case keeps the planets: `test_a_run_stopped_before_a_save_resumes_with_the_planets_of_the_uninterrupted_run` (two sectors of one system each, the first save stopped, the second held and the run again), and checks that the planets with their orbits, masses, temperatures, pressures and recorded air history are the uninterrupted run's. About 53 s.
+
+## [8.0.4771+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The generated reference pages (`docs/references/fitted.json`, `overview.json`, `stand-ins.json`) are rebuilt after the citation-form fix of PR 7451 and the icy-body rock fraction row of GEN.522, so the generated-files check is green again.
+
+### Fixed
+
+- `scripts/regenerate_generated.py --only reference-pages` was out of date on main after PRs 7450 and 7451 (a citation form in `tuning_targets.json` feeds `fitted.json`; the GEN.522 rock fraction row feeds `stand-ins.json`). The three files are the builder's own output, nothing else changes.
+
+generation-output: unchanged
+
+## [8.0.4770+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Three citations written outside the registry's form (one author-year name and two bracketed forms) now use the registry form, so the citation guard is green again.
+
+### Fixed
+
+- `docs/design/systems/overlap-free-systems.md`, `physics/data/tuning_targets.json` and `physics/small_body_composition.py` cite [R1138], [R0390] and [R0269] in the form `scripts/rewrite_citations.py` writes (left by the GEN.1014 note and GEN.522).
+
+generation-output: unchanged
+
+## [8.0.4769+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The rock fraction of an icy body (Kuiper belt object, class D body, dwarf planet and the captured or binary moons that use it) now carries its source state and is checked against the published statistics, and no draw moves.
+
+### Changed
+
+- The two rows of the icy-body rock fraction table were open (no weight, no source). `icy-intact` is partly verified (the center 0.70 is the read-in-full fit of the 17 Kuiper belt object densities, [R0390]; the width and limits are stand-in CP5) and `icy-stripped` is a stand-in (CP6); both keep the half share a dwarf planet always gave them, so every draw is the same (GEN.522, row T19).
+- Three test points join the tuning-target table: the dwarf planets' rock fraction (mean 0.78, spread 0.12, seven bodies) and the share of 17 Kuiper belt objects within 2 sigma of the compaction law at 0.70 (14 of 17). They are of one system's bodies, so they are reported and never tuned to (NO FIXED CONTENT). The draw matches all three (0.790, 0.109 and 0.88 of the objects the law covers).
+- New design note `docs/design/composition/kbo-rock-fraction-tuning.md`, stand-ins CP5 and CP6 in the registry.
+
+generation-affects: none
+
+## [8.0.4768+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The nightly orbit update now moves the orbits of every star in a multi-star system, not only a pair's.
+
+### Added
+- **The orbit update advances the nodes of a built system's star tree (GEN.313).** Each due node of `orbit_nodes` turns its mean anomaly by 360 times the elapsed time over its period and takes the update's end as its epoch, so a triple's outer orbit and a quadruple's inner pairs no longer stand still while only the first pair's columns move. A node is due when the time its orbit takes to move 0.01 AU has passed since its epoch, which needs no new column. A scatter row's nodes are still never written. `cli.orbits` reports the step as "orbit node(s) of a star tree".
+
+### Changed
+- **The storage checksum leaves out the `orbit_nodes` columns the update now rewrites (`mean_anomaly_deg`, `epoch_unix`)**, so a tick of the orbit update never makes a sector look damaged.
+
+## [8.0.4767+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Zooming in on a cell nothing was generated in, when the scatters left objects in it, now opens it as Uncharted, as it opens a charted sector.
+
+### Fixed
+
+- The wheel opened only sectors that had been generated: the sector the camera came up to was chosen among the charted ones near the eye, so a cell holding a bright star, a black hole or a nebula but no generated sector never opened by zooming to it, and the charted neighbour opened instead (MAP.257). At the end of the zoom range the cell under the camera's middle now opens as "Uncharted" by the same path a click uses (MAP.162: the scene of `GET /galaxy/uncharted/<shell>/<band>/<wedge>/scene`, `enterSector` with no record); a cell the server says is empty stays unopened and the nearest charted sector opens as before.
+
+generation-output: unchanged
+
 ## [8.0.4766+db274.gen150.api14] - 2026-11-24
 
 **Headline:** Zooming out of an opened sector with the wheel now carries on at the same steady step instead of snapping the camera out to the whole galaxy.

@@ -35,8 +35,8 @@ import math
 
 import numpy as np
 
-from planetgen import tuning
 from planetgen.generation import bright_stars, phenomenon_reach, phenomenon_scatter
+from planetgen.generation.phenomenon_cuts import as_cuts
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
 from planetgen.galaxy import remnant_density, component_field, components as component_table, nebula_field, profile
 from planetgen.galaxy.spherical import sector_address_at
@@ -322,19 +322,19 @@ def kept_weights(components, fractions, tiered, edge_pc):
             for component in components if component.kind in COMPONENT_KINDS]
 
 
-def phenomenon_rates(min_mass_solar):
+def phenomenon_rates(min_mass_solar, highest=None):
     """`(kind, subtype, rate per system)` of the classes every component has: the black holes, neutron stars and
     planetary nebulae, not the supernova remnants (gas) or the magnetars (young stars), which only a satellite can have
     (`satellite_rates`)."""
-    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar)
+    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar, highest)
             if not phenomenon_reach._follows_young_stars(kind, subtype)
             and kind not in phenomenon_scatter.GAS_WEIGHTED_KINDS]
 
 
-def satellite_rates(min_mass_solar):
+def satellite_rates(min_mass_solar, highest=None):
     """`(kind, subtype, rate per system)` of the classes only a satellite has (GEN.528): the supernova remnants, kept
     where its gas is, and the magnetars, born of its young stars."""
-    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar)
+    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar, highest)
             if phenomenon_reach._follows_young_stars(kind, subtype) or kind in phenomenon_scatter.GAS_WEIGHTED_KINDS]
 
 
@@ -344,9 +344,11 @@ def expected_phenomena(component, min_mass_solar):
     (GEN.244) places none: its remnants are the disk's, and its stars are a fraction of a percent of the disk's."""
     if component_table.is_open_cluster(component):
         return 0.0
-    rates = phenomenon_rates(min_mass_solar)
+    cut = as_cuts(min_mass_solar).lowest       # GEN.377: the lowest cut's rate, an upper bound where the cut differs by place
+    highest = as_cuts(min_mass_solar).highest
+    rates = phenomenon_rates(cut, highest)
     if component.kind == "satellite":
-        rates = rates + satellite_rates(min_mass_solar)
+        rates = rates + satellite_rates(cut, highest)
     return systems_of(component) * sum(rate for _kind, _subtype, rate in rates)
 
 
@@ -407,10 +409,9 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
         slices (dict): Which slice of a component to draw, `{(kind, name): (slice, slices)}` (`chosen`), as
             `scatter_stars` takes them; a component it leaves out is drawn whole.
     """
-    if min_mass_solar is None:
-        min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
-    rates = phenomenon_rates(min_mass_solar)
-    extra = satellite_rates(min_mass_solar)
+    cuts = as_cuts(min_mass_solar)
+    rates = phenomenon_rates(cuts.lowest, cuts.highest)
+    extra = satellite_rates(cuts.lowest, cuts.highest)
     skip_addresses = skip_addresses or set()
     for component in components:
         if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
@@ -423,12 +424,20 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
                 f"{seed}:phenomena:component:{component.kind}:{_stream_name(component.key, here)}", kind, subtype)
             points, (mass_draw, keep) = _candidates(
                 component, _class_mean(component, kind, subtype, rate, shape) / here[1], rng)
-            masses = phenomenon_scatter._masses(kind, subtype, min_mass_solar, mass_draw)
+            addresses = [_address(tuple(int(value) for value in points[:, index]), edge_pc) for index in range(points.shape[1])]
+            if cuts.is_uniform:
+                share = None
+                masses = phenomenon_scatter._masses(kind, subtype, cuts.tiers[0], mass_draw)
+            else:
+                # GEN.377: the candidates are at the lowest cut's rate; each is kept with its band's tier's share and its mass is drawn above that cut.
+                tier_of = [cuts.limits.tier_at(address[0], address[1]) for address in addresses]
+                share = keep < np.array(phenomenon_scatter.tier_shares(kind, subtype, cuts))[tier_of]
+                masses = phenomenon_scatter._masses(kind, subtype, np.array(cuts.tiers)[tier_of], mass_draw)
             for index in range(points.shape[1]):
                 seed_here = rng.getrandbits(63)
                 point = tuple(int(value) for value in points[:, index])
-                address = _address(point, edge_pc)
-                if address in skip_addresses:
+                address = addresses[index]
+                if address in skip_addresses or (share is not None and not share[index]):
                     continue
                 mass = None if masses is None else float(masses[index])
                 yield (*address, kind, subtype, *point, None, None, None, seed_here, mass,

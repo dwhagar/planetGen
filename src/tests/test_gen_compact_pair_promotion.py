@@ -99,3 +99,28 @@ def test_a_pair_row_stores_a_tree_with_two_compact_members():
             compact = [member for member in tree.members if member.kind in ("neutron-star", "black-hole")]
             assert len(compact) >= 2
         assert trees >= 10
+
+
+def test_with_cuts_that_differ_by_place_a_pair_is_drawn_at_the_highest_cut_and_each_tier_keeps_its_share():
+    """GEN.377 draws a class at the lowest cut and thins each tier to its own; a pair lies BELOW the cut, so it is drawn at the highest and thinned the other way."""
+    from planetgen.generation.phenomenon_cuts import Cuts
+    cuts = Cuts.from_tiers((20.0, 14.0, 14.0))
+    assert cuts.highest == 20.0 and cuts.lowest == 14.0
+    rates = {(kind, subtype): rate for kind, subtype, rate in scatter._scattered_rates(cuts.lowest, cuts.highest)}
+    at_highest = scatter.class_rate_per_star("black-hole", "stellar") * (1.0 - scatter.share_above("black-hole", "stellar", 20.0)) * scatter.pair_odds(*BH_PAIR)
+    assert rates[BH_PAIR] == pytest.approx(at_highest)
+    shares = scatter.tier_shares(*BH_PAIR, cuts)
+    assert shares[0] == pytest.approx(1.0) and 0.0 < shares[1] < 1.0 and shares[2] == shares[1]
+    assert shares[1] == pytest.approx((1.0 - scatter.share_above("black-hole", "stellar", 14.0)) / (1.0 - scatter.share_above("black-hole", "stellar", 20.0)))
+    # a class's own rows are still drawn at the lowest cut and thinned by their share above
+    assert scatter.tier_shares("black-hole", "stellar", cuts)[1] == pytest.approx(1.0)
+
+
+def test_the_masses_of_a_pair_lie_between_the_lightest_and_each_objects_own_cut():
+    import numpy as np
+    uniform = np.linspace(0.0, 1.0, 11)
+    cuts = np.array([14.0, 20.0] * 5 + [14.0])
+    masses = scatter._masses(*BH_PAIR, cuts, uniform)
+    low = scatter.mass_law(*BH_PAIR)[0][0]
+    assert (masses >= low - 1e-9).all() and (masses <= cuts + 1e-9).all()
+    assert masses[0] == pytest.approx(low) and masses[-1] == pytest.approx(14.0)

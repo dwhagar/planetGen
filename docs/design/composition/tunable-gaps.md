@@ -202,6 +202,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Partly built (GEN.523, lane M, 2026-10-24):** row p6 draws the rotation percentile uniform from 0.02 to 0.98 and derives the saturation time from it through the three tracks of Tu 2015 (`docs/design/composition/host-activity-tuning.md`); row p4 is pinned to its three measured masses. The Mors tracks (mass dependence) and the population consistency tests remain.
 
+**Built (GEN.522, 2026-11-24):** row T19 ([kbo-rock-fraction-tuning.md](kbo-rock-fraction-tuning.md)): every published statistic of the icy-body rock fraction is of one system's bodies (17 binary Kuiper belt objects, seven dwarf planets), so the three are test points and nothing is tuned to them; the draw already matches them (dwarf-planet mean 0.790 against 0.78, spread 0.109 against 0.12, covered objects within 2 sigma 0.88 against 14 of 17), and the rows take the states the data support (`icy-intact` partly verified, `icy-stripped` a stand-in, CP5 and CP6). T17 and T18 stay with the design-flag registry.
+
 **Built (GEN.518, lane M, 2026-10-24):** the gas-phase equilibrium module (since GEN.672 the one solver `planetgen/physics/gas_equilibrium.py` with the regime edges of `planetgen/physics/equilibrium_edges.py`, `docs/design/composition/equilibrium-chemistry.md`): a Gibbs minimiser with the NASA polynomials (public domain), checked against the independent table of the source check within 0.6 percent. Rows h2 and h3 now take pressure-dependent edges (methane equal to carbon monoxide; a tenth of the water destroyed) instead of 1500 and 2200 K. Rows n6 (needs a cloud model), m2, m5 and m6 (need inventories, GEN.524) remain.
 
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob

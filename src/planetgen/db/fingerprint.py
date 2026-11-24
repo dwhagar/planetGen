@@ -87,7 +87,9 @@ CHILD_TABLES = (
     ("irregular_sets", "planet_id", "planets"),
     ("irregular_moons", "planet_id", "planets"),
     ("comet_composition", "comet_id", "comets"),
+    ("comet_coma", "comet_id", "comets"),
     ("interstellar_comet_composition", "comet_id", "interstellar_comets"),
+    ("interstellar_comet_coma", "comet_id", "interstellar_comets"),
     ("asteroid_field_composition", "field_id", "asteroid_fields"),
     ("field_members", "field_id", "asteroid_fields"),
     ("orbit_nodes", "star_system_id", "star_systems"),
@@ -120,7 +122,7 @@ SECTIONS = {
                "rogue_planets", "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_deposit_types", "rogue_planet_isotopes", "rogue_planet_gases", "rogue_planet_life_class_scores"),
     "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life", "moon_life_ages", "moon_adaptations"),
     "belt": ("asteroid_belts", "asteroid_belt_composition", "belt_members", "asteroid_fields", "asteroid_field_composition", "field_members"),
-    "comet": ("comets", "comet_composition", "interstellar_comets", "interstellar_comet_composition"),
+    "comet": ("comets", "comet_composition", "comet_coma", "interstellar_comets", "interstellar_comet_composition", "interstellar_comet_coma"),
     "phenomenon": ("nebulae", "supernova_remnants", "quasars", "bright_stars",
                    "phenomenon_scatter"),
     "population": ("facilities",),
@@ -137,6 +139,7 @@ LEFT_OUT_TABLES = frozenset({
     "body_numbers",    # the number each slot of a system has had (DB.75): the ID of a body, kept so it is stable, decides no result
     "body_history",    # the numbers a body's history left, kept for the stored galaxy (GEN.1497); the fingerprint reads the results they produced
     "lost_moons",    # the moons a planet's history took away, kept so that history can run again for a restored planet (GEN.1753); the fingerprint reads the results it produced
+    "sector_directives", "sector_directive_minimums",    # what a run asked of a sector and how the draw came out (GEN.179): a record of the run's directive, which changes no result, so a fingerprint reads the sector it made
     "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
     "system_summary", "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",

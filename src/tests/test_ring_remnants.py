@@ -158,3 +158,49 @@ def test_a_backfill_while_no_scatter_is_recorded_draws_none(mysql_config, monkey
         assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"] == 0
     finally:
         conn.close()
+
+
+def _cuts(baseline):
+    """Cuts of the toy galaxy whose core and halo cuts are far from the baseline's, so a sector (all of them baseline bands here) must take the baseline's."""
+    from planetgen.galaxy.scatter_limits import ScatterLimits, TierLimit
+    from planetgen.generation.phenomenon_cuts import Cuts
+    tiers = (3.0, baseline, 30.0)
+    return Cuts(tiers, ScatterLimits(SHAPE, EDGE_PC, tuple(TierLimit(1.0, cut) for cut in tiers)))
+
+
+def test_gen377_a_ring_sector_draws_what_lies_under_its_own_bands_cut(mysql_config):
+    """The cut is the sector's band's tier cut: the sectors of the toy galaxy are baseline bands, so `Cuts` with other cuts in the core and the halo draws what the baseline's cut alone does."""
+    _seed_galaxy(mysql_config)
+    _backfill(mysql_config, RING)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        limits = store.scatter_limits_of(conn, skeleton)
+        by_number = ring_remnants.rows_for(conn, skeleton, limits, 7, 12.0, RING, held=set())
+        by_cuts = ring_remnants.rows_for(conn, skeleton, limits, 7, _cuts(12.0), RING, held=set())
+        assert by_cuts == by_number and by_cuts
+        assert all(row[12] < 12.0 for row in by_cuts if row[3] in store.BELOW_CUT_REMNANT_KINDS)
+        assert by_cuts != ring_remnants.rows_for(conn, skeleton, limits, 7, 20.0, RING, held=set())
+    finally:
+        conn.close()
+
+
+def test_gen377_a_cell_holds_below_cut_remnants_when_a_row_is_under_its_own_cut(mysql_config):
+    _seed_galaxy(mysql_config)
+    _backfill(mysql_config, RING)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        limits = store.scatter_limits_of(conn, skeleton)
+        rows = ring_remnants.rows_for(conn, skeleton, limits, 7, 20.0, RING, held=set())
+        from planetgen.generation import scatter_companions
+        scatter_companions.insert_phenomenon_scatter(conn, rows)
+        conn.commit()
+        assert store.addresses_holding_below_cut_remnants(conn, _cuts(20.0)) == store.addresses_holding_below_cut_remnants(conn, 20.0) == set(RING)
+        assert store.addresses_holding_below_cut_remnants(conn, _cuts(1.0)) == set(), "every row is over a cut of 1 solar mass, whatever the other tiers' cuts are"
+        masses = sorted(row[12] for row in rows if row[3] in store.BELOW_CUT_REMNANT_KINDS)
+        middle = masses[len(masses) // 2]
+        some = store.addresses_holding_below_cut_remnants(conn, _cuts(middle))
+        assert some <= set(RING) and some == store.addresses_holding_below_cut_remnants(conn, middle)
+    finally:
+        conn.close()

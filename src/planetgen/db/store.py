@@ -80,7 +80,7 @@ from planetgen.galaxy import resident_mass, component_field as componentField, d
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
 from planetgen.physics import body_history, effect_ledger, moon_history, isotope_record, light_ledger, ore_deposits
-from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, adaptation_record, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, comet_coma, class_code, core_composition, daylight, giant_interior, adaptation_record, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
@@ -101,7 +101,8 @@ from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word, wide_pair_star_words
+from planetgen.names import tree_names
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -124,7 +125,6 @@ from planetgen.galaxy.straight_line import straight_line_position_pc
 from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
-from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
 from planetgen.util.format import format_duration_seconds
 from planetgen.util import detmath
@@ -644,7 +644,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
+    "comet_composition", "comet_coma", "interstellar_comet_composition", "interstellar_comet_coma", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -3687,8 +3687,15 @@ COMET_FIELDS = (
     object_rows.attr("mass_kg"),
     object_rows.computed("makeup", lambda comet, context: _makeup_json(comet), lambda row: {"makeup": _json_loads(row["makeup"], None)}),   # DB.124
     object_rows.each(body_strength.COMET_FIELDS),
+    object_rows.each(comet_coma.FIELDS),    # GEN.455
 )
 """tuple: The `Field`s of a `comets` row."""
+
+
+def _insert_coma(conn, table, comet_id, comet):
+    """Writes the species rows of a comet's coma (GEN.455): `(species, production_1au_per_s, scale_length_1au_km)` in the order the comet holds them, water first; an inactive comet has none."""
+    for position, (species, production, scale_length) in enumerate(comet.coma_species):
+        conn.execute(f"INSERT INTO {table} (comet_id, position, species, production_1au_per_s, scale_length_1au_km) VALUES (?, ?, ?, ?, ?)", (comet_id, position, species, production, scale_length))
 
 
 def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
@@ -3719,6 +3726,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
         "star_system_id": star_system_id, "star_id": star_id})
 
     _insert_composition(conn, "comet_composition", "comet_id", comet_id, comet.composition)
+    _insert_coma(conn, "comet_coma", comet_id, comet)
 
     return comet_id
 
@@ -4405,6 +4413,7 @@ INTERSTELLAR_COMET_FIELDS = (
     object_rows.attr("mass_kg"),
     _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(body_strength.COMET_FIELDS),    # GEN.1162
+    object_rows.each(comet_coma.FIELDS),    # GEN.455
 )
 """tuple: The `Field`s of an `interstellar_comets` row."""
 
@@ -4433,6 +4442,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
         "sector_id": sector_id, "placement": placement})
 
     _insert_composition(conn, "interstellar_comet_composition", "comet_id", comet_id, comet.composition)
+    _insert_coma(conn, "interstellar_comet_coma", comet_id, comet)
 
     return comet_id
 
@@ -4752,13 +4762,13 @@ def _mutual_orbit_fields_from_wide_binary(pair):
     The same 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
     `binary_secondary_position_*`/`binary_secondary_mass_fraction` columns
     as `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
-    `wide_binary.WideBinaryPair` instead -- these columns are reused
+    `generation.pair_orbit.PairOrbit` instead -- these columns are reused
     unchanged across both binary configurations (see `schema.sql`'s "v15"
     header note): a wide pair's own (circular-approximation) mutual orbit
     fits the exact same shape a close pair's already occupies.
 
     Args:
-        pair (WideBinaryPair): The system's wide-binary orbital pair.
+        pair (PairOrbit): The system's pair orbit.
 
     Returns:
         tuple: 16 values, ready to splice into the `INSERT` parameters.
@@ -5073,11 +5083,12 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
         periapsis_km = apoapsis_km = separation_km
     elif binary_configuration == "wide":
         proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
-        mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(star_system.wide_binary)
-        separation_km = _au_to_km(star_system.wide_binary.separation_au)
-        eccentricity = star_system.wide_binary.eccentricity
-        periapsis_km = _au_to_km(star_system.wide_binary.periapsis_au)
-        apoapsis_km = _au_to_km(star_system.wide_binary.apoapsis_au)
+        pair = star_system.pair_orbit
+        mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(pair)
+        separation_km = _au_to_km(pair.separation_au)
+        eccentricity = pair.eccentricity
+        periapsis_km = _au_to_km(pair.periapsis_au)
+        apoapsis_km = _au_to_km(pair.apoapsis_au)
     else:
         proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
         mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
@@ -7677,16 +7688,20 @@ def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
 
 def addresses_holding_below_cut_remnants(conn, min_mass_solar):
     """
-    `sector_holds_below_cut_remnants` for every cell at once: the set of `(shell, band, wedge)` whose scatter rows include a below-cut neutron star or black hole, from one read of the table. For the unit that draws
+    `sector_holds_below_cut_remnants` for every cell at once: the set of `(shell, band, wedge)` whose scatter rows include a below-cut neutron star or black hole, from one read of the table (`min_mass_solar` is a number, or `phenomenon_cuts.Cuts` for a cut that differs by place, GEN.377: a cell is held when a row is under its own band's cut). For the unit that draws
     the ring remnants while the table has no indexes (a read per cell would be a scan each).
     """
     if min_mass_solar is None:
         return set()
+    by_place = hasattr(min_mass_solar, "tiers")       # GEN.377: a `phenomenon_cuts.Cuts`, the cut of each band's tier
+    highest = max(min_mass_solar.tiers) if by_place else float(min_mass_solar)
     marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
     rows = conn.execute(
-        f"SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair') AND mass_solar < ?",
-        (*BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchall()
-    return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows}
+        f"SELECT shell_index, band_index, wedge_index, MIN(mass_solar) AS lightest FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair') AND mass_solar < ? "
+        "GROUP BY shell_index, band_index, wedge_index",
+        (*BELOW_CUT_REMNANT_KINDS, highest)).fetchall()
+    return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows
+            if not by_place or float(row["lightest"]) < min_mass_solar.cut_at(int(row["shell_index"]), int(row["band_index"]))}
 
 
 def backfilled_uncharted_addresses(conn):
@@ -8458,6 +8473,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
             sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors, run_id)
     finally:
         issuer, conn.uid_issuer = conn.uid_issuer, None
+    save_directive_record(conn, sector_id, getattr(sector, "directive_record", None))
     if issuer is None or not issuer.complete:
         assign_uids(conn, sector_id=sector_id)
     else:
@@ -8473,6 +8489,22 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
         chart_ledger.record(conn, address, sector_run_id(conn, run_id), generatorEpoch.generator_epoch())    # GEN.1127: the cell is charted
     conn.parity_touch("id = ?", (sector_id,))
     return sector_id
+
+
+def save_directive_record(conn, sector_id, record):
+    """
+    Writes the directive a sector was drawn under and how the draw came out (GEN.179: `sector_directives`, one row,
+    and `sector_directive_minimums`, one row for each minimum asked). `record` is the sector's
+    `generation.directives.Record`, or `None` for a sector drawn with no directive, which has no rows (a regenerated
+    sector's old rows are removed first by `_insert_sector_rows`).
+    """
+    if record is None:
+        return
+    conn.execute("INSERT INTO sector_directives (sector_id, directive_digest, status, attempts) VALUES (?, ?, ?, ?)",
+                 (sector_id, record.digest, record.status, record.attempts))
+    if record.minimums:
+        conn.executemany("INSERT INTO sector_directive_minimums (sector_id, minimum_key, wanted, got) VALUES (?, ?, ?, ?)",
+                         [(sector_id, key, want, got) for key, want, got in record.minimums])
 
 
 def _set_reserved_name(obj, final, rename_bodies=False):
@@ -8532,6 +8564,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         kept_id = kept_sector_id_at(conn, galaxy_position["shell_index"], galaxy_position["band_index"], galaxy_position["wedge_index"])
     if kept_id is not None:
         # GEN.1127: the row of a regenerated sector kept for its residents is filled again, so they keep pointing at it.
+        conn.execute("DELETE FROM sector_directives WHERE sector_id = ?", (kept_id,))    # GEN.179: the new draw has its own record, or none
         conn.execute(
             "UPDATE sectors SET name = ?, edge_mpc = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
             " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL, content_leaf = NULL,"
@@ -10481,41 +10514,6 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
     }
 
 
-def _wide_binary_row_to_dict(star_system_row):
-    """
-    Maps a `star_systems` row's reused `binary_separation_km`/
-    `binary_mutual_*` columns plus the new `binary_eccentricity`/
-    `binary_periapsis_km`/`binary_apoapsis_km` columns to
-    `WideBinaryPair.from_dict`'s expected dict shape (its
-    `SERIALIZABLE_FIELDS`), inverting every unit conversion
-    `_mutual_orbit_fields_from_wide_binary` applies. Only ever called for a
-    `binary_configuration == 'wide'` row -- see `load_star_system`.
-    """
-    row = star_system_row
-    return {
-        "separation_au": _km_to_au(row["binary_separation_km"]),
-        "eccentricity": row["binary_eccentricity"],
-        "period_years": row["binary_mutual_orbital_period_years"],
-        "speed_kms": row["binary_mutual_orbital_speed_kms"],
-        "periapsis_au": _km_to_au(row["binary_periapsis_km"]),
-        "apoapsis_au": _km_to_au(row["binary_apoapsis_km"]),
-        "inclination_deg": row["binary_mutual_orbital_inclination_deg"],
-        "ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
-        "phase_deg": row["binary_mutual_orbital_phase_deg"],
-        "min_update_interval_years": row["binary_mutual_min_update_interval_years"],
-        "position_x_au": _km_to_au(row["binary_mutual_position_x_km"]),
-        "position_y_au": _km_to_au(row["binary_mutual_position_y_km"]),
-        "position_z_au": _km_to_au(row["binary_mutual_position_z_km"]),
-        "primary_position_x_au": _km_to_au(row["binary_primary_position_x_km"]),
-        "primary_position_y_au": _km_to_au(row["binary_primary_position_y_km"]),
-        "primary_position_z_au": _km_to_au(row["binary_primary_position_z_km"]),
-        "secondary_position_x_au": _km_to_au(row["binary_secondary_position_x_km"]),
-        "secondary_position_y_au": _km_to_au(row["binary_secondary_position_y_km"]),
-        "secondary_position_z_au": _km_to_au(row["binary_secondary_position_z_km"]),
-        "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
-    }
-
-
 def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
     """
     Maps a `planets` or `moons` row (identical column shape -- see
@@ -10595,11 +10593,12 @@ def _belt_row_to_dict(row, composition_pairs, member_rows=()):
     return data
 
 
-def _comet_row_to_dict(row, composition_rows):
-    """Maps a `comets` row (plus its `comet_composition` child rows) to
+def _comet_row_to_dict(row, composition_rows, coma_rows=()):
+    """Maps a `comets` row (plus its `comet_composition` and `comet_coma` child rows) to
     `Comet.from_dict`'s expected dict shape."""
     data = object_rows.load_dict(COMET_FIELDS, row)
     data["composition"] = [r["component"] for r in composition_rows]
+    data["coma_species"] = [[r["species"], r["production_1au_per_s"], r["scale_length_1au_km"]] for r in coma_rows]    # GEN.455
     return data
 
 
@@ -10678,7 +10677,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     binary_configuration = row["binary_configuration"]
 
     secondary_star = None
-    wide_binary = None
 
     if binary_configuration == "close":
         primary_row = conn.execute(
@@ -10700,9 +10698,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         ).fetchone()
         star = Star.from_dict(_star_row_to_dict(primary_row, speed_kms), system_config)
         secondary_star = Star.from_dict(_star_row_to_dict(secondary_row, speed_kms), system_config)
-        wide_binary = WideBinaryPair.from_dict(
-            _wide_binary_row_to_dict(row), system_config, star, secondary_star
-        )
     else:
         star = _load_single_star(conn, star_system_id, system_config, speed_kms)
 
@@ -10721,7 +10716,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.system_config = system_config
     system.star = star
     system.binary_type = binary_configuration
-    system.wide_binary = wide_binary
     system.orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
     system.dark_members = orbit_trees.read_dark_members(conn, star_system_id)    # GEN.1013
 
@@ -10758,7 +10752,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star.db_id = primary_row["id"]
         secondary_star.db_id = secondary_row["id"]
         system.stars = [star, secondary_star]
-        system.star_words = wide_pair_star_words(row["name"], star.name, secondary_star.name)    # DB.125: not a column, the two star names hold them
     else:
         system.primary_star = star
         system.stars = [star]
@@ -10776,6 +10769,9 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'single'",
                          (star_system_id,)).fetchone(),)
         system.star_slots = tuple((place["parent_node_id"], place["slot"]) for place in places)
+    name_nodes, name_members = system._name_inputs()
+    # DB.125, GEN.312: the branch words are not a column; the names of the stars under the wide splits hold them
+    system.star_words = tree_names.words_from_names(row["name"], name_nodes, name_members, [star.name for star in system.stars] + [None] * len(system.dark_members)) or None
     system.hosts = [Host(star, PRIMARY)]
     system.build_ledger()    # the tree is known: the hosts are made from it (GEN.1664) before the bodies are put in them
 
@@ -10799,7 +10795,11 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                 "SELECT component FROM comet_composition WHERE comet_id = ? ORDER BY position",
                 (r["id"],),
             ).fetchall()
-            comet = Comet.from_dict(_comet_row_to_dict(r, comp_rows), system_config)
+            coma_rows = conn.execute(
+                "SELECT species, production_1au_per_s, scale_length_1au_km FROM comet_coma WHERE comet_id = ? ORDER BY position",
+                (r["id"],),
+            ).fetchall()
+            comet = Comet.from_dict(_comet_row_to_dict(r, comp_rows, coma_rows), system_config)
             comet.db_id = r["id"]
             comets.append(comet)
         return comets
@@ -11199,8 +11199,6 @@ def _budget_tables():
     tables = {
         "planets": ("planets", "next_update_due", "period_years > 0"),
         "moons": ("moons", "next_update_due", "period_years > 0"),
-        "binary_mutual_orbits": ("star_systems", "binary_next_update_due",
-                                 "is_binary = 1 AND binary_mutual_orbital_period_years > 0"),
         "comets": ("comets", "next_update_due", "1 = 1"),
         "facilities": ("facilities", "next_update_due", "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"),
         "star_systems": ("star_systems", "next_update_due", "1 = 1"),
@@ -11493,16 +11491,15 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     Advances the orbits inside star systems that are due (GEN.106): every
     planet's and moon's state vector (GEN.289, `_advance_body_states`: its
     stored position and velocity stepped on its orbit by
-    `kepler.universal_step`), and a binary pair's
-    `binary_mutual_orbital_phase_deg`, each by the time from its own epoch
-    to `clock.end_unix`, given its own stored period -- the bodies in
-    batches through a compiled step, the pairs by one set-based `UPDATE`
-    (see `planetgen.cli.orbits`). Galactic orbits are
+    `kepler.universal_step`), and the nodes of a system's orbit tree,
+    each by the time from its own epoch to `clock.end_unix`, given its own
+    stored period -- the bodies in batches through a compiled step, the
+    nodes by one set-based `UPDATE` (see `planetgen.cli.orbits`). Galactic orbits are
     `advance_galactic_positions`'.
 
     Due: a row's `next_update_due` (indexed) is at or before the update's
     end, so it has moved at least its threshold since its epoch (0.01 AU
-    for a planet or a pair's mutual orbit, 100,000 km for a moon; see
+    for a planet or a node's orbit, 100,000 km for a moon; see
     `physics.position.THRESHOLDS_M`). Rows without one (new or edited since
     the last update) get one first, from their epoch and orbital speed.
     A row that isn't due is neither moved nor counted. A moved row's epoch
@@ -11513,11 +11510,16 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     it now is. A quiet circular orbit comes out where the circular phase
     put it, to rounding (`tests/test_state_kernel.py`).
 
-    `binary_mutual_position_x/y/z_km` (the secondary's position relative to
-    the primary) and each star's offset from the pair's barycenter
-    (`binary_primary/secondary_position_*_km`, from the constant
-    `binary_secondary_mass_fraction`) move with the mutual phase the same
-    way, for both binary configurations.
+    The nodes of a built system's orbit tree (`orbit_nodes`, GEN.313) turn the same way: each due node's `mean_anomaly_deg`
+    advances by 360 times the elapsed time over its `period_years` and its `epoch_unix` becomes the update's end. A node is
+    due when its epoch plus the time its circular orbit takes to move the system threshold is at or before the end. A scatter
+    row's nodes (`scatter_nodes`) are never written.
+
+    A pair's orbit and the place of its two stars (the secondary relative
+    to the primary, and each star about the pair's center of mass) are the
+    pair node's, read by `orbit_trees.pair_places_km` (GEN.640 slice a): the
+    update writes no `star_systems.binary_mutual_*`,
+    `binary_primary_position_*` or `binary_secondary_position_*` column.
 
     v20 "reflex offset"/"wobble" values (`stars.reflex_offset_*_km` from
     each star's planets, `planets.reflex_offset_*_km` from each planet's
@@ -11546,7 +11548,7 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     Returns:
         dict: `{name: rows_updated}` -- `"planets"`, `"moons"`,
             `"star_reflex_offsets"`, `"planet_reflex_offsets"`,
-            `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`.
+            `"orbit_nodes"`, `"binary_planetary_wobbles"`.
     """
     counts = {}
     for table, scale in (("planets", "system"), ("moons", "planetary")):
@@ -11610,58 +11612,25 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     counts["planet_reflex_offsets"] = cur.rowcount
     _report(on_progress, "planet_reflex_offsets", len(counts), ORBITAL_PHASE_UPDATES)
 
-    # Mutual orbit: shared by both binary configurations, with its own
-    # clock (binary_epoch_unix/binary_next_update_due). v20: also
-    # recomputes each star's own offset from the pair's barycenter
-    # (binary_primary/secondary_position_*_km) from the freshly-advanced
-    # binary_mutual_position_*_km above and the constant
-    # binary_secondary_mass_fraction, using the same left-to-right
-    # single-table SET evaluation trick binary_mutual_position_*_km's own
-    # computation already relies on (each position expression here reads
-    # binary_mutual_position_*_km's *new* value, assigned earlier in this
-    # same SET list).
-    binary_interval = _update_interval_sql(
-        f"(binary_separation_km * 2 * PI() / (binary_mutual_orbital_period_years"
-        f" * {_SECONDS_PER_YEAR!r}))", "system")
-    _schedule_updates(conn, clock, "star_systems", binary_interval,
-                      "is_binary = 1 AND binary_mutual_orbital_period_years > 0", prefix="binary_", keep_modified=True)
-    limited, tail = _ordered_limit(budget, "binary_mutual_orbits")
+    # The nodes of a built system's orbit tree (GEN.313): every node's mean anomaly is turned by the time from its epoch to the
+    # update's end over its period, whole orbits dropped first, and its epoch becomes the update's end, so the stored phase is
+    # the node's as of the last update; a pair's orbit and the place of its stars are read from its node (GEN.640 slice a,
+    # `orbit_trees.pair_places_km`), so no pair column is written. A node is due once its epoch plus the time it takes to move the system
+    # threshold at its circular speed is at or before the end (worked out from the epoch, so it needs no column of its own). A scatter row's
+    # nodes live in `scatter_nodes`, which no update writes.
+    node_interval = _update_interval_sql(
+        f"(separation_km * 2 * PI() / (period_years * {_SECONDS_PER_YEAR!r}))", "system")
     cur = conn.execute(
         f"""
-        UPDATE star_systems
-        SET binary_mutual_orbital_phase_deg = MOD(binary_mutual_orbital_phase_deg
-                + {_phase_turn_sql("binary_mutual_orbital_period_years", "binary_")}, 360),
-            binary_mutual_position_x_km = binary_separation_km * (
-                COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
-                - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
-                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
-            ),
-            binary_mutual_position_y_km = binary_separation_km * (
-                SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
-                + COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
-                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
-            ),
-            binary_mutual_position_z_km = binary_separation_km
-                * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg)),
-            binary_primary_position_x_km = -binary_secondary_mass_fraction * binary_mutual_position_x_km,
-            binary_primary_position_y_km = -binary_secondary_mass_fraction * binary_mutual_position_y_km,
-            binary_primary_position_z_km = -binary_secondary_mass_fraction * binary_mutual_position_z_km,
-            binary_secondary_position_x_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_x_km,
-            binary_secondary_position_y_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_y_km,
-            binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km,
-            binary_epoch_unix = ?,
-            binary_next_update_due = ? + {binary_interval},
-            modified_at = modified_at
-        WHERE is_binary = 1
-          AND binary_mutual_orbital_period_years > 0
-          AND binary_next_update_due <= ?{tail}
+        UPDATE orbit_nodes
+        SET mean_anomaly_deg = MOD(mean_anomaly_deg + {_phase_turn_sql("period_years")}, 360),
+            epoch_unix = ?
+        WHERE period_years > 0 AND epoch_unix + {node_interval} <= ?
         """,
-        (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
+        (clock.end_unix, clock.end_unix, clock.end_unix),
     )
-    if limited is not None:
-        budget.defer_remaining(conn, clock, "binary_mutual_orbits")
-    counts["binary_mutual_orbits"] = cur.rowcount
-    _report(on_progress, "binary_mutual_orbits", len(counts), ORBITAL_PHASE_UPDATES)
+    counts["orbit_nodes"] = cur.rowcount
+    _report(on_progress, "orbit_nodes", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: circumbinary (P-type) planets' combined pull on the whole pair
     # -- same correlated-subquery shape as the stars/planets reflex-offset

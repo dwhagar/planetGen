@@ -271,7 +271,7 @@ Built. The close-pair factor reads the primary's own [Fe/H] (`primary_star.metal
 The wide-pair limit needs the cell's density and dispersion: `place_terms.from_profile(profile)` builds a `PlaceTerms` once per
 cell (`FillContext.place_terms`), `FillContext.apply` and the pre-placed bright stars put it on `SystemConfig.PLACE_TERMS`, and a
 system with none takes the Sun's neighbourhood (`tuning.SOLAR_NEIGHBOURHOOD_*`). `StarSystem._companion` rolls none, close or wide
-in one draw and `WideBinaryPair` draws its axis up to `wide_pair_limit_au`. It is a function of the cell, so the same seed gives
+in one draw and the wide pair draws its axis up to `wide_pair_limit_au`. It is a function of the cell, so the same seed gives
 the same stars wherever a run lands (the GEN.39 rule), and it stays out of the stellar evolution constants. Section 3.2 would need
 the same record to carry the young-share prevalence.
 

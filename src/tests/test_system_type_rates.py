@@ -119,7 +119,7 @@ def test_the_n_tail_follows_the_notes_ratios():
 def test_the_tuning_knobs_are_the_calibrated_defaults():
     knobs = types.TUNING_KNOBS
     assert knobs["tight_tail_weight"] == 6.0 and knobs["post_ce_fraction"] == 0.10
-    assert knobs["merger_product_fraction"] == {"massive": 0.08, "field": 0.005, "white-dwarf": 0.10}
+    assert knobs["merger_product_fraction"] == {"massive": 0.08, "field": 0.005}
     assert min(knobs["accreting_fraction"].values()) == 0.01 and max(knobs["accreting_fraction"].values()) == 0.40
 
 

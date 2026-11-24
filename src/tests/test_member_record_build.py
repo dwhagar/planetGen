@@ -49,6 +49,7 @@ def test_a_forced_triple_keeps_all_three_stars():
     for seed in range(40):
         config = SystemConfig()
         config.STARS = 3
+        config.PLANETS = False      # the clause is the star count of the drawn tree; building 40 planetary systems took over the 900 s limit
         with draw.bound(seed):
             system = StarSystem(config)
         built += len(system.stars) == 3

@@ -76,6 +76,19 @@ BETA = 1.376
 GAMMA = 0.608
 STELLAR_SCATTER_DEX = 0.15
 """float: The relation's scatter, dex in M* at fixed Mh (constant)."""
+SPIRAL_HALO_CEILING_SOLAR = 2.5e12
+"""float: The halo mass a spiral's halo saturates toward, solar masses (GEN.618). [R3181] is a relation for all galaxies, and at 1e11 to
+2e11 solar masses of stars its median halo is 5.7e12 to 2.8e13, a group halo (an elliptical's). A spiral of that mass lives in a much lighter one: the
+rotation curves of 110 spirals put the largest, of 1 to 3e11 solar masses of stars, in halos of 2 to 5e12 [R5201: Section 2.2, M200 of an NFW fit], "virtually none"
+above 5e12 at any stellar mass [R5200], and Andromeda's is 0.6 to 2.8e12 (GEN.609). 2.5e12 is the part of those ranges they share (Andromeda's top, the sample's
+bottom) [I]; stand-in HF5 of 6.131, tier T3, tweak L1."""
+SPIRAL_HALO_UPPER_SOLAR = 5.0e12
+"""float: The most massive halo a spiral holds, solar masses (GEN.618): "virtually none" of the late types occupies a halo above 5e12 [R5353], READ, and the largest
+spirals' range ends there ([R5352], READ). A drawn halo above the spiral's median is squeezed so none passes it."""
+SPIRAL_HALO_KNEE_SHARPNESS = 4.0
+"""float: How sharply a spiral's halo bends onto `SPIRAL_HALO_CEILING_SOLAR` (GEN.618): `Mh = M / (1 + (M / ceiling) ^ 4) ^ (1 / 4)` of the median, which leaves a halo
+under 3e10 solar masses of stars within 4 percent of [R3181]'s (the Milky Way's, 1.6e12 for 5e10, moves 4 percent) and holds the top at the ceiling.
+[I]; stand-in HF6 of 6.131, tier T9, tweak L3."""
 
 # --- Row 3: the virial radius and the concentration (Planck-like cosmology; [R1200: Eq. 8]) --------
 
@@ -168,9 +181,9 @@ def _log_median_stellar_grid():
     return tuple(math.log10(median_stellar_mass(10.0 ** g)) for g in halo_function.grid_log_masses())
 
 
-def conditional_halo_mass(stellar_mass_solar, share):
-    """The halo mass, solar masses, below which a fraction `share` of the halos that hold `stellar_mass_solar` of stars
-    lie: the quantile of `P(Mh | M*)` (see the module note).
+def all_galaxy_halo_mass(stellar_mass_solar, share):
+    """[R3181]'s halo mass, solar masses, below which a fraction `share` of the halos that hold `stellar_mass_solar` of stars lie: the quantile of
+    `P(Mh | M*)` (see the module note), for all galaxies together (a spiral's is `conditional_halo_mass`).
 
     Raises:
         ValueError: If the stellar mass lies outside what halos of 1e8 to 1e17 solar masses hold.
@@ -182,8 +195,32 @@ def conditional_halo_mass(stellar_mass_solar, share):
                                                   HALO_DELTA)
 
 
+def conditional_halo_mass(stellar_mass_solar, share):
+    """The halo mass of a spiral, solar masses, below which a fraction `share` of the spirals that hold `stellar_mass_solar` of stars lie: the quantile of
+    `all_galaxy_halo_mass` bent onto the largest spirals' halos (`_spiral_halo_mass`, GEN.618).
+
+    Raises:
+        ValueError: If the stellar mass lies outside what halos of 1e8 to 1e17 solar masses hold.
+    """
+    return _spiral_halo_mass(all_galaxy_halo_mass(stellar_mass_solar, share), all_galaxy_halo_mass(stellar_mass_solar, 0.5))
+
+
+def _spiral_halo_mass(drawn_solar, median_solar):
+    """The halo of a spiral drawn at a quantile (GEN.618), from [R3181]'s drawn halo and median for the same stellar mass. The median is bent onto
+    `SPIRAL_HALO_CEILING_SOLAR` (`SPIRAL_HALO_KNEE_SHARPNESS`), so a spiral of 2e11 solar masses of stars sits in the largest spirals' halos and not a
+    group's; the scatter below the median is kept and the scatter above it is squeezed (tanh in dex) so no halo passes `SPIRAL_HALO_UPPER_SOLAR`.
+    Spiral is the only family built; a later family reads its own relation."""
+    sharp = SPIRAL_HALO_KNEE_SHARPNESS
+    bent = median_solar / (1.0 + (median_solar / SPIRAL_HALO_CEILING_SOLAR) ** sharp) ** (1.0 / sharp)
+    offset = math.log10(drawn_solar / median_solar)
+    if offset > 0.0:
+        room = math.log10(SPIRAL_HALO_UPPER_SOLAR / bent)
+        offset = room * math.tanh(offset / room)
+    return bent * 10.0 ** offset
+
+
 def median_halo_mass(stellar_mass_solar):
-    """The median halo mass, solar masses, of the galaxies that hold `stellar_mass_solar` of stars (the middle of
+    """The median halo mass, solar masses, of the spirals that hold `stellar_mass_solar` of stars (the middle of
     `conditional_halo_mass`).
 
     Raises:
