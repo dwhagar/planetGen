@@ -1734,6 +1734,32 @@ CREATE TABLE IF NOT EXISTS sectors (
     CONSTRAINT fk_sectors_run FOREIGN KEY (run_id) REFERENCES generation_runs(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The directive a sector was drawn under (v275, GEN.179): a run given `--directive` minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and keeps what the draw
+-- came out as: `directive_digest` (the sixteen hexadecimal digits the attempt seeds are made from), `status` (`met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`) and the `attempts` made
+-- (a forced fill counts as one more). `sector_directive_minimums` has one row for each minimum asked: the key (`systems`, `habitable`, `type:G` ...), what was `wanted` and what the kept sector `got`.
+-- A sector drawn with no directive has no rows, and nothing is backfilled for a sector made before v275. The rows are written with the sector (a regenerated sector's are replaced) and go with it.
+CREATE TABLE IF NOT EXISTS sector_directives (
+    sector_id         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    directive_digest  CHAR(16) NOT NULL,
+    status            VARCHAR(24) NOT NULL CHECK (status IN ('met_naturally', 'met_after_k_attempts', 'met_forced', 'unmet')),
+    attempts          SMALLINT UNSIGNED NOT NULL CHECK (attempts >= 1),
+
+    CONSTRAINT fk_sector_directives_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    KEY idx_sector_directives_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sector_directive_minimums (
+    sector_id    BIGINT UNSIGNED NOT NULL,
+    minimum_key  VARCHAR(24) NOT NULL,
+    wanted       INT UNSIGNED NOT NULL,
+    got          INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (sector_id, minimum_key),
+    CONSTRAINT fk_sector_directive_minimums_sector
+        FOREIGN KEY (sector_id) REFERENCES sector_directives(sector_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- galaxy_shape / galaxy_shell -- the galaxy-wide density "skeleton"
 -- (v8, re-keyed to rings in v32, to layers in v33 and to shells in v91 --
