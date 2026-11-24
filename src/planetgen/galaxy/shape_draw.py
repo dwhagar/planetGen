@@ -70,7 +70,7 @@ DWARF_SIZE_SLOPE = 0.296
 """float: The field dwarfs' size-mass law, `log10(r_e / pc) = 0.667 + 0.296 log10(M* / Msun)` ([R0655], the fit of isolated dwarfs; scatter 0.215 dex; fitted over
 log M* 5.5 to 8.5), which stands below `DWARF_SIZE_EDGE_SOLAR` (GEN.612). The Auto size law of a galaxy lighter than the edge reads it, anchored to
 [R4048]'s at the edge (`DWARF_SIZE_ANCHOR`); below log M* 5.5 it is continued as a labelled placeholder bracket (the one ultra-faint measured, Segue 1 of 562
-solar masses, sits 0.37 dex under the satellites' law of the same paper and 0.11 dex under this one). Rows GR13 and DW1 of 6.327."""
+solar masses, sits 0.37 dex under the satellites' law of the same paper and 0.11 dex under this one). Rows GR13 and DW1 of 6.330."""
 DWARF_SIZE_EDGE_SOLAR = 10.0 ** 8.5
 """float: The mass at which the dwarf law hands over to [R4048]'s (the top of [R0655]'s fitted range); the two medians differ by 2 percent there."""
 EXPONENTIAL_HALF_LIGHT_OVER_SCALE = 1.678

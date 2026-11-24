@@ -83,8 +83,8 @@ rotation curves of 110 spirals put the largest, of 1 to 3e11 solar masses of sta
 above 5e12 at any stellar mass [R5200], and Andromeda's is 0.6 to 2.8e12 (GEN.609). 2.5e12 is the part of those ranges they share (Andromeda's top, the sample's
 bottom) [I]; stand-in HF5 of 6.131, tier T3, tweak L1."""
 SPIRAL_HALO_UPPER_SOLAR = 5.0e12
-"""float: The most massive halo a spiral holds, solar masses (GEN.618): "virtually none" of the late types occupies a halo above 5e12 [R5350], READ, and the largest
-spirals' range ends there ([R5349], READ). A drawn halo above the spiral's median is squeezed so none passes it."""
+"""float: The most massive halo a spiral holds, solar masses (GEN.618): "virtually none" of the late types occupies a halo above 5e12 [R5353], READ, and the largest
+spirals' range ends there ([R5352], READ). A drawn halo above the spiral's median is squeezed so none passes it."""
 SPIRAL_HALO_KNEE_SHARPNESS = 4.0
 """float: How sharply a spiral's halo bends onto `SPIRAL_HALO_CEILING_SOLAR` (GEN.618): `Mh = M / (1 + (M / ceiling) ^ 4) ^ (1 / 4)` of the median, which leaves a halo
 under 3e10 solar masses of stars within 4 percent of [R3181]'s (the Milky Way's, 1.6e12 for 5e10, moves 4 percent) and holds the top at the ceiling.
