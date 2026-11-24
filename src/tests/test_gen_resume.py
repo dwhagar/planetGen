@@ -214,6 +214,46 @@ def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
     _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
 
 
+PLANET_SPAN = ["--shells", "1:1", "--bands", "0", "--wedges", "0:1"]
+"""list: Two sectors named as a span, the least a run can hold and still stop before one save and finish the other (TEST.828)."""
+
+
+def _planets(config):
+    """What the planets of each sector are, by address: the planets' orbit, type, mass, temperature, pressure and recorded air history, sorted (ids and names are of the database)."""
+    conn = store.get_connection(config)
+    try:
+        rows = conn.execute(
+            "SELECT s.shell_index, s.band_index, s.wedge_index, p.orbital_index, p.body_type, p.mass_kg, p.surface_temperature_k, p.atmospheric_pressure_pa, p.air_history"
+            " FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id JOIN sectors s ON s.id = ss.sector_id"
+            " ORDER BY s.shell_index, s.band_index, s.wedge_index, ss.id, p.orbital_index").fetchall()
+    finally:
+        conn.close()
+    return [tuple(row.values()) for row in rows]
+
+
+def test_a_run_stopped_before_a_save_resumes_with_the_planets_of_the_uninterrupted_run(
+        mysql_config, second_mysql_config, monkeypatch, tmp_path):
+    """TEST.828: the other cases build planet-less systems (a sector with planets costs about 30 s since the air history), so this one keeps the planets, with the least that still stops before a real save:
+    two sectors of one system each, the first save stopped, the second held and finished, then the run again. Its planets, with their air and their air history, are the uninterrupted run's."""
+    first_fill.without_the_deepest_floor(monkeypatch)
+    _seed_skeleton(second_mysql_config, shells=SHELLS)
+    run_cli("sectors", [*PLANET_SPAN, "--num-systems", "1", *mysql_argv(second_mysql_config)])
+    whole, *_rest = _snapshot(second_mysql_config)
+    planets = _planets(second_mysql_config)
+    assert len(whole) == 2 and planets, "the whole run should fill both sectors and make planets"
+    _seed_skeleton(mysql_config, shells=SHELLS)
+    with pytest.MonkeyPatch.context() as failing:
+        calls = _fail_on_call(failing, tmp_path, run_galaxy, "generate_and_save_sector_at", 1)
+        with pytest.raises(units.RunStopped, match="Interrupted.*The run is held"):
+            run_cli("sectors", [*PLANET_SPAN, "--num-systems", "1", *mysql_argv(mysql_config)])
+        assert worker_patches.count(calls) >= 1
+        partial, *_rest = _snapshot(mysql_config)
+        _check_held(mysql_config, partial, whole)
+    run_cli("sectors", [*PLANET_SPAN, "--num-systems", "1", *mysql_argv(mysql_config)])
+    assert _snapshot(mysql_config)[0] == whole
+    assert _planets(mysql_config) == planets
+
+
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
