@@ -11401,7 +11401,7 @@ def _due_interval_s(row, clock, speed_kms, scale, prefix=""):
     return epoch, interval, (epoch + interval if due is None else due)
 
 
-ORBITAL_PHASE_UPDATES = 6
+ORBITAL_PHASE_UPDATES = 7
 """int: How many table updates `advance_orbital_phases` runs (the `total` it
 reports progress against)."""
 
@@ -11509,6 +11509,11 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     it now is. A quiet circular orbit comes out where the circular phase
     put it, to rounding (`tests/test_state_kernel.py`).
 
+    The nodes of a built system's orbit tree (`orbit_nodes`, GEN.313) turn the same way: each due node's `mean_anomaly_deg`
+    advances by 360 times the elapsed time over its `period_years` and its `epoch_unix` becomes the update's end. A node is
+    due when its epoch plus the time its circular orbit takes to move the system threshold is at or before the end. A scatter
+    row's nodes (`scatter_nodes`) are never written.
+
     `binary_mutual_position_x/y/z_km` (the secondary's position relative to
     the primary) and each star's offset from the pair's barycenter
     (`binary_primary/secondary_position_*_km`, from the constant
@@ -11542,7 +11547,7 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     Returns:
         dict: `{name: rows_updated}` -- `"planets"`, `"moons"`,
             `"star_reflex_offsets"`, `"planet_reflex_offsets"`,
-            `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`.
+            `"orbit_nodes"`, `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`.
     """
     counts = {}
     for table, scale in (("planets", "system"), ("moons", "planetary")):
@@ -11658,6 +11663,25 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
         budget.defer_remaining(conn, clock, "binary_mutual_orbits")
     counts["binary_mutual_orbits"] = cur.rowcount
     _report(on_progress, "binary_mutual_orbits", len(counts), ORBITAL_PHASE_UPDATES)
+
+    # The nodes of a built system's orbit tree (GEN.313): every node's mean anomaly is turned by the time from its epoch to the
+    # update's end over its period, whole orbits dropped first, and its epoch becomes the update's end, so the stored phase is
+    # the node's as of the last update. A node is due once its epoch plus the time it takes to move the system threshold at its
+    # circular speed is at or before the end (the clock the pair's own columns above keep in `binary_next_update_due`, worked out
+    # from the epoch and so needing no column of its own). A scatter row's nodes live in `scatter_nodes`, which no update writes.
+    node_interval = _update_interval_sql(
+        f"(separation_km * 2 * PI() / (period_years * {_SECONDS_PER_YEAR!r}))", "system")
+    cur = conn.execute(
+        f"""
+        UPDATE orbit_nodes
+        SET mean_anomaly_deg = MOD(mean_anomaly_deg + {_phase_turn_sql("period_years")}, 360),
+            epoch_unix = ?
+        WHERE period_years > 0 AND epoch_unix + {node_interval} <= ?
+        """,
+        (clock.end_unix, clock.end_unix, clock.end_unix),
+    )
+    counts["orbit_nodes"] = cur.rowcount
+    _report(on_progress, "orbit_nodes", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: circumbinary (P-type) planets' combined pull on the whole pair
     # -- same correlated-subquery shape as the stars/planets reflex-offset
