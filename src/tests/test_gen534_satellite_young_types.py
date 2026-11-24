@@ -25,7 +25,7 @@ YOUNG_ONLY = ("young-group", "multiple-with-disk", "be-star", "wolf-rayet-binary
 
 
 def _host_share(key, component):
-    """The share of the stars in the cell at `component`'s centre whose population may host the type: the profile's own mix, with no weight of the type's."""
+    """The share of the stars in the cell at `component`'s center whose population may host the type: the profile's own mix, with no weight of the type's."""
     mix = profile.profile_at(component.center_pc, WITH_SATELLITES, EDGE, E1).mix
     return sum(mix[name] for name in types.SYSTEM_TYPE_RATES[key].populations) / sum(mix.values())
 
