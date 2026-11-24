@@ -160,8 +160,8 @@ def pair_pericenter_floor_au(low, high):
 
 def pair_clears(axis_au, eccentricity, low, high):
     """Whether the pair's closest approach keeps its sides inside their limits: neither single member past `MAX_FILL_FACTOR` of its
-    Roche lobe, else the pericenter at least `PERICENTER_EXTENT_FACTOR` times the sides' extents. The one rule for the tree, the
-    build (`built_tree_clears`) and, re-derived, the verifier."""
+    Roche lobe, else the pericenter at least `PERICENTER_EXTENT_FACTOR` times the sides' extents. The one rule for the tree and,
+    re-derived, the verifier (the build makes its stars from the tree's own records, so it has no check of its own)."""
     peri = axis_au * (1.0 - eccentricity)
     if low.radius is None or high.radius is None:
         return peri >= PERICENTER_EXTENT_FACTOR * (low.extent + high.extent)
@@ -1336,34 +1336,6 @@ class _Builder:
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_FRAGILE
             if leaf.kind == "thorne-zytkow":
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_THEORETICAL
-
-
-def built_tree_clears(nodes, stars):
-    """
-    Whether the built stars of a tree clear its orbits: the same `pair_clears` rule `_Builder.clears_extents` runs on the drawn leaves,
-    run on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
-    mass_solar)` for each).
-    """
-    below = {}
-    for parent, radius_au, mass_solar in stars:
-        below.setdefault(parent, []).append(single_side(mass_solar, radius_au))
-    by_parent = {}
-    for node in nodes:
-        by_parent.setdefault(node.parent_node_no, []).append(node)
-    sides = {}
-
-    def side_of(node):
-        if node.node_no not in sides:
-            low, high = children_of(node)
-            sides[node.node_no] = Side(low.mass + high.mass, node_extent_au(
-                _km_to_au(node.separation_km), node.eccentricity, low, high))
-        return sides[node.node_no]
-
-    def children_of(node):
-        found = below.get(node.node_no, []) + [side_of(child) for child in by_parent.get(node.node_no, ())]
-        return found[0], found[1]
-
-    return all(pair_clears(_km_to_au(node.separation_km), node.eccentricity, *children_of(node)) for node in nodes)
 
 
 def _shape(units, rng):

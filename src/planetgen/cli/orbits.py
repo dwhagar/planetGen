@@ -160,6 +160,7 @@ from planetgen._version import VersionAction, version_banner
 TABLE_LABELS = {
     "planets": "planet(s)",
     "moons": "moon(s)",
+    "orbit_nodes": "orbit node(s) of a star tree",
     "binary_mutual_orbits": "binary mutual orbit(s)",
     "comets": "star-bound comet(s)",
     "facilities": "orbital facilit(ies)",

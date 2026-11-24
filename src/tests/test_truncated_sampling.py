@@ -13,6 +13,7 @@ import pytest
 from planetgen.generation import multistar
 from planetgen.generation.multistar import Side, pair_clears, single_side
 from planetgen.util import draw
+from tests.clearance_rows import hard_violations, rows_of_tree
 
 
 def _tree(count, seed):
@@ -57,8 +58,7 @@ def test_no_draw_is_repeated_for_overlap_or_stability(count):
     assert all(redraws.get(kind, 0) == 0 for kind in ("pair.overlap", "pair.unstable_triple", "tree.restart_overlap")), redraws
     assert all(tree.member_count == count for tree in trees)
     for tree in trees:
-        stars = [(m.parent_node_no, m.radius_au, m.mass_solar) for m in tree.members]
-        assert multistar.built_tree_clears(tree.nodes, stars)
+        assert not hard_violations(rows_of_tree(tree))
 
 
 def test_the_redraws_left_are_the_named_kinds():

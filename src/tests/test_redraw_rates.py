@@ -105,7 +105,7 @@ def test_every_kind_has_a_scope_and_a_summary_and_the_overlap_kinds_are_the_star
     for name, kind in redraw_kinds.KINDS.items():
         assert re.fullmatch(r"[a-z_]+\.[a-z_]+", name)
         assert kind.scope and len(kind.summary) > 20, name
-    assert redraw_kinds.OVERLAP_KINDS == ("companions.overlap", "pair.overlap", "tree.restart_overlap")
+    assert redraw_kinds.OVERLAP_KINDS == ("pair.overlap", "tree.restart_overlap")
 
 
 # --- the harness -------------------------------------------------------------------------------------------------------------
@@ -221,7 +221,7 @@ def test_no_redraw_rate_is_above_its_registered_ceiling(sample):
     assert not broken, "\n".join(f"{g} {k}: {e} events in {n} systems = {rate:.4f} per system, ceiling {c:.4f}" for g, k, e, n, rate, c in broken)
 
 
-OVERLAP_SYSTEMS = (("stars-3", 59, "companions.overlap"), ("stars-3", 6, "tree.restart_overlap"), ("stars-3", 1213, "pair.overlap"),
+OVERLAP_SYSTEMS = (("stars-3", 59, "pair.overlap"), ("stars-3", 6, "tree.restart_overlap"), ("stars-3", 1213, "pair.overlap"),
                    ("stars-4", 58, "tree.restart_overlap"), ("stars-3", 1906, "pair.overlap"))
 """tuple: `(group, number, kind)` of seeded systems of the baseline run that redraw because a star overlaps what it holds, one of each overlap
 kind or more. A random sample of a few systems seldom meets an overlap (about one system in forty does), so the invariant reads these."""
@@ -239,7 +239,7 @@ def overlap_systems():
 
 
 def test_the_overlap_redraw_count_is_exactly_zero(sample, overlap_systems):
-    """GEN.1006's Done clause: no pair, tree or companion set is drawn again because a star overlaps what it holds. Holds from the member
+    """GEN.1006's Done clause: no pair or tree is drawn again because a star overlaps what it holds. Holds from the member
     record (GEN.1009), the keep-out rule (GEN.1010) and the truncated draws (GEN.1011); the systems that used to redraw are the sample
     it reads."""
     assert rr.overlap_events(sample) == {}
