@@ -10,33 +10,30 @@ known systems (`tuning.PULSAR_PLANET_ORIGIN_WEIGHTS`, low confidence):
 
 * **disk** (25%): the carbon-rich fallback disk of a disrupted white dwarf, as PSR B1257+12's. One to three planets
   between 0.1 and 0.6 AU, masses log-uniform from 0.01 to 10 Earth masses, each period near a low-order ratio to the
-  one inside it. They are carbon-rich (the disk's C/O, `bulk_draw.REMNANT_DISK_RATIOS`) and have no moons. The pulsar
+  one inside it. The mass range is drawn whole (GEN.593: the heaviest known, PSR B1257+12's 4.3 Earth masses, is inside it; the radius follows from the mass by the
+  terrestrial law of `bulk_draw`, so no radius ceiling cuts the top). They are carbon-rich (the disk's C/O, `bulk_draw.REMNANT_DISK_RATIOS`) and have no moons. The pulsar
   wind (`magnetism.pulsar_wind_pressure_pa`) crushes their magnetosphere to the surface, and the radiation rating
   (`habitability_world.compact_host_name`) always puts them in the lowest tier.
 * **captured-giant** (25%): a giant taken in a globular cluster (PSR B1620-26 b), 1 to 4 Jupiter masses at 20 to
-  50 AU. Not built: it needs the cluster giant switch (GEN.163), which stays off, so this origin gives the pulsar no
-  planets.
+  50 AU. Not built: it needs the cluster giant switch (GEN.163, `tuning.PULSAR_PLANET_PREREQUISITES`), which stays off.
 * **ablated-companion** (50%): the stripped core of a companion of 0.001 to 0.05 solar masses in an orbit of hours to
   a day (PSR J1719-1438 b, J2322-2650 b). Not built: the planet classes hold no sub-stellar carbon body, and the
-  companion is a pair member the pair builder makes (GEN.555), so this origin gives the pulsar no planets until then.
+  companion is a pair member the pair builder makes (GEN.555, `tuning.PULSAR_PLANET_PREREQUISITES`).
 
-A pulsar whose origin is not built stays a bare pulsar (the system pass counts it `:empty`).
+The stand-in of an origin that is not built (GEN.593): the pulsar stays a bare pulsar (the system pass counts it `:empty`), so a planet-holding pulsar holds the disk's planets
+only a quarter of the time and the rest of the 0.7% show none, the honest shortfall until the prerequisite is built; the log line of the draw names the origin and what it waits for.
+`tuning.PULSAR_PLANET_BUILT_ORIGINS` is the one list to extend as each is built.
 """
 
 import math
 
 from planetgen import tuning
 from planetgen.generation.planet import Planet
-from planetgen.physics import constants, relations
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import unit_registry as units
 
-_kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
-
-_km_to_m = units.converter("km", "m")
-_m_to_km = units.converter("m", "km")
 
 
 def applies(star):
@@ -54,31 +51,6 @@ def draw_origin(system_config):
     origin = draw.choices(origins, weights=weights)[0]
     log.choice("Pulsar planet origin", origin, f"weights {dict(zip(origins, weights))}")
     return origin
-
-
-def disk_mass_range_earth():
-    """`(low, high)` Earth masses of a disk planet: the design range, cut at the largest disk body (a sphere of `tuning.PULSAR_DISK_MAX_RADIUS_KM`
-    at the mean of its density range)."""
-    low, high = tuning.PULSAR_DISK_MASS_EARTH_RANGE
-    ceiling = _mass_earth(tuning.PULSAR_DISK_MAX_RADIUS_KM, _disk_density_g_cm3())
-    return low, max(low, min(high, ceiling))
-
-
-def _disk_density_g_cm3():
-    """The density a disk planet is given: the mean of the terrestrial range (`constants.PLANET_DENSITY`)."""
-    low_density, high_density = constants.PLANET_DENSITY["t"]
-    return (low_density + high_density) / 2.0
-
-
-def _mass_earth(radius_km, density_g_cm3):
-    """The mass, Earth masses, of a sphere of `radius_km` and `density_g_cm3`."""
-    volume_m3 = relations.sphere_volume(_km_to_m(radius_km))
-    return _kg_to_mearth(volume_m3 * density_g_cm3 * 1000.0)
-
-
-def _radius_km(mass_earth, density_g_cm3):
-    """The radius, km, of a sphere of `mass_earth` and `density_g_cm3`."""
-    return _m_to_km(relations.sphere_radius(_mearth_to_kg(mass_earth), density_g_cm3 * 1000.0))
 
 
 def _disk_distances_au(count):
@@ -116,18 +88,18 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         return []
     origin = draw_origin(system_config)
     if origin not in tuning.PULSAR_PLANET_BUILT_ORIGINS:
+        log.choice("Pulsar planets", "none", f"origin {origin} is not built yet (waits for {tuning.PULSAR_PLANET_PREREQUISITES[origin]}); the pulsar stays bare")
         return []
     count = system_config.NUM_ORBITS
     if count is None:
         count = draw.randint(*tuning.PULSAR_DISK_PLANET_COUNT)
-    low, high = disk_mass_range_earth()
+    low, high = tuning.PULSAR_DISK_MASS_EARTH_RANGE
     planets = []
     for distance in _disk_distances_au(count) if count > 0 else []:
         if distance > orbit_ceiling_au:
             break
         mass_earth = math.exp(draw.uniform(math.log(low), math.log(high)))
-        radius_km = min(tuning.PULSAR_DISK_MAX_RADIUS_KM, _radius_km(mass_earth, _disk_density_g_cm3()))
-        planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
+        planets.append(Planet(system_config, star, habitable_zone, distance,
                               mass=_mearth_to_kg(mass_earth), moon_count=0,
                               formation_distance_au=0.0, late_core=True))      # the disk is the debris of a disrupted star: no gas disk, so no hydrogen envelope (GEN.1323 gave it one)
     log.choice("Pulsar planets", f"{len(planets)} disk planets",
