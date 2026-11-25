@@ -26,6 +26,7 @@ sampler.
 """
 
 import contextlib
+from types import SimpleNamespace
 import math
 import random
 import re
@@ -37,7 +38,6 @@ from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.hosts import PRIMARY, Host
 from planetgen.galaxy import spherical
 
 
@@ -69,23 +69,14 @@ class _StubSystem:
     def __init__(self, hill_ly, name="stub"):
         self.star = _StubStar(hill_ly, name)
         self.primary_star = self.star
-        self.hosts = [Host(self.star, PRIMARY)]    # the one host a lone star has since GEN.1664, with no bodies round it
+        self.primary = SimpleNamespace(orbiters=[])      # the placement reads the host and its orbiters (GEN.1664), none in a stub
+        self.secondary = None
+        self.hosts = []
+        self.all_planets = []
         self.system_config = SystemConfig()
 
-    @property
-    def all_planets(self):
-        return [body for host in self.hosts for body in host.orbiters]
-
-    @property
-    def primary(self):
-        return self.hosts[0]
-
-    @property
-    def secondary(self):
-        return None
-
     def hosts_of(self, role):
-        return [host for host in self.hosts if host.role == role]
+        return []
 
 
 class _StubRemnant(_StubStar):
