@@ -154,11 +154,12 @@ def runaway_draw(seed, initial_mass_sol):
                                          screen_unit(seed, "runaway-origin"), screen_unit(seed, "runaway-bound"))
 
 
-def star_tree(row):
+def star_tree(row, keep_single=False):
     """
-    The member tree of one `bright_stars` row (`store.BRIGHT_STAR_COLUMNS` order), or `None` for a single object.
-    The row is the placed object: a star of its stored mass, birth mass and age (a white dwarf, class VII, a white
-    dwarf), and the system is as old as the star. A runaway star (`runaway_draw`) carries the flag of its channel on
+    The member tree of one `bright_stars` row (`store.BRIGHT_STAR_COLUMNS` order), or `None` for a single object, which the scatter stores no
+    members for. `keep_single` returns a single object's one-member tree instead: it carries the single object's own flags (a lone Be star, a
+    runaway, a white dwarf that is a merger product), which the scatter passes do not store (the type audit, TEST.164, counts them).
+    The row is the placed object: a star of its stored mass, birth mass and age (a white dwarf, class VII, a white dwarf), and the system is as old as the star. A runaway star (`runaway_draw`) carries the flag of its channel on
     member 0, and a supernova-channel runaway that kept a compact companion has it in its tree. A massive star under
     `tuning.YOUNG_GROUP_AGE_MAX_YR` may be born in a young group (`multistar.draw_young_group`, GEN.327): a `group` node
     while it is younger than the group's decay age, the hierarchy the group left otherwise.
@@ -172,7 +173,7 @@ def star_tree(row):
     runaway = None if white_dwarf else runaway_draw(seed, placed.birth_mass_solar)
     tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{seed}:{MEMBERS_STREAM}"),
                                       bound_runaway=runaway is not None and runaway.bound_companion, groups=True)
-    if not tree.nodes:
+    if not tree.nodes and not keep_single:
         return None
     if runaway is not None:
         flagged = dataclasses.replace(tree.members[0], flags=tree.members[0].flags | multistar.RUNAWAY_ORIGIN_FLAGS[runaway.origin])

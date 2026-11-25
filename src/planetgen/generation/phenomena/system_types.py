@@ -207,7 +207,7 @@ SYSTEM_TYPE_RATES = {
         _TREE, 261, "F", (10, 11), low=0.25, high=0.32, by_class={"wide": 0.22},
         note="25% to 26% observed, 32% in the 20 pc sample."),
     "close-double-white-dwarf": _t(
-        "13.3", "Close double white dwarf", "white dwarfs", 0.095, "S", ("old",), "draw_white_dwarf_binary",
+        "13.3", "Close double white dwarf", "white dwarfs", 0.095, "S", ("intermediate", "old"), "draw_white_dwarf_binary",
         271, "F", (10, 11), note="Within 4 AU (Maoz et al.); axis log-uniform 0.001 to 4 AU; Peters rule."),
     "double-white-dwarf-merger": _t(
         "13.3", "Double white dwarf merger product", "white dwarfs", 0.10, "S", ("old",), "draw_white_dwarf_merger",
@@ -216,7 +216,7 @@ SYSTEM_TYPE_RATES = {
              "merger-product heavier star."),
     "white-dwarf-post-ce": _t(
         "13.3", "White dwarf plus main-sequence star, post-common-envelope pair", "white-dwarf companions", 0.10,
-        "I", ("old", "halo", "cluster"), "draw_white_dwarf_binary", 271, "F", (10, 13),
+        "I", ("intermediate", "old", "halo", "cluster"), "draw_white_dwarf_binary", 271, "F", (10, 13),
         derived="the knob post_ce_fraction", note="Axis 0.005 to 2 AU, log-uniform; 22% are wide and never interacted."),
     "cataclysmic-variable": _t(
         "13.3", "Cataclysmic variable (all)", "white dwarfs", 6.5e-4, "S,C", ("intermediate", "old"),
