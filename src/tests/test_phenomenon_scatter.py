@@ -611,7 +611,8 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
                and entry.phenomenon.mass_class == "stellar"]
     assert neutron and stellar
     assert all(1.1 <= remnant.mass_solar <= 2.2 for remnant in neutron)
-    assert all(5.0 <= remnant.mass_solar <= 20.0 for remnant in stellar)
+    # The cut is in the anchor law's masses (GEN.554): a hole of a place with fewer metals than the sun's is stretched above 20.
+    assert all(5.0 <= remnant.mass_solar <= tuning.BLACK_HOLE_MASS_TOP_SOLAR for remnant in stellar)
 
 
 def test_a_scatter_without_a_flag_keeps_the_stored_cut(mysql_config):
