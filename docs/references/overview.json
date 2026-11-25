@@ -21,16 +21,16 @@
       "T6": 531,
       "T7": 162,
       "T8": 8,
-      "T9": 239
+      "T9": 240
     },
     "by_tweak": {
       "L0": 1150,
       "L1": 423,
-      "L2": 105,
+      "L2": 106,
       "L3": 276,
       "L4": 66
     },
-    "rows": 2020
+    "rows": 2021
   },
   "tiers": [
     [
@@ -109,7 +109,7 @@
   "verdict": {
     "chosen_for_the_output": {
       "percent": 12,
-      "rows": 239
+      "rows": 240
     },
     "educated_guess_from_physics": {
       "percent": 43,
@@ -117,7 +117,7 @@
     },
     "fitted_to_a_result": {
       "percent": 22,
-      "rows": 447
+      "rows": 448
     },
     "read_from_a_source": {
       "percent": 26,

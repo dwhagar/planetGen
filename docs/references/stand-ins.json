@@ -7549,6 +7549,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design note 13.2 and 13.7, GEN.270, GEN.1855: the weight on the density of periods under a day for a star under the massive limit, tuned until the Algol share of a disk of constant star formation (0.05 to 10 Gy, living stars, any semi-detached pair) reaches the registry's lower limit of 0.1 percent (the algol row, \"a lower limit\"); measured over 1.5 million such systems (sigma 0.0025 percent): 6.0 gives 0.0881 percent, 7.0 0.0952 percent, 8.0 0.1002 percent; the contact share of FGK dwarfs goes 0.165 to 0.181 percent over the same two weights, inside its 0.2 to 0.77 percent window at 4 sigma"
+            ],
+            [
+              "What it is",
+              "system_types.TUNING_KNOBS"
+            ],
+            [
+              "The range it moves in",
+              "tight_tail_weight 8.0 (6.0 at GEN.270; 1.0 is the plain draw)"
+            ],
+            [
+              "Where it holds",
+              "primaries under the massive limit, periods under a day"
+            ],
+            [
+              "What would show it wrong",
+              "test_system_type_rates::test_the_tuning_knobs_are_the_calibrated_defaults"
+            ],
+            [
+              "What replaces it",
+              "a period law that carries its own tight tail, or a measured share of solar-type pairs under a day that this weight misses"
+            ]
+          ],
+          "id": "MS8",
+          "key": "6.11:MS8",
+          "kind": "P",
+          "slug": "6-11-ms8",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L2",
+          "unread": null,
+          "what": "system_types.TUNING_KNOBS"
         }
       ],
       "slug": "6-11-stand-ins-of-the-young-group-draw",
