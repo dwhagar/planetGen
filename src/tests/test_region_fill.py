@@ -168,7 +168,7 @@ def test_a_finished_fill_of_one_anchor_sphere_is_charted_and_named(mysql_config,
     _run_cli(["--center-sector", str(sector_id), "--region", "--num-systems", "1"] + _mysql_argv(mysql_config), planets=False)
     # The fill's sectors are the ones that hold a system. An ejected planet of a donor system is a rogue planet in a sector of its own,
     # as far along its path as its speed took it (GEN.1111), so that sector holds no star and is no part of the fill: how many systems
-    # throw a planet out is a draw of the stars, and it moved with the star mass function's centre (GEN.922).
+    # throw a planet out is a draw of the stars, and it moved with the star mass function's center (GEN.922).
     conn = store.get_connection(mysql_config)
     try:
         with_systems = {row["id"] for row in conn.execute("SELECT DISTINCT sector_id AS id FROM star_systems").fetchall()}
