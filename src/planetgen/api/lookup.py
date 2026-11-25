@@ -158,7 +158,7 @@ def near_of(near):
 def _sectors_of(conn, near):
     """`(sector designations nearest first, designation of near or None)` for a pass over every sector that can hold an object named by its ID."""
     info = store.get_galaxy_shape(conn, light=True)
-    edge_pc = getattr(info, "edge_pc", None) or 1.0        # the centres scale with the edge, so the order is the same for any edge
+    edge_pc = getattr(info, "edge_pc", None) or 1.0        # the centers scale with the edge, so the order is the same for any edge
     return local_name_search.ordered(local_name_search.cells(conn), near_of(near), edge_pc)
 
 

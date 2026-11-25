@@ -10,8 +10,8 @@ no index to read the name from; this module is that pass.
 
 * **The sectors to search** (`cells`) are every sector row (charted cells and the placeholders of the cells a drifting free planet landed in), every cell of the scatter tables
   (`bright_stars`, `phenomenon_scatter`: uncharted space has no sector row) and every birth sector of the standalone phenomena (a field cloud or a container is born in the
-  sector that holds its centre, which may have no row). Each is counted once.
-* **Nearest first** (`ordered`): the sectors are ordered by the distance of their centre from the sector the person is in (`near`), so the answer for the neighbourhood is
+  sector that holds its center, which may have no row). Each is counted once.
+* **Nearest first** (`ordered`): the sectors are ordered by the distance of their center from the sector the person is in (`near`), so the answer for the neighbourhood is
   there at once and the rest follows.
 * **The pass** (`search`) takes the sectors in batches of `BATCH`: the Object ID the name stands for in each sector, then one indexed read of each table that holds ID-named
   objects (`TABLES`) for the whole batch. It reports `searched` of `total` after each batch and can stop at a deadline, saying how many it did, so a caller can carry it on
@@ -70,10 +70,10 @@ def ordered(designations, near, edge_pc):
     Args:
         designations (iterable): Sector designations (integers).
         near (int or None): The designation of the sector the person is in; `None` for the galaxy's core.
-        edge_pc (float): The edge of a sector in parsecs (`galaxy_shape.edge_pc`), for the centres.
+        edge_pc (float): The edge of a sector in parsecs (`galaxy_shape.edge_pc`), for the centers.
 
     Returns:
-        list: The same designations, the nearest centre first, a sector whose address the grid does not hold last.
+        list: The same designations, the nearest center first, a sector whose address the grid does not hold last.
     """
     if near is None:
         origin = (0.0, 0.0, 0.0)
