@@ -91,11 +91,23 @@ def test_the_report_names_every_region_and_ends_clean(audit_run):
 
 def test_the_report_command_prints_and_writes_the_report(tmp_path, capsys):
     path = tmp_path / "representation.txt"
-    assert rep.main([str(path), "--sectors", "6"]) in (0, 1)
+    assert rep.main([str(path), "--sectors", "6", "--no-multiplicity"]) in (0, 1)
     printed = capsys.readouterr().out
     written = path.read_text(encoding="utf-8")
     assert written.startswith("Census audit") and written in printed       # the fills' own log lines come before it
     assert "Placement-limited kinds" in written
+    assert "Multiplicity audit" not in written
+
+
+def test_the_report_command_includes_the_multiplicity_audit_unless_it_is_left_out(tmp_path, capsys, monkeypatch):
+    """TEST.162: the representation audit's report carries the multiplicity audit (`tests.audit.multiplicity`), here on a small sample."""
+    from tests.audit import multiplicity as multiplicity_audit
+    monkeypatch.setattr(multiplicity_audit, "jobs", lambda: [(name, 0, 300) for name in multiplicity_audit.classes()])
+    path = tmp_path / "representation.txt"
+    assert rep.main([str(path), "--sectors", "6"]) in (0, 1)
+    written = path.read_text(encoding="utf-8")
+    assert written.startswith("Census audit") and "Multiplicity audit (TEST.162)" in written
+    assert "checks," in written and "Placement-limited kinds" in written
 
 
 def test_the_sectors_filled_at_the_same_time_are_the_sectors_filled_one_after_another():

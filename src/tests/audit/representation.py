@@ -228,10 +228,12 @@ def run(monkeypatch, names=None, sectors=SECTORS, workers=None):
     return audit.Census(regions), fill, names
 
 
-def report(sectors=SECTORS):
+def report(sectors=SECTORS, multiplicity=False):
     """
     Runs the audit and returns `(text, findings)`: the census report of `audit.format_report` for every region, and the
-    kinds that broke a rule, the `PLACEMENT_LIMITED` ones included (listed under the report).
+    kinds that broke a rule, the `PLACEMENT_LIMITED` ones included (listed under the report). With `multiplicity` the
+    multiplicity audit (TEST.162, `tests.audit.multiplicity`: a million rows of each placed class) follows it, its failed checks
+    among the findings.
     """
     import pytest
     patch = pytest.MonkeyPatch()
@@ -246,6 +248,11 @@ def report(sectors=SECTORS):
     text += "\nPlacement-limited kinds (never more than the rate allows): " + (
         "all within the rate\n" if not limited else "; ".join(
             f"{f.region}/{f.label()} observed {f.observed}, at most {f.expected:.1f}" for f in limited) + "\n")
+    if multiplicity:
+        from tests.audit import multiplicity as multiplicity_audit
+        extra, failed = multiplicity_audit.report()
+        text += "\n" + extra
+        return text, findings + limited + failed
     return text, findings + limited
 
 
@@ -257,8 +264,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument("path", nargs="?")
     parser.add_argument("--sectors", type=int, default=SECTORS)
+    parser.add_argument("--no-multiplicity", action="store_true",
+                        help="leave out the multiplicity audit (TEST.162), which draws a million rows of each placed class and takes minutes")
     options = parser.parse_args(argv)
-    text, findings = report(options.sectors)
+    text, findings = report(options.sectors, multiplicity=not options.no_multiplicity)
     sys.stdout.write(text)
     if options.path:
         with open(options.path, "w", encoding="utf-8") as handle:
