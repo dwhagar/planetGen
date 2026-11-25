@@ -1658,12 +1658,16 @@ it the same way `planetgen system` does, via `StarSystem(system_config=...)`:
 ```
 
 Accepted fields: `star_type`, `name`, `age` (`"young"`,
-`"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), and the
+`"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), `stars` (exactly this
+many stars, a whole number from 1 up to the cap, or `null` to leave the count to chance), `max_stars`
+(the cap on the count drawn, a whole number from 1 to 64, or `null` for the default of 12), and the
 tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
 `max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
 (`true`, `false`, or `null`) — `wide_binary` selects an S-type (wide) vs.
 P-type (close) binary and is only meaningful together with
-`binary_system: true`. An unrecognized field (including `slots`, or a
+`binary_system: true`. A count the cap or the pair options rule out is a `400` with the
+command line's words: `stars` under 1, over the cap or over 64, `max_stars` outside 1 to 64, one
+star with `binary_system` or `wide_binary` true, and two or more stars with `binary_system` false. An unrecognized field (including `slots`, or a
 fully-specified object graph shaped like `StarSystem.to_dict()`) is a
 `400` — not silently ignored.
 

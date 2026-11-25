@@ -183,11 +183,24 @@ class SystemRecipe(Body):
     name: Optional[StrictStr] = None
     age: Literal["young", "old", None] = None
     num_orbits: Optional[StrictInt] = Field(default=None, description="Unit: count of orbits (planets and belts), 1 and up.")
+    stars: Optional[StrictInt] = Field(default=None, description="Unit: count of stars, 1 up to the cap; the system holds exactly this many.")
+    max_stars: Optional[StrictInt] = Field(default=None, description="Unit: count of stars, 1 to 64; the cap on the star count drawn.")
 
     @field_validator("name")
     @classmethod
     def _recipe_name(cls, value):
         return _at_most(value, SYSTEM_NAME_MAX_LENGTH)
+
+    @model_validator(mode="after")
+    def _star_count(self):
+        """The count and the cap as `planetgen system --stars --max-stars` judges them, in the same words (`run_system`)."""
+        from planetgen.generation import run_system
+
+        problem = run_system.max_stars_problem(self.max_stars) or run_system.stars_problem(
+            self.stars, self.max_stars, self.binary_system, self.wide_binary)
+        if problem:
+            raise ValueError(problem)
+        return self
 
     @field_validator("num_orbits")
     @classmethod

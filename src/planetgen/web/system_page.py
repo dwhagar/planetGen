@@ -170,8 +170,9 @@ def system_request(form):
     chance_system = _number(form, "flavor_chance_system", "System flavor chance", float, minimum=0.0, maximum=1.0)
     chance_planet = _number(form, "flavor_chance_planet", "Planet flavor chance", float, minimum=0.0, maximum=1.0)
     max_flavor = bool(form.get("max_planet_flavor"))
-    stars = _number(form, "stars", "Number of stars", int, minimum=1, maximum=MAX_STARS_CEILING)
-    max_stars = _number(form, "max_stars", "Most stars", int, minimum=1, maximum=MAX_STARS_CEILING)
+    # The range of both is `run_system`'s to judge (below), so the page's words are the command line's.
+    stars = _number(form, "stars", "Number of stars", int)
+    max_stars = _number(form, "max_stars", "Most stars", int)
     force_class = _text(form, "force_class").upper()
     force_life_class = _text(form, "force_life_class").lower()
     problem = class_request_problem(force_class, force_life_class)
