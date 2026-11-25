@@ -302,6 +302,22 @@ def test_a_world_with_no_carbon_sink_is_left_as_it_is(monkeypatch):
     assert bo.rebalance_co2(body) is False and body.air["CO2"] == 100.0
 
 
+def test_a_sink_that_asks_no_change_gives_the_body_back_as_it_was(monkeypatch):
+    """GEN.1853: the trials store the air again at each try, and a store that solves the warming a little differently each time left the body a little off the air it was
+    given while the answer said "no change" (so what read the air, the doses, was not made again and was stale, TEST.830). A no-change answer gives every field back."""
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=300.0, greenhouse_factor=0.5, build=BuildRecord(co2_sink=_Sink()))
+    monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
+
+    def store(b, air):
+        b.air = dict(air)
+        b.surface_temperature = 300.0 + 1.0e-4 * len(b.air) + 1.0e-6 * air.get("CO2", 0.0)       # the re-solved air ends a little apart each time
+        b.extra_field = True
+    monkeypatch.setattr(bo, "store_air", store)
+    before = dict(vars(body))
+    assert bo.rebalance_co2(body) is False
+    assert vars(body) == before
+
+
 def test_the_co2_follows_the_sink_to_the_temperature_the_oxygen_rise_left(monkeypatch):
     """The air was solved at 300 K with 100 Pa of CO2; the rise left it at 280 K, where the sink holds four times as much. With no greenhouse from the CO2 the
     fixed point is the sink's answer at 280 K: 100 + (400 - 100) Pa."""
