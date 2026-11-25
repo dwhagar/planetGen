@@ -44,6 +44,7 @@ def test_the_sample_is_a_million_systems_of_each_region_class_and_a_million_whit
         assert sample.rows[(audit.STAR, region)] == audit.SYSTEMS == 1_000_000
         assert sample.rows[(audit.WHITE_DWARF, region)] == 1_000_000
     assert sample.rows[(audit.YOUNG_MASSIVE, "young")] == audit.GROUP_ROWS
+    assert sample.rows[(audit.CONSTANT_DISK, audit.CONSTANT_DISK)] == audit.SYSTEMS    # the Algol row's disk of constant star formation
 
 
 def test_the_type_counts_are_the_registrys_within_four_sigma(sample):
@@ -89,7 +90,7 @@ def test_the_report_names_every_type_and_every_check_passes(sample):
 def test_a_chunk_is_the_same_seeds_on_every_run_and_the_workers_add_up_to_the_one_by_one_run():
     assert audit.rows_of("star", "bulge", 3, 5) == audit.rows_of("star", "bulge", 3, 5)
     assert audit.rows_of("star", "bulge", 3, 5) != audit.rows_of("star", "bulge", 4, 5)
-    jobs = [("star", "bulge", 0, 150), ("white-dwarf", "halo", 0, 150), ("young-massive", "young", 0, 150)]
+    jobs = [("star", "bulge", 0, 150), ("white-dwarf", "halo", 0, 150), ("young-massive", "young", 0, 150), ("constant-disk", "constant-disk", 0, 150)]
     one, two = audit.run(workers=1, sample_jobs=jobs), audit.run(workers=2, sample_jobs=jobs)
     assert dataclasses.asdict(one) == dataclasses.asdict(two)
 
@@ -100,6 +101,7 @@ def test_the_jobs_cover_the_whole_sample_in_chunks():
         for sample in (audit.STAR, audit.WHITE_DWARF):
             assert sum(count for s, r, _chunk, count in found if (s, r) == (sample, region)) == audit.SYSTEMS
     assert sum(count for s, _r, _chunk, count in found if s == audit.YOUNG_MASSIVE) == audit.GROUP_ROWS
+    assert sum(count for s, _r, _chunk, count in found if s == audit.CONSTANT_DISK) == audit.SYSTEMS
     assert max(count for _s, _r, _chunk, count in found) <= audit.CHUNK
 
 

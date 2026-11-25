@@ -9,7 +9,10 @@ bulge, the thin disk in an arm and between arms, the thick disk, the halo, a sat
 the way the scatters draw it: a star of the region's population mix (`galaxy.profile.profile_at(...).mix`, the densities of the populations
 at the region's point), its mass, age and metallicity from `star_population.sample_mass_band_stars` for its population, and its member tree from
 `scatter_companions.star_tree`. A second sample of white dwarfs (`SYSTEMS` of each region class, aged from the window of their population) and a
-third of young massive stars (`GROUP_ROWS`, aged from 10 kyr to 10 Myr) give the reference classes a field of living stars holds too few of.
+third of young massive stars (`GROUP_ROWS`, aged from 10 kyr to 10 Myr) give the reference classes a field of living stars holds too few of. A
+fourth sample (`SYSTEMS` living stars of a disk of constant star formation, aged 0.05 to 10 Gy, the registry's own reference of the Algol row:
+"disk stars", design note 13.2, `TUNING_KNOBS["tight_tail_weight"]`, GEN.270, GEN.1855) is the Algol's: the share of the region classes' own population mixes
+depends on how old their stars are, which the registry's share does not.
 Every row and tree is classified and tested:
 
 - **Test 10, type counts**: each type of `TYPES` (the rows of `generation.phenomena.system_types.SYSTEM_TYPE_RATES` that are a property of a
@@ -19,8 +22,9 @@ Every row and tree is classified and tested:
 - **Test 11, region gates**: no type is found in a population its registry row does not list (`SystemType.populations`, with the satellite twins
   of the disk's); the pair gates of `multistar._gate_forbids` are checked on the stored pairs too (no contact binary of solar-type stars in the
   young population, no Algol in the old).
-- **Test 12, the N tail**: the systems with N = 5, 6, 7 and 8 to 12 stars against the columns of the `quintuple-to-septuple` and
-  `eight-to-twelve-stars` rows.
+- **Test 12, the N tail**: the systems with N = 8 to 12 stars against the columns of the `eight-to-twelve-stars` row; the systems of 5, 6 and 7
+  stars of the living stars against what the `star-count` table gives them (the registry's `quintuple-to-septuple` columns come from surveys of
+  living primaries, so the living stars are the comparison, and the report sets the registry's columns beside them).
 - **Test 13, interaction consistency**: every pair of two single members is classified again from its stored masses, radii and orbit
   (`multistar.classify_pair`): a `semi-detached` pair has a donor at or past its Roche lobe at closest approach, a `contact` pair both, an
   `accreting` pair a lobe-filling donor and a receiver that is a white dwarf, a neutron star or a black hole (or a star flagged `mass_gainer`).
@@ -68,7 +72,7 @@ EXAMPLES = 5
 """int: How many examples of a broken rule a report shows."""
 
 STAR, WHITE_DWARF, YOUNG_MASSIVE = "star", "white-dwarf", "young-massive"
-"""str: The three samples."""
+"""str: Three of the four samples (the fourth is `CONSTANT_DISK`)."""
 
 GROUP_AGE_YR = (1.0e4, 1.0e7)
 """tuple: The ages, years, the young massive stars are drawn over (log-uniform): from the first stars to a group's longest decay age."""
@@ -85,27 +89,12 @@ WHITE_DWARF_MASS_SOL = 0.6
 REGIONS = tuple(representation.REGION_POINTS)
 """tuple: The region classes, by name."""
 
-THIN_DISK = ("thin-disk-arm", "thin-disk-interarm")
-"""tuple: The region classes of the thin disk (the registry's "disk stars")."""
-
 DISK_AGE_GY = (0.05, 10.0)
-"""tuple: The ages, Gy, of the disk of constant star formation that the registry's Algol share is given for (GEN.270 measured it there)."""
+"""tuple: The ages, Gy, of the disk of constant star formation of the Algol row: the registry's share is "of a disk of constant star formation (0.05 to 10 Gy)" (design note
+13.2, GEN.270's measure), and `CONSTANT_DISK` is drawn so."""
 
-AGE_MIX_TYPES = ("algol",)
-"""tuple: The types whose rate the registry gives for a disk of constant star formation: counted over the thin disk's regions together, not region by region (the
-arm holds a younger mix than the interarm), and in the stars of the ages the type can have (see `RATE_SCALE`)."""
-
-
-def _algol_age_share():
-    """The share of a disk of constant star formation (`DISK_AGE_GY`) that is younger than the old population: the stars an Algol can be among
-    (`multistar._gate_forbids`: an Algol needs less than `tuning.OLD_POPULATION_MIN_AGE_GY`)."""
-    low, high = DISK_AGE_GY
-    return (tuning.OLD_POPULATION_MIN_AGE_GY - low) / (high - low)
-
-
-RATE_SCALE = {"algol": _algol_age_share}
-"""dict: Type -> a function giving the share of the registry's reference that its reference class here counts: the registry's Algol share is of a whole disk of
-constant star formation, the "disk stars" class here holds the living thin-disk stars younger than the old population, so the registry's rate is divided by this."""
+CONSTANT_DISK = "constant-disk"
+"""str: The fourth sample: living stars of a disk of constant star formation (`DISK_AGE_GY`), which the Algol row's reference class "disk stars" is."""
 
 
 @functools.lru_cache(maxsize=None)
@@ -129,7 +118,7 @@ def jobs(systems=None, group_rows=None):
     group_rows = GROUP_ROWS if group_rows is None else group_rows
     found = []
     for sample, region, total in ([(STAR, region, systems) for region in REGIONS] + [(WHITE_DWARF, region, systems) for region in REGIONS]
-                                  + [(YOUNG_MASSIVE, "young", group_rows)]):
+                                  + [(YOUNG_MASSIVE, "young", group_rows), (CONSTANT_DISK, CONSTANT_DISK, systems)]):
         number = 0
         while total > 0:
             found.append((sample, region, number, min(CHUNK, total)))
@@ -159,6 +148,11 @@ def draw_row(sample, region, seed):
         age_gy = min(math.exp(rng.uniform(math.log(GROUP_AGE_YR[0]), math.log(GROUP_AGE_YR[1]))) / 1.0e9,
                      0.95 * evolution.main_sequence_lifetime_gy(birth))     # a star is drawn alive
         info = Row(sample, region, "young", birth, age_gy, "V", 0.0, seed)
+        return info, multiplicity._star_row(seed, birth, age_gy, birth, "V")
+    if sample == CONSTANT_DISK:
+        age_gy = rng.uniform(*DISK_AGE_GY)
+        birth = multistar._alive_star_mass(0.1, 60.0, age_gy * 1.0e9, rng)         # a star alive at its age, over 0.1 to 60 solar masses (GEN.270's draw)
+        info = Row(sample, region, "disk", birth, age_gy, "V", 0.0, seed)
         return info, multiplicity._star_row(seed, birth, age_gy, birth, "V")
     names, weights = region_mix(region)
     if sample == WHITE_DWARF:
@@ -193,14 +187,17 @@ def tree_of(sample, region, seed):
 # --- The reference classes and the types ----------------------------------------------------------------------------
 
 
+OWN_SAMPLE = {"young-group": "young", "algol": CONSTANT_DISK}
+"""dict: The types counted in a sample of their own, not region by region: the young group in the young massive stars, the Algol in the constant-star-formation disk."""
+
+
 def _is_star(info):
     return info.sample == STAR
 
 
 REFERENCES = {
     "FGK dwarf systems": lambda info, tree: _is_star(info) and info.yerkes == "V" and 0.45 <= info.birth_mass_solar < 1.4,
-    "disk stars": lambda info, tree: (_is_star(info) and info.yerkes != "VII" and info.region in THIN_DISK
-                                      and info.age_gy < tuning.OLD_POPULATION_MIN_AGE_GY),
+    "disk stars": lambda info, tree: info.sample == CONSTANT_DISK,
     "Sun-like stars": lambda info, tree: _is_star(info) and info.yerkes == "V" and 0.8 <= info.birth_mass_solar < 1.2,
     "young B stars": lambda info, tree: (_is_star(info) and 2.1 <= info.birth_mass_solar < 16.0
                                          and info.age_gy < tuning.YOUNG_POPULATION_MAX_AGE_GY),
@@ -520,17 +517,14 @@ def type_checks(tally):
     for name, (ref_name, _predicate) in TYPES.items():
         if name in REPORT_ONLY:
             continue
-        default, low, high = (rate / RATE_SCALE[name]() if name in RATE_SCALE else rate for rate in registry_rate(name))
+        default, low, high = registry_rate(name)
         reference_total = sum(tally.references[(region, ref_name)] for region in REGIONS)
-        if name in ("young-group",):
-            reference_total = tally.references[("young", ref_name)]
-            observed = tally.types[("young", name)]
-            found.append(rate_check(name, observed, reference_total, default, low, high))
+        if name in OWN_SAMPLE:
+            where = OWN_SAMPLE[name]
+            found.append(rate_check(name, tally.types[(where, name)], tally.references[(where, ref_name)], default, low, high))
             continue
         observed = sum(tally.types[(region, name)] for region in REGIONS)
         found.append(rate_check(name, observed, reference_total, default, low, high, "all regions: "))
-        if name in AGE_MIX_TYPES:
-            continue
         for region in REGIONS:
             count = tally.references[(region, ref_name)]
             if count * (low if low == high else max(default, low)) >= MIN_EXPECTED:
@@ -540,7 +534,7 @@ def type_checks(tally):
 
 def gate_checks(tally):
     """Test 11: no type in a population its row does not allow, no gated pair."""
-    return [multiplicity.Check(f"{region}: stored types or pairs a gate forbids", tally.gate_bad[region], 0, 1.0, 0.5) for region in REGIONS + ("young",)]
+    return [multiplicity.Check(f"{region}: stored types or pairs a gate forbids", tally.gate_bad[region], 0, 1.0, 0.5) for region in REGIONS + ("young", CONSTANT_DISK)]
 
 
 def star_count_shares(initial_mass_solar, fe_h):
@@ -604,7 +598,7 @@ def tail_report(tally):
 def consistency_checks(tally):
     """Test 13: no pair whose stored interaction the geometry does not give."""
     return [multiplicity.Check(f"{region}: pairs failing the Roche check (of {tally.pairs_checked[region]:,} interacting)", tally.interaction_bad[region], 0, 1.0, 0.5)
-            for region in REGIONS + ("young",)]
+            for region in REGIONS + ("young", CONSTANT_DISK)]
 
 
 def decay_checks(tally):
