@@ -134,6 +134,26 @@ def load_dict(fields, row, only=None):
 _ROW_LOG = contextvars.ContextVar("object_rows_row_log", default=None)
 
 
+_COLUMN_CANNOT_BE_NULL = 1048
+"""int: The server's error number for a NULL written to a NOT NULL column."""
+
+IDENTITY_ATTRIBUTES = ("name", "uid", "body_type", "planet_class", "is_moon", "mass", "distance")
+"""tuple: What names the object of a refused row: its own name and kind and where it sits."""
+
+
+def null_column_report(table, columns, values, obj):
+    """
+    Names the body behind a row the server refused for a NULL in a NOT NULL column (GEN.1856: `rotation_period_hours` came out None once in four runs of two workers, and the
+    server's message names the column but not the body): the table, the columns that were None and are required, and the object's class and identity attributes.
+    """
+    from planetgen.db import models      # not at the top: the models module is large and a plain insert never needs it
+    table_columns = models.metadata.tables[table].columns if table in models.metadata.tables else {}
+    empty = [column for column, value in zip(columns, values)
+             if value is None and column in table_columns and not table_columns[column].nullable]
+    identity = ", ".join(f"{name}={getattr(obj, name)!r}" for name in IDENTITY_ATTRIBUTES if hasattr(obj, name))
+    return f"table {table}, required columns left empty: {', '.join(empty) or 'none found'}; object {type(obj).__name__} ({identity})"
+
+
 @contextlib.contextmanager
 def logged_rows():
     """
@@ -158,8 +178,13 @@ def insert_row(conn, table, fields, obj, context=None):
     from the id blocks (`store.ID_BLOCK_TABLES`) still does.
     """
     columns = columns_of(fields)
-    cur = conn.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-                       tuple(values_of(fields, obj, context)))
+    values = tuple(values_of(fields, obj, context))
+    try:
+        cur = conn.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})", values)
+    except Exception as error:      # the server's own wording, with the body that broke it named (GEN.1856)
+        if len(error.args) == 2 and error.args[0] == _COLUMN_CANNOT_BE_NULL:
+            raise type(error)(error.args[0], f"{error.args[1]}; {null_column_report(table, columns, values, obj)}") from error
+        raise
     log = _ROW_LOG.get()
     if log is not None:
         log[id(obj)] = (table, cur.lastrowid)
