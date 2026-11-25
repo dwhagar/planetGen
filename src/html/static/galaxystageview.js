@@ -966,6 +966,8 @@ export function createStageView(host) {
     const extra = [];
     const pickQuery = host.pickQuery ? host.pickQuery() : "";
     if (pickQuery) extra.push(pickQuery.slice(1));
+    // MAP.189: a plain address opens flown in to the largest charted region, so the whole galaxy names itself ("whole=1") when the map has such a region to fly to (MAP.106: a fresh load shows the view).
+    if (!query && host.openingRegion) extra.push("whole=1");
     return joinQuery(query, extra.concat(displayParts()));
   }
 
@@ -1267,6 +1269,14 @@ export function createStageView(host) {
     v.dist = zoom * full;
   }
 
+  // MAP.189 (GitHub issue 1232): a galaxy with charted sectors opens flown in to the largest charted region (its window, the camera where its sphere fills the view, as a click on
+  // the region lands, MAP.319), not to the whole galaxy; the wheel still goes out to it. Once, on the first view, when the address asked for nothing else.
+  function flyToOpeningRegion(r) {
+    const region = host.openingRegion;
+    if (!region || host.openWhole || pinned || !isWholeGalaxy(r) || pendingOpen || selectedSector || !region.block) return;
+    openRegion(region.block, { center: region.center, radius: region.radius });
+  }
+
   function flyTo(r) {
     closeAmbient();
     const from = display && view ? viewNow() : null;
@@ -1284,6 +1294,7 @@ export function createStageView(host) {
       else closeOnCharted(r, view);
       applyView();
       afterArrival();
+      if (!want) flyToOpeningRegion(r);
       return;
     }
     if (old) leaving.push(old);

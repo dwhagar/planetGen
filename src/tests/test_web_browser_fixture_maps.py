@@ -607,11 +607,13 @@ def _pin_window(page, height=434):
 }""" % height)
 
 
-def _open_galaxy(page, base, query="", wall_icons=False):
+def _open_galaxy(page, base, query="", wall_icons=False, flown_in=False):
     """Opens the Galaxy Map; the icons on the walls of an opened sector (MAP.327) are left out unless `wall_icons`, as
     they sit over the points the tests look for."""
     if not wall_icons:
         page.add_init_script(NO_WALL_ICONS)
+    if not flown_in:      # MAP.189: the map opens flown in to the largest charted region; the tests that look at the whole galaxy ask for it (`flown_in` is the test of the flight)
+        query += ("&" if "?" in query else "?") + "whole=1"
     _open(page, f"{base}/galaxy{query}", GALAXY_CANVAS)
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
@@ -6778,3 +6780,17 @@ def test_the_stars_of_a_wide_pair_are_linked_as_one_system(page, dense_site):
         _settle(page)
     assert math.hypot(one["x"] - other["x"], one["y"] - other["y"]) < MIN_LINK_PX, "the view never went far enough out"
     page.wait_for_function(f"() => ({links})().filter((line) => line.system === '{first['system_id']}').length === 0", timeout=20000)
+
+
+def test_the_galaxy_map_opens_flown_in_to_the_largest_charted_region_and_zooms_out_to_the_whole_galaxy(page, map_site):
+    """MAP.189 (GitHub issue 1232): with sectors charted the first frame frames the largest charted region (the first of the charted-regions list), the camera at a distance
+    that fills the view with its sphere, and not the whole galaxy from the origin; Whole galaxy is still a click away."""
+    from tests.map_site_support import FixtureApi
+    largest = FixtureApi().get_galaxy_charted_regions(None)["regions"][0]
+    _open_galaxy(page, map_site, flown_in=True)
+    camera = _camera(page)
+    assert all(abs(got - want) < 1e-6 * max(1.0, abs(want)) for got, want in zip(camera["target"], largest["center"])), (camera["target"], largest["center"])
+    assert largest["radius"] < camera["dist"] < 8 * largest["radius"], (camera["dist"], largest["radius"])
+    page.locator('#galaxymap3d-controls [data-action="reset"]').click()
+    whole = _camera(page)
+    assert whole["dist"] > 20 * camera["dist"], (whole["dist"], camera["dist"])
