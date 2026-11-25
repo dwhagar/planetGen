@@ -81,11 +81,27 @@ differ in the second.
 
 What this item does not do: it adds the functions, the version and the tests. Using the local name for rogue planets and the other
 phenomena, and showing the name and sector on pages, the API and search are GEN.1256, GEN.1257, UX.259
-and API.38.
+and API.38 (search by a bare local name, below).
 
 ### Names shown for IDs (GEN.71, GEN.1256)
 
 The `name` column of a codec-named object keeps its printed Object ID (the identity). Every JSON answer of the API passes through `api/naming.NamingJSONProvider`, which replaces a `name` that is such an ID with its local name under the galaxy's key (`naming_key.local_name`) and adds `name_sector`, the birth sector's 14 hex digits, beside it. The pages call the API in-process, so the maps, lists, info panels and the nebula page all show the local name. The key is read once per request (cached 5 s per process, dropped when an admin changes it) and `query.galaxy_content_state` mixes it into its `base`, so a key change refreshes the tile and page caches, and nothing is stored in words, so a key change renames all at once. With no key drawn, or in the CLI, the ID is shown. Lists sorted by name order by the printed ID, that is by birth sector and then serial. `GET /api/lookup?text=` accepts a printed ID, or a local name followed by its sector (`Banhunm Finkap, sector 00FA0FFFE9E240`, `naming_key.uid_of_typed_name`); a local name without its sector is ambiguous and finds nothing by itself. The wide-pair rule (never "A I"; test in `test_body_names.py`) was already in force from GEN.62.
+
+### Search by a bare local name (API.38)
+
+A local name typed without its sector stands for one Object ID in every sector, because the spelling of the serial is scrambled by a bijection of its own for each sector. There is no
+index to read it from (nothing is stored in words, so a key change renames everything without a rewrite); `GET /api/lookup` therefore undoes the scramble of each sector in turn and reads
+the Object ID it gives (`db/local_name_search.py`, one indexed read of the ten tables of ID-named objects per batch of 2,000 sectors). The sectors are every sector row, every cell of
+`bright_stars` and `phenomenon_scatter` (uncharted space has no sector row) and every birth sector of the standalone phenomena, each once, taken **nearest first** from the sector the
+person is in (`near`), so the answer for the neighbourhood is there at once. A name that some object has as its stored name (a word-salad name) is answered by the ordinary lookup first and
+never searched this way.
+
+The search never stops short without saying so. Inside the request it is given `api.lookup.QUICK_SECONDS`; a search that is not done then goes on as a light job
+(`api.lookup:name_search_job`) that searches every sector, writes `searched`, `total`, an ETA and a progress line with the real counts and a clock time (`Searched 1,200 of 480,000 sectors in 1s`)
+to a Redis record as it goes, and returns the finished answer. `GET /api/lookup/jobs/<id>` reads that record. The scramble parameters of a sector (`naming_key.scramble_params`) are found by
+a vectorised check that gives the same parameters as the one-multiplication-at-a-time loop of GEN.1255 (`tests/test_local_name_search.py` holds the two to the same answer), 49 times faster:
+0.460 ms to 0.009 ms a sector, and the whole pass about 0.03 ms a sector on an empty database, so a million sectors take about half a minute plus the cost of the reads. The pass does not
+touch the cache of the scramble parameters (`scramble_params`, not `_scramble_params`), which a request that names a sector keeps.
 
 ### Unique IDs for every object (GEN.69 and GEN.170, schema v78)
 
