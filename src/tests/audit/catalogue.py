@@ -85,8 +85,27 @@ WHITE_DWARF_MASS_SOL = 0.6
 REGIONS = tuple(representation.REGION_POINTS)
 """tuple: The region classes, by name."""
 
-DISK = ("young", "intermediate", "old")
-"""tuple: The populations of the thin disk."""
+THIN_DISK = ("thin-disk-arm", "thin-disk-interarm")
+"""tuple: The region classes of the thin disk (the registry's "disk stars")."""
+
+DISK_AGE_GY = (0.05, 10.0)
+"""tuple: The ages, Gy, of the disk of constant star formation that the registry's Algol share is given for (GEN.270 measured it there)."""
+
+AGE_MIX_TYPES = ("algol",)
+"""tuple: The types whose rate the registry gives for a disk of constant star formation: counted over the thin disk's regions together, not region by region (the
+arm holds a younger mix than the interarm), and in the stars of the ages the type can have (see `RATE_SCALE`)."""
+
+
+def _algol_age_share():
+    """The share of a disk of constant star formation (`DISK_AGE_GY`) that is younger than the old population: the stars an Algol can be among
+    (`multistar._gate_forbids`: an Algol needs less than `tuning.OLD_POPULATION_MIN_AGE_GY`)."""
+    low, high = DISK_AGE_GY
+    return (tuning.OLD_POPULATION_MIN_AGE_GY - low) / (high - low)
+
+
+RATE_SCALE = {"algol": _algol_age_share}
+"""dict: Type -> a function giving the share of the registry's reference that its reference class here counts: the registry's Algol share is of a whole disk of
+constant star formation, the "disk stars" class here holds the living thin-disk stars younger than the old population, so the registry's rate is divided by this."""
 
 
 @functools.lru_cache(maxsize=None)
@@ -180,7 +199,8 @@ def _is_star(info):
 
 REFERENCES = {
     "FGK dwarf systems": lambda info, tree: _is_star(info) and info.yerkes == "V" and 0.45 <= info.birth_mass_solar < 1.4,
-    "disk stars": lambda info, tree: _is_star(info) and info.population in DISK,
+    "disk stars": lambda info, tree: (_is_star(info) and info.yerkes != "VII" and info.region in THIN_DISK
+                                      and info.age_gy < tuning.OLD_POPULATION_MIN_AGE_GY),
     "Sun-like stars": lambda info, tree: _is_star(info) and info.yerkes == "V" and 0.8 <= info.birth_mass_solar < 1.2,
     "young B stars": lambda info, tree: (_is_star(info) and 2.1 <= info.birth_mass_solar < 16.0
                                          and info.age_gy < tuning.YOUNG_POPULATION_MAX_AGE_GY),
@@ -344,7 +364,7 @@ def interaction_problems(tree):
             receivers = [(m, fill) for m, other, fill in ((a, b, fill_b), (b, a, fill_a)) if m.kind in multistar.ACCRETOR_KINDS or m.flags & multistar.MEMBER_MASS_GAINER]
             if not receivers:
                 found.append(f"accreting pair at node {node.node_no} has no receiver that is degenerate or a mass gainer")
-            elif not any(fill >= 1.0 for _m, fill in receivers):
+            elif not any(fill >= 1.0 for _m, fill in receivers) and not node.flags & (multistar.NODE_WIND_FED | multistar.NODE_DISK_FED):
                 found.append(f"accreting pair at node {node.node_no} has no donor at its lobe ({fill_a:.3g}, {fill_b:.3g})")
     return found
 
@@ -393,6 +413,8 @@ class Tally:
     """What the rows of one or more chunks add up to, kept apart by `(sample, region)`."""
     rows: collections.Counter = dataclasses.field(default_factory=collections.Counter)
     references: collections.Counter = dataclasses.field(default_factory=collections.Counter)
+    expected_stars: collections.Counter = dataclasses.field(default_factory=collections.Counter)
+    alive_stars: collections.Counter = dataclasses.field(default_factory=collections.Counter)
     types: collections.Counter = dataclasses.field(default_factory=collections.Counter)
     stars: collections.Counter = dataclasses.field(default_factory=collections.Counter)
     pairs_checked: collections.Counter = dataclasses.field(default_factory=collections.Counter)
@@ -436,6 +458,11 @@ def run_chunk(job):
         for name, (ref_name, predicate) in TYPES.items():
             if REFERENCES[ref_name](info, tree) and predicate(tree):
                 tally.types[(region, name)] += 1
+        if sample == STAR and info.yerkes != "VII":
+            tally.alive_stars[(region, "rows")] += 1
+            tally.alive_stars[(region, tree.star_count)] += 1
+            for count, share in star_count_shares(info.birth_mass_solar, info.fe_h).items():
+                tally.expected_stars[(region, count)] += share
         pairs = [node for node, _pair in _pairs(tree) if node.interaction in ("contact", "semi-detached", "accreting")]
         tally.pairs_checked[region] += len(pairs)
         for problem in interaction_problems(tree):
@@ -493,7 +520,7 @@ def type_checks(tally):
     for name, (ref_name, _predicate) in TYPES.items():
         if name in REPORT_ONLY:
             continue
-        default, low, high = registry_rate(name)
+        default, low, high = (rate / RATE_SCALE[name]() if name in RATE_SCALE else rate for rate in registry_rate(name))
         reference_total = sum(tally.references[(region, ref_name)] for region in REGIONS)
         if name in ("young-group",):
             reference_total = tally.references[("young", ref_name)]
@@ -502,6 +529,8 @@ def type_checks(tally):
             continue
         observed = sum(tally.types[(region, name)] for region in REGIONS)
         found.append(rate_check(name, observed, reference_total, default, low, high, "all regions: "))
+        if name in AGE_MIX_TYPES:
+            continue
         for region in REGIONS:
             count = tally.references[(region, ref_name)]
             if count * (low if low == high else max(default, low)) >= MIN_EXPECTED:
@@ -514,20 +543,62 @@ def gate_checks(tally):
     return [multiplicity.Check(f"{region}: stored types or pairs a gate forbids", tally.gate_bad[region], 0, 1.0, 0.5) for region in REGIONS + ("young",)]
 
 
+def star_count_shares(initial_mass_solar, fe_h):
+    """`{N: chance}` of a system of N stars (1 to `multistar.MAX_MEMBERS`) of a star of this birth mass and [Fe/H]: the `star-count` table as the tree draws
+    it (`multistar.close_trend` moves it for a star of another [Fe/H] than the Sun's), and the tail from 7 stars up (`multistar.TAIL_RATIOS`)."""
+    weights, _inside = multistar.close_trend(initial_mass_solar, fe_h, 1.0)
+    weights = weights or multistar.star_count_weights(initial_mass_solar, 1.0)
+    total = sum(weights)
+    shares = {count + 1: weight / total for count, weight in enumerate(weights)}
+    top, reach, ratio = shares[7], 1.0, multistar.TAIL_RATIOS[0]
+    shares[7] = 0.0
+    for count in range(7, multistar.MAX_MEMBERS):
+        step = min(1.0, ratio)
+        shares[count] += top * reach * (1.0 - step)
+        reach *= step
+        ratio = multistar.TAIL_RATIOS[1]
+        shares[count + 1] = 0.0
+    shares[multistar.MAX_MEMBERS] += top * reach
+    return shares
+
+
 def tail_checks(tally):
-    """Test 12: the systems with N = 5, 6, 7 and 8 to 12 stars against the columns of the registry, over the regions together."""
+    """
+    Test 12, the N tail. The systems with 8 to 12 stars against the tail table's columns of the registry, over the regions together (the design
+    note's test). The systems with 5, 6 and 7 stars against what the `star-count` table gives the living stars of the sample (`star_count_shares`,
+    the tree's own draw, [Fe/H] trend included). The registry's columns for them come from surveys of living primaries, so living stars are the
+    proper comparison; a row whose star has died (a white dwarf, neutron star or hole) takes its companions from the tables of its remnant, not the
+    star count's, and is left out of it. `tail_report` sets the registry's columns against the living stars as well.
+    """
     found = []
     systems = sum(tally.rows[(STAR, region)] for region in REGIONS)
     counts = collections.Counter()
     for (region, n), count in tally.stars.items():
         counts[n] += count
-    five = system_types.SYSTEM_TYPE_RATES["quintuple-to-septuple"].by_class
     tail = system_types.SYSTEM_TYPE_RATES["eight-to-twelve-stars"].by_class
-    columns = {5: five["N5"], 6: five["N6"], 7: five["N7"], "8 to 12": sum(tail[f"N{n}"] for n in range(8, 13))}
-    for column, share in columns.items():
-        observed = sum(c for n, c in counts.items() if (n == column if isinstance(column, int) else 8 <= n <= 12))
-        found.append(multiplicity.share_check(f"systems with N = {column} stars (of {systems:,}, over all regions)", observed, systems, share))
+    observed = sum(c for n, c in counts.items() if 8 <= n <= 12)
+    share = sum(tail[f"N{n}"] for n in range(8, 13))
+    found.append(multiplicity.share_check(f"systems with N = 8 to 12 stars (of {systems:,}, over all regions)", observed, systems, share))
+    alive = sum(tally.alive_stars[(region, "rows")] for region in REGIONS)
+    for column in (5, 6, 7):
+        observed = sum(tally.alive_stars[(region, column)] for region in REGIONS)
+        expected = sum(tally.expected_stars[(region, column)] for region in REGIONS)
+        found.append(multiplicity.Check(f"systems with N = {column} stars (of {alive:,} living stars, over all regions, the star-count table's)",
+                                        observed, expected, math.sqrt(max(expected, 1.0)), SIGMA))
     return found
+
+
+def tail_report(tally):
+    """The lines of the report that set the registry's N = 5, 6 and 7 columns against the living stars of the sample (not checked: `tail_checks` holds them to the table)."""
+    alive = sum(tally.alive_stars[(region, "rows")] for region in REGIONS)
+    five = system_types.SYSTEM_TYPE_RATES["quintuple-to-septuple"].by_class
+    lines = []
+    for column in (5, 6, 7):
+        count = sum(tally.alive_stars[(region, column)] for region in REGIONS)
+        share = count / alive
+        lines.append(f"  N = {column}: {count:,} of {alive:,} living stars ({share:.3g}) against the registry's {five[f'N{column}']:.3g} "
+                     f"(a ratio of {share / five[f'N{column}']:.2f})")
+    return lines
 
 
 def consistency_checks(tally):
@@ -558,6 +629,8 @@ def format_report(tally, checks=None):
     bad = [check for check in checks if not check.ok]
     lines += ["", f"{len(checks)} checks, {len(bad)} failed.", "", "Types of the registry that are not a property of a drawn tree:"]
     lines += [f"  {name}: {why}" for name, why in NOT_A_TREE_PROPERTY.items()]
+    lines += ["", "The registry's N = 5, 6 and 7 columns against the living stars of the sample:"]
+    lines += tail_report(tally)
     lines += ["", "Counted and reported, not checked:"]
     for name, why in REPORT_ONLY.items():
         ref_name = TYPES[name][0]
