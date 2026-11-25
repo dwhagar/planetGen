@@ -160,9 +160,10 @@
   {%- if life_air %}
   <details class="sheet-group" id="life-and-air">
     <summary><h4>Life and air through the ages</h4></summary>
-    <p class="sheet-help">{% if life_air.stored %}How the air changed through the age of its star, every gas the history keeps, from the history stored with the world.{% else %}How the air changed as the life took hold, worked out from the air it has now.{% endif %}{% if life_air.stages %} The numbered lines are the stages of the life{% if life_air.extinctions %}; the dashed lines without a number are mass extinctions{% endif %}.{% elif life_air.extinctions %} The dashed lines are mass extinctions.{% endif %}</p>
+    <p class="sheet-help">{% if life_air.stored %}How the air of this world changed through the life of its star, every gas the history keeps, from the history stored with the world.{% else %}How the air changed as the life took hold, worked out from the air it has now.{% endif %}</p>
+    {%- for sentence in life_air.explain %}<p class="sheet-help">{{ sentence }}</p>{% endfor %}
     {{ life_air.svg }}
-    <ul class="life-air-legend">{{ life_air.legend }}</ul>
+    <ul class="life-air-legend">{{ life_air.legend }}{{ life_air.marks }}</ul>
     <ol class="life-air-stages">{% for stage in life_air.stages %}<li value="{{ stage.number }}">{{ stage.name }}, {{ stage.age }} Gyr</li>{% endfor %}</ol>
     {%- if life_air.extinctions %}
     <p class="sheet-help">Mass extinctions:</p>

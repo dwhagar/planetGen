@@ -38,6 +38,13 @@ def _styles(gases):
     return styled
 
 
+EXPLAIN = (
+    "Each line running across the chart is one gas in the air (the key under the chart says which). Its height is the pressure that gas alone makes, in kilopascals (kPa); for scale, the whole air of the Earth today is about 101 kPa, and its oxygen makes about 21 kPa of that.",
+    "Time runs from the birth of the star on the left to now on the right, in billions of years (Gyr). Each gridline up is ten times the pressure of the one below it, and a gas on the bottom line is not in the air at all.",
+    "The numbered vertical lines are the stages the life reached, listed under the chart. The dashed vertical lines without a number are mass extinctions: a flood of lava or a large impact that killed much of the life, and often changed the air.",
+)
+"""tuple: The plain sentences the page gives with the chart (UX.322): what a line is, what the axes are, and what the vertical lines are."""
+
 CAUSES = {air_events.FLOOD_BASALT: "Flood basalt eruptions", air_events.IMPACT: "A large impact"}
 """dict: The words for what ended a life age (`air_events.FLOOD_BASALT`, `air_events.IMPACT`)."""
 
@@ -112,8 +119,8 @@ def chart(history, class_id, grade=0):
         column = x(age)
         parts.append(f'<line class="life-air-grid" x1="{column:.1f}" x2="{column:.1f}" y1="{TOP}" y2="{HEIGHT - BOTTOM}"/>')
         parts.append(f'<text class="life-air-label" x="{column:.1f}" y="{HEIGHT - BOTTOM + 16}" text-anchor="middle">{age:g}</text>')
-    parts.append(f'<text class="life-air-label" x="{LEFT + plot_w / 2:.1f}" y="{HEIGHT - 6}" text-anchor="middle">Age of the star (Gyr)</text>')
-    parts.append(f'<text class="life-air-label" transform="translate(14 {TOP + plot_h / 2:.1f}) rotate(-90)" text-anchor="middle">Partial pressure (kPa)</text>')
+    parts.append(f'<text class="life-air-label" x="{LEFT + plot_w / 2:.1f}" y="{HEIGHT - 6}" text-anchor="middle">Time since the star formed (Gyr, billions of years)</text>')
+    parts.append(f'<text class="life-air-label" transform="translate(14 {TOP + plot_h / 2:.1f}) rotate(-90)" text-anchor="middle">Pressure of the gas (kPa)</text>')
     stages = []
     for number, stage in enumerate(history["stages"], 1):
         column = x(stage["age_gyr"])
@@ -155,6 +162,11 @@ def chart(history, class_id, grade=0):
     ages = [{"number": age["number"], "span": f"{age['start_gyr']:.2f} to " + ("now" if age["end_gyr"] is None else f"{age['end_gyr']:.2f}"),
              "ended": "" if age["cause"] is None else f"{CAUSES.get(age['cause'], str(age['cause']))}, {round(100.0 * age['kill_share'])} percent of species"}
             for age in history.get("life_ages") or []]
-    return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note, "makers": makers, "stored": history.get("source") == "stored",
+    marks = ""
+    if stages:
+        marks += '<li><span class="life-air-key life-air-stage-key"></span> A stage the life reached (numbered, listed below)</li>'
+    if extinctions:
+        marks += '<li><span class="life-air-key life-air-event-key"></span> A mass extinction</li>'
+    return {"svg": "".join(parts), "legend": legend, "marks": marks, "explain": EXPLAIN, "stages": stages, "note": note, "makers": makers, "stored": history.get("source") == "stored",
             "extinctions": extinctions, "life_ages": ages,
             "table": {"header": ["Age (Gyr)"] + [gas["name"] for gas in history["gases"]], "rows": rows}}
