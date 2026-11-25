@@ -55,7 +55,7 @@ def test_the_default_galaxy_reaches_its_edge_shell_with_the_core_first(milky_way
     primaries, GEN.927), 5% fewer systems again, and the edge sat at shell 3441; the companions' mass ratios of GEN.951 ([R3108],
     lighter companions for massive primaries and twins for close pairs) move the systems per solar mass by 0.3 percent, and the edge sat at shell 3438; the train 8 changes raise the mean system mass from 0.5105 to 0.5111 solar
     masses and it sits at shell 3437 (TEST.561: the edge moves a shell or two with every change of the mass function, so the test holds it to a window and
-    checks the outline against the model in the tests below, not against a pinned shell); the mass function centre of GEN.922 (0.079 to 0.092) raises the
+    checks the outline against the model in the tests below, not against a pinned shell); the mass function center of GEN.922 (0.079 to 0.092) raises the
     mean system mass to 0.536 solar masses, 5 percent fewer systems, and the edge sits at shell 3406."""
     extents, outer, confirmed = milky_way
     assert 3390 < outer < 3425 and confirmed
@@ -68,7 +68,7 @@ def test_the_outline_reaches_the_axis_in_the_bulge_and_only_there(milky_way):
     extents, _outer, _confirmed = milky_way
     polar = [shell for shell, high in extents if shell and high == spherical.band_range(shell)[1]]
     assert polar[:3] == [1, 2, 3] and max(polar) == 602
-    assert len(polar) == 602          # every shell out to 602 has its caps (612 before the GEN.922 mass function centre: fewer systems, a smaller bulge reach)
+    assert len(polar) == 602          # every shell out to 602 has its caps (612 before the GEN.922 mass function center: fewer systems, a smaller bulge reach)
     for shell, high in extents:
         if shell > 602:
             assert high < spherical.band_range(shell)[1]
@@ -92,7 +92,7 @@ def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
     # TEST.561: the count follows the number of systems the galaxy holds, its stellar mass over the derived mean system mass (GEN.545), and that mean moves with
     # every change of the mass function and the companions (GEN.927, GEN.951, the train 8 changes: 11,271,314,727, then 11,241,821,617, now about 11,235,000,000
     # as the mean went from 0.5105 to 0.5111 solar masses). So the test pins what barely moves, the count times the mean system mass (5.74e9 solar-mass cells, which
-    # moved 0.06 percent over those changes), and leaves the mean to the model. The mass function centre of GEN.922 raised the mean to 0.536 solar masses (5.0 percent
+    # moved 0.06 percent over those changes), and leaves the mean to the model. The mass function center of GEN.922 raised the mean to 0.536 solar masses (5.0 percent
     # fewer systems) and the cell count fell only 2.6 percent, because the qualifying volume does not shrink in step with the system count (the count falls about
     # half as fast), so the product moved 2.2 percent to 5.869e9.
     mean_mass = mean_system_mass_solar(MILKY_WAY)
