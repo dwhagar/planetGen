@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4782+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The 15 galaxy research requests are answered or kept as labelled placeholders, each with the item it feeds.
+
+### Changed
+- GEN.531: every request of the galaxy laws research notes now carries a status (answered, checked against a read source, or placeholder with its registered fill). The thick disc ages of two lenticular galaxies [R3531] (about 12 to 13 Gyr, thin discs 4 to 5 Gyr), the Local Group stellar-to-halo fit [R0545] (inside the 0.19 to 0.5 dex draw of GR11 at 1e10 and 3e10 solar masses of halo) and the six-halo infall times [R0876] were read against the registry rows GR6, GR10 and GR11; the E-MOSAICS papers [R3508, R5366] print no cluster age against host mass (GR9b). No fill changes and no generated galaxy changes.
+
+generation-output: unchanged
+
+## [8.0.4781+db275.gen150.api14] - 2026-11-24
+
+**Headline:** One read now lists every kind of nebula in a box of the galaxy (stored nebulae and remnants, the seed's field clouds, the scattered planetary nebulae and remnants) with no object twice.
+
+### Added
+- GEN.202: `db.nebula_index.nebulae_in_box` reads the stored nebulae and supernova remnants of a box, the field clouds no sector has stored and the scattered planetary nebulae and remnants no sector has built, and lists each object once by its Object ID (the stored one first, then the field cloud, then the scattered mark), each entry naming its `source`. The three readers already left out what is stored by their own flags; the index also drops a row that holds the Object ID of a stored one whatever its flag says. A test plants all three kinds with a repeat and shows each object once. Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4780+db275.gen150.api14] - 2026-11-24
 
 **Headline:** The stellar-to-halo relation of the galaxy chain was checked against measured spirals and kept.
