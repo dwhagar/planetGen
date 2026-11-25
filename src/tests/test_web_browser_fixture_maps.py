@@ -2587,6 +2587,34 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
 
 
+def test_a_double_click_on_a_star_flies_to_it_and_opens_its_information(page, dense_site):
+    """MAP.140: a double click on a star goes there and pulls up its information: the camera lands on it and the panel
+    names it and offers the way in, as a single click on it would, and a single click alone only selects (no flight)."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().length > 20", timeout=20000)
+    stars = [s for s in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()") if s["visible"]]
+    chosen = next(s for s in stars if all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 30 for o in stars if o is not s)
+                  and abs(s["x"] - 400) + abs(s["y"] - 300) > 120)
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    where = (box["x"] + chosen["x"], box["y"] + chosen["y"])
+    before = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    page.mouse.click(*where)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')", timeout=20000)
+    single = page.locator("#galaxymap3d-info h3").inner_text()
+    assert single
+    assert not page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyMoving()")
+    page.mouse.dblclick(*where)
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    star = next(s for s in DENSE_STARS if s["id"] == chosen["id"])
+    assert max(abs(after["target"][i] - star[axis]) for i, axis in enumerate("xyz")) < 0.05, (after["target"], star)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == single, "the information stays open on the star"
+    assert page.locator("#galaxymap3d-info").is_visible()
+    assert after["dist"] <= before["dist"] + 1e-6
+
+
 def test_stars_glow_brighter_they_do_not_grow_bigger_and_their_colour_follows_their_temperature(page, dense_site):
     """MAP.241: two stars of very different luminosity are drawn the same size, within a narrow band, but the bright one
     glows harder (and its core is as opaque or more), a larger star has a slightly larger core that stays small, and a
