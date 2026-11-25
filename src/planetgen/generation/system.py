@@ -2668,6 +2668,7 @@ class StarSystem:
                     if planetPhysics.settle_warm_icy_orbit(body) and log.debug_log_active():
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} under the tide of its warm surface.")
                 made = planetPhysics.refinish_rocky(obj)
+                obj.finish_moons()      # the history run again (`refinish_rocky`) is run from the moons the planet was born with: one the pass dropped can take a new orbit in it, and comes back finished (GEN.1856)
                 if made:
                     if log.debug_log_active():
                         log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
