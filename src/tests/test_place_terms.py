@@ -103,7 +103,7 @@ def test_the_black_holes_carry_the_share_of_the_second_moment_the_design_note_re
     disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
     stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
     everything = place_terms.mass_weighted_perturber_mass_solar(disk)
-    # Derived, not nudged: the mass function's centre at 0.092 (GEN.922) gives 0.584 and 1.320 (0.568 and 1.189 at the centre of 0.079); the black holes' share of the
+    # Derived, not nudged: the mass function's center at 0.092 (GEN.922) gives 0.584 and 1.320 (0.568 and 1.189 at the center of 0.079); the black holes' share of the
     # second moment rises with the massive stars' share of the mass function (0.713% to 0.772% of the stars born).
     assert stars == pytest.approx(0.58, abs=0.06)
     assert everything == pytest.approx(1.32, abs=0.06)
