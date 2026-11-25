@@ -124,3 +124,32 @@ def test_the_masses_of_a_pair_lie_between_the_lightest_and_each_objects_own_cut(
     low = scatter.mass_law(*BH_PAIR)[0][0]
     assert (masses >= low - 1e-9).all() and (masses <= cuts + 1e-9).all()
     assert masses[0] == pytest.approx(low) and masses[-1] == pytest.approx(14.0)
+
+
+def test_a_pair_row_goes_through_the_gravitational_wave_screen_of_every_degenerate_pair(monkeypatch):
+    """A promoted pair is built by the member tree builder, so the Peters screen (a pair whose merger time is shorter than the system's age is redrawn, `multistar._Builder.place`) meets every
+    pair of a stored row: the screen is called for each tree, and a tree it let through holds no pair it would have refused."""
+    from planetgen.physics import stability
+    seen = []
+    real = stability.survives_gravitational_waves
+
+    def spy(m_left, m_right, axis, e, age_yr):
+        verdict = real(m_left, m_right, axis, e, age_yr)
+        seen.append(verdict)
+        return verdict
+
+    monkeypatch.setattr(stability, "survives_gravitational_waves", spy)
+    columns = scatter.PHENOMENON_SCATTER_COLUMNS
+    trees = 0
+    for kind, subtype in (NS_PAIR, BH_PAIR):
+        low, high = scatter.mass_range(kind, subtype, CUT, True)
+        row = [None] * len(columns)
+        row[columns.index("kind")], row[columns.index("subtype")] = kind, subtype
+        row[columns.index("mass_solar")] = min(high, max(low, 1.4 if kind == "neutron-star" else 8.0))
+        for seed in range(40, 70):
+            row[columns.index("seed")] = seed
+            before = len(seen)
+            if scatter_companions.phenomenon_tree(tuple(row)) is not None:
+                trees += 1
+                assert len(seen) > before and seen[-1], "the pair the tree kept passed the screen"
+    assert trees >= 10
