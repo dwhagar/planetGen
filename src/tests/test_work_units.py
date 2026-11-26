@@ -823,8 +823,12 @@ def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():
 def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units(mysql_config, monkeypatch, capsys):
     from planetgen.db import store
     from tests.bughunt_support import mysql_argv, run_cli
+    from tests import air_history_off
     from tests.test_galaxy_gen import _seed_skeleton
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 1)])
+    # TEST.843: the test reads the run's stage keys, the sectors it saved and the paths it linked, never a body's air, and the air history was most of the cost of a system
+    # (TEST.831): the sectors are the same without it, in less than the 3600 s the watchdog allows.
+    air_history_off.without_the_air_history(monkeypatch)
     runs = []
     real = wrapper.run
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
