@@ -303,7 +303,7 @@ def assert_flags_honored(system, cfg):
 
 def assert_binary_geometry(system):
     if system.binary_type == "wide":
-        wb = system.wide_binary
+        wb = system.pair_orbit
         assert 0 < system.primary_star.a_crit_au < wb.separation_au
         assert 0 < system.secondary_star.a_crit_au < wb.separation_au
         for star, planets in ((system.primary_star, system.primary.orbiters),

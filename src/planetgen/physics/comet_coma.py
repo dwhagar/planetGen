@@ -195,3 +195,50 @@ def of(body):
     if getattr(body, FIELDS[0], None) is None:
         return None
     return Coma(body.water_production_1au_per_s, body.coma_active_area_fraction, body.coma_outflow_1au_kms, body.nucleus_albedo, tuple(tuple(row) for row in getattr(body, SPECIES_FIELD, ())))
+
+
+CO2_DOMINATED = "CO2-dominated"
+"""str: The coma class of a comet whose carbon dioxide leaves at least as fast as its carbon monoxide (GEN.1227; the class of its rows in the atmosphere recipes)."""
+
+CO_DOMINATED = "CO-dominated"
+"""str: The coma class of a comet whose carbon monoxide leaves faster than its carbon dioxide."""
+
+COMA_CLASSES = (CO2_DOMINATED, CO_DOMINATED)
+"""tuple: The coma classes."""
+
+DOMINANT_COUNT = 3
+"""int: How many gases after water `dominant_volatiles` names (GEN.1227): a count of what is listed, not a physical quantity, the same as the three largest components a nucleus names (`small_body_composition.component_names`)."""
+
+
+def coma_class(coma):
+    """
+    Which carbon oxide leaves the nucleus faster (GEN.1227), read off the rows of `coma`: `CO2_DOMINATED` where the carbon dioxide leaves at least as fast as the carbon monoxide (so two equal rates
+    read as carbon dioxide), else `CO_DOMINATED`; `None` for no coma or one whose gases hold neither of the two. A gas the nucleus did not hold is not a row, so it is no rate.
+
+    Args:
+        coma (Coma or None): A comet's coma (`of`).
+    """
+    if coma is None:
+        return None
+    rates = {row[0]: row[1] for row in coma.species}
+    if "CO2" not in rates and "CO" not in rates:
+        return None
+    return CO2_DOMINATED if rates.get("CO2", 0.0) >= rates.get("CO", 0.0) else CO_DOMINATED
+
+
+def dominant_volatiles(coma, count=DOMINANT_COUNT):
+    """
+    The gases after water that leave the nucleus fastest, the fastest first (`count` of them at most; a tie is broken by formula so the list is one list): the rows of `coma` read for a name, with no
+    draw and no threshold of its own.
+
+    Args:
+        coma (Coma or None): A comet's coma (`of`).
+        count (int): How many to name.
+
+    Returns:
+        tuple: The formulas; empty for no coma.
+    """
+    if coma is None:
+        return ()
+    rows = sorted((row for row in coma.species if row[0] != WATER), key=lambda row: (-row[1], row[0]))
+    return tuple(row[0] for row in rows[:count])

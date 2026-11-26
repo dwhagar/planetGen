@@ -90,7 +90,7 @@ def unstable(conn, say=None):
 
 def _pair(system):
     """`{"separation_au", "periapsis_au"}` of the pair of a loaded wide binary."""
-    pair = getattr(system, "wide_binary", None)
+    pair = system.pair_orbit if getattr(system, "binary_type", None) == "wide" else None
     if pair is None:
         return None
     return {"separation_au": pair.separation_au, "periapsis_au": pair.periapsis_au}
@@ -99,7 +99,7 @@ def _pair(system):
 def describe(system):
     """What a system made by the re-roll came out as, one phrase: the two stars' masses, the pair's closest approach and how many planets each star has."""
     primary, secondary = _kg_to_msun(system.primary_star.mass), _kg_to_msun(system.secondary_star.mass)
-    pair = system.wide_binary
+    pair = system.pair_orbit
     return (f"stars of {primary:.3g} and {secondary:.3g} solar masses, {pair.separation_au:.4g} AU apart (closest {pair.periapsis_au:.4g} AU), "
             f"{len(system.primary.orbiters)} and {len(system.secondary.orbiters)} planets")
 

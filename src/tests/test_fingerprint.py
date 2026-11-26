@@ -52,7 +52,9 @@ def test_a_column_that_holds_a_row_id_is_keyed_not_read_raw(make_database):
         assert fingerprint.ROW_ID_COLUMNS.keys() <= raw_ids
         assert raw_ids - fingerprint.ROW_ID_COLUMNS.keys() == RAW_ID_NOT_A_ROW, "a new column holds a row id: add it to ROW_ID_COLUMNS, or here if it is no row id"
         assert ("planets", "lagrange_host_id") in fingerprint.ROW_ID_COLUMNS
-        assert all(parent in fingerprint.CONTENT_TABLES for parent in fingerprint.ROW_ID_COLUMNS.values())
+        assert ("phenomenon_scatter", "cluster_id") in fingerprint.ROW_ID_COLUMNS
+        # A cluster is a row of `galaxy_components`, a table left out as content; a foreign key to it (`stars.cluster_id`) is read the same way, as its key and never its id.
+        assert all(parent in fingerprint.CONTENT_TABLES | {"galaxy_components"} for parent in fingerprint.ROW_ID_COLUMNS.values())
     finally:
         conn.close()
 
