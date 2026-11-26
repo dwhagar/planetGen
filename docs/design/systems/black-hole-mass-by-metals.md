@@ -2,7 +2,7 @@
 
 **Status:** built (stand-in BHM1, `docs/design/research/gap-filling-plan.md` section 6.337). Code: `physics/fryer_remnants.py`,
 `physics/remnant_mass.py` (`black_hole_stretch`, `stretched_mass_sol`, `draw_mass_sol(..., stretch=)`), `galaxy/remnant_density.py`
-(`stretch_array`, `place_stretch`, `stretch_from_peaks`), the scatter (`generation/phenomenon_scatter.py`), the sector fill
+(`stretch_array`, `place_stretch`), the scatter (`generation/phenomenon_scatter.py`), the sector fill
 (`generation/run_sector.py`), the member tree (`generation/multistar.py`) and the remnant composition (`physics/remnant_composition.py`).
 
 ## What was wrong
