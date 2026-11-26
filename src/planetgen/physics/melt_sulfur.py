@@ -30,7 +30,9 @@ Every number that is not read from a source is a design constant with its tier a
 
 import math
 
-from planetgen.physics import constants, elements, magma_ocean_redox, mixture_lava, tidal_heating
+from planetgen.physics import constants, elements, magma_ocean_redox, mixture_lava, tidal_heating, unit_registry
+
+_kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 SCSS_A = 11.79
 """float: The constant of the SCSS law, ln of ppm S ([R5340: Eq. 2], fitted with an error of 0.62). Confident, tier 2: read from the journal's open page; its 2024 corrigendum could not be read."""
@@ -77,7 +79,7 @@ def melt_base_gpa(temperature_k, mass_kg):
     """
     if temperature_k is None or temperature_k <= mixture_lava.MELT_MIN_K or mass_kg <= 0.0:
         return 0.0
-    ocean = magma_ocean_redox.base_pressure_gpa(mass_kg / constants.EARTH_MASS_TO_KG)
+    ocean = magma_ocean_redox.base_pressure_gpa(_kg_to_mearth(mass_kg))
     return min(solidus_depth_gpa(temperature_k), ocean)
 
 
