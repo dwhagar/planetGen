@@ -1,5 +1,0 @@
-**Headline:** A pair of stars is placed from its orbit tree, so the system map and 3D view follow the nightly orbit update from the tree's own node.
-
-### Changed
-- **The pair's orbit and the place of its two stars are read from `orbit_nodes` (GEN.640, slice a).** The 3D scene, the system detail, a star's place in an object's positions and a stored wide pair take the pair's phase and positions from its node at the node's own epoch, with `db/orbit_trees.pair_places_km`. A close pair is where its columns held it; a wide pair's second star now sits on its orbit's ellipse, not on a circle of its separation, so a stored wide pair's position, as the 3D scene, the system map and the object page give it, changes (a stored-value change for those rows; generation and the stored columns are untouched).
-- **The orbit update no longer writes the pair columns** (`binary_mutual_orbital_phase_deg`, `binary_mutual_position_*`, `binary_primary_position_*`, `binary_secondary_position_*` and the pair's clock): the nodes it already advances (GEN.313) are the pair's orbit. `cli.orbits` reports one step fewer (the old "binary mutual orbit(s)" line).
