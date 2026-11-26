@@ -22,6 +22,7 @@ from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
+from planetgen.util import draw
 from tests import class_support
 
 N_SAMPLE = 300
@@ -33,9 +34,15 @@ CLIMATE_SAMPLE = 40
 
 @pytest.fixture(scope="module")
 def host_star():
+    """
+    A Sun-like star on its own stream and at the Sun's age and mass (TEST.839). Drawn outside any stream it took whatever the
+    process's run stream held when the first test of the file asked for it, so its age and luminosity changed with the test order
+    (`pytest-randomly`), and with them the giant heat a planet of it radiates and whether a 20 Earth-mass draw is a giant at all.
+    """
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
-    return Star(cfg)
+    with draw.bound("planet-physics-fixes:host-star"):
+        return Star(cfg, initial_mass_sol=1.0, age_gy=4.6)
 
 
 # ---------------------------------------------------------------------------
