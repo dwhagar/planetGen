@@ -20,6 +20,7 @@ and moon in a system after all of them have been generated.
 """
 
 import contextlib
+import dataclasses
 import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, hot_cloud_deck, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
@@ -1476,6 +1477,9 @@ def kozai_pump_planets(star, planets, ledger=None):
         outcome = result.outcome
         if outcome is None or not outcome.cycles:
             continue
+        cap = orbit_elements.max_planet_eccentricity(body.distance, star, body)      # the bound every orbit of a planet is drawn within (and the one the checks hold it to): a cycle that carries it past never leaves the planet there
+        if outcome.eccentricity_now > cap and not outcome.lost:
+            outcome = dataclasses.replace(outcome, eccentricity_now=cap)
         body.build.kozai = outcome
         if outcome.lost:
             lost.append(body)
