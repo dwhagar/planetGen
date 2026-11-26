@@ -31,7 +31,7 @@ from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
 REFERENCE_CORE_MASS_SOLAR = 1.0e4
-"""float: The core mass the normalization is given at, solar masses."""
+"""float: The core mass the normalization is given at, solar masses: derived, the 1e4 in the name of `tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS` (stand-in row BN2 of registry section 6.331); a unit of that law, not a second number."""
 
 
 def has_blue_stragglers(component):
