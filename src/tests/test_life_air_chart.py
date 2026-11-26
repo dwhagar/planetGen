@@ -83,3 +83,13 @@ def test_a_world_with_several_classes_says_what_each_made_of_each_gas_and_a_worl
     assert life_air_chart.chart(several, "1a")["makers"] == [{"gas": "Methane", "text": "Class 1a 75 percent, Class 3 25 percent"}]
     assert life_air_chart.chart({**several, "classes": several["classes"][:1]}, "1a")["makers"] == []
     assert life_air_chart.chart(HISTORY, "1a")["makers"] == []
+
+
+def test_the_page_lists_only_the_mass_extinctions_and_the_ages_name_the_one_that_ended_them():
+    """UX.321: a shock that killed less than the share that ends an age of life (30 percent) is no mass extinction: the list and the chart's dashed lines hold the ones that killed that much or more."""
+    events = [{"age_gyr": 1.0, "cause": "impact", "kill_share": 0.12}, {"age_gyr": 2.5, "cause": "impact", "kill_share": 0.4}, {"age_gyr": 3.0, "cause": "flood_basalt", "kill_share": 0.8}]
+    ages = [{"number": 1, "start_gyr": 0.2, "end_gyr": 2.5, "cause": "impact", "kill_share": 0.4}, {"number": 2, "start_gyr": 2.5, "end_gyr": None, "cause": None, "kill_share": 0.0}]
+    view = life_air_chart.chart({**HISTORY, "events": events, "life_ages": ages}, "1a")
+    assert [event["age"] for event in view["extinctions"]] == ["2.50", "3.00"] and view["svg"].count('class="life-air-event"') == 2
+    assert view["extinction_floor"] == "30 percent"
+    assert view["life_ages"][0]["ended"] == "the mass extinction at 2.50 Gyr" and view["life_ages"][1]["ended"] == ""

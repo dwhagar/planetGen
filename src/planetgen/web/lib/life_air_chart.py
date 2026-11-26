@@ -12,7 +12,7 @@ from html import escape
 from markupsafe import Markup
 
 from planetgen.generation import evolution
-from planetgen.physics import air_events
+from planetgen.physics import air_events, life_ages
 from planetgen.web.lib import reference_urls
 
 WIDTH, HEIGHT = 640, 280
@@ -130,6 +130,8 @@ def chart(history, class_id, grade=0):
         parts.append(f'<text class="life-air-stage-number" x="{column:.1f}" y="{TOP - 7}" text-anchor="middle">{number}</text>')
     extinctions = []
     for event in history.get("events") or []:
+        if event["kill_share"] < life_ages.AGE_KILL_THRESHOLD:
+            continue      # UX.321: a shock that killed less than the share that ends an age of life is no mass extinction, and the page lists and marks only those
         column = x(event["age_gyr"])
         extinctions.append({"age": f"{event['age_gyr']:.2f}", "cause": CAUSES.get(event["cause"], str(event["cause"])), "killed": f"{round(100.0 * event['kill_share'])} percent"})
         parts.append(f'<line class="life-air-event" x1="{column:.1f}" x2="{column:.1f}" y1="{TOP}" y2="{HEIGHT - BOTTOM}"/>')
@@ -160,7 +162,7 @@ def chart(history, class_id, grade=0):
         note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">More information</a>').format(
             reference_urls.reference_path("speculative", class_id))
     ages = [{"number": age["number"], "span": f"{age['start_gyr']:.2f} to " + ("now" if age["end_gyr"] is None else f"{age['end_gyr']:.2f}"),
-             "ended": "" if age["cause"] is None else f"{CAUSES.get(age['cause'], str(age['cause']))}, {round(100.0 * age['kill_share'])} percent of species"}
+             "ended": "" if age["cause"] is None or age["end_gyr"] is None else f"the mass extinction at {age['end_gyr']:.2f} Gyr"}
             for age in history.get("life_ages") or []]
     marks = ""
     if stages:
@@ -168,5 +170,5 @@ def chart(history, class_id, grade=0):
     if extinctions:
         marks += '<li><span class="life-air-key life-air-event-key"></span> A mass extinction</li>'
     return {"svg": "".join(parts), "legend": legend, "marks": marks, "explain": EXPLAIN, "stages": stages, "note": note, "makers": makers, "stored": history.get("source") == "stored",
-            "extinctions": extinctions, "life_ages": ages,
+            "extinctions": extinctions, "extinction_floor": f"{round(100.0 * life_ages.AGE_KILL_THRESHOLD)} percent", "life_ages": ages,
             "table": {"header": ["Age (Gyr)"] + [gas["name"] for gas in history["gases"]], "rows": rows}}

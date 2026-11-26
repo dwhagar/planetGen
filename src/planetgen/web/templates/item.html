@@ -166,11 +166,11 @@
     <ul class="life-air-legend">{{ life_air.legend }}{{ life_air.marks }}</ul>
     <ol class="life-air-stages">{% for stage in life_air.stages %}<li value="{{ stage.number }}">{{ stage.name }}, {{ stage.age }} Gyr</li>{% endfor %}</ol>
     {%- if life_air.extinctions %}
-    <p class="sheet-help">Mass extinctions:</p>
+    <p class="sheet-help">Mass extinctions (each killed at least {{ life_air.extinction_floor }} of the species):</p>
     <ul class="life-air-extinctions">{% for event in life_air.extinctions %}<li>{{ event.age }} Gyr: {{ event.cause }}, {{ event.killed }} of species</li>{% endfor %}</ul>
     {%- endif %}
     {%- if life_air.life_ages %}
-    <p class="sheet-help">The ages of life between them:</p>
+    <p class="sheet-help">The ages of life between them (each ended by a mass extinction, the last still going):</p>
     <ol class="life-air-ages">{% for age in life_air.life_ages %}<li value="{{ age.number }}">{{ age.span }} Gyr{% if age.ended %}, ended by {{ age.ended }}{% endif %}</li>{% endfor %}</ol>
     {%- endif %}
     {%- if life_air.note %}<p class="sheet-help life-air-note">{{ life_air.note }}</p>{% endif %}
