@@ -20,7 +20,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.phenomena import starless_host
 from planetgen.generation.star import Star
-from planetgen.physics import constants, envelope_capture, planet_classes, planet_type, super_puff
+from planetgen.physics import bulk_structure, constants, envelope_capture, planet_classes, planet_type, super_puff
 from planetgen.util import draw
 
 EARTH = constants.EARTH_MASS_TO_KG
@@ -34,7 +34,15 @@ twelve blocks (blocks 8 to 11 added) give 72 of 197 (0.365) by the count of the 
 INNER_DAYS = 100.0
 """float: [R1478] count the planets inside 100 days."""
 
-Row = collections.namedtuple("Row", "days radius mass envelope density planet_type planet_class")
+Row = collections.namedtuple("Row", "days radius mass envelope density planet_type planet_class bare_density")
+
+
+def _bare_density(planet):
+    """The density, g/cc, the planet had as drawn, before its envelope (`build.bare_core`, the same mass at the radius it was drawn with); its own density for a planet with no envelope."""
+    bare = planet.build.bare_core
+    if bare is None:
+        return planet.density
+    return planet.mass / ((4.0 / 3.0) * math.pi * bare["radius"] ** 3 * 1.0e9) / 1000.0
 
 
 def _block_rows(block):
@@ -48,7 +56,7 @@ def _block_rows(block):
             if getattr(planet, "body_type", None) != "t" or planet.is_moon:
                 continue
             rows.append(Row(planet.period * 365.25, planet.radius / constants.EARTH_RADIUS_KM, planet.mass / EARTH,
-                            planet.envelope_mass_fraction or 0.0, planet.density, planet_type.planet_type(planet), planet.planet_class))
+                            planet.envelope_mass_fraction or 0.0, planet.density, planet_type.planet_type(planet), planet.planet_class, _bare_density(planet)))
     return rows
 
 
@@ -128,9 +136,9 @@ def test_a_rocky_planet_is_never_larger_than_a_sub_neptune_can_be(sweep):
     # 7.72 after the GEN.1521 respacing moved an orbit into the tide's range; none is a rocky letter. So the bound for an ordinary planet is 8.5, the tail's measured maximum with a margin.
     assert max(row.radius for row in ordinary) <= 8.5
     assert max((row.radius for row in puffed), default=0.0) <= 2.0 * 7.5       # a puff of 7.5 Earth radii under the tide's largest factor of 2
-    # GEN.1845: 4.9 g/cc at the median start of 0.04; at 0.025 the thin tail of a 12 Earth-mass core (an envelope of 0.4 to 0.7 percent, radius 2.1) comes out at 6.3 and 6.8 g/cc: the core's own density
-    # (a bare 12 Earth-mass rock is about 7), so the bound is 7.5, under the iron-rich bare core, and still catches a rocky density on a planet typed with an envelope of a puff's size.
-    assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 7.5
+    # GEN.1845: an envelope puffs its planet out, so it is less dense than its own bare core, whatever the core's density (the thin tail of a 12 Earth-mass core, an envelope of 0.4 to 0.7 percent, is 6.3 to 6.8 g/cc
+    # at the median start of 0.025, the core's own density, where a fixed bound of 6.0 held at 0.04). No tolerance but the radius law's 2 percent on the core (about 6 percent in density) [R2741].
+    assert all(row.density < row.bare_density * 1.06 for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE)
 
 
 def test_no_puffed_planet_escapes_the_super_puff_type(sweep):
@@ -185,7 +193,11 @@ def test_a_rogue_planet_keeps_the_whole_envelope_it_started_with(host_star, mass
             start = rogue.build.captured_envelope
             assert rogue.envelope_mass_fraction == pytest.approx(start)      # no light, no loss: what it started with
             assert 0.0 < start <= envelope_capture.MAX_START + 1e-9
-            assert rogue.radius > rogue.build.bare_core["radius"] * 1.05       # 1.15 until GEN.1845: a start of 1.2 percent on a 12 Earth-mass core (the thin tail of the median 0.025) adds 10 percent
+            # GEN.1845: the radius is the law's for its own envelope share, with no star to loosen it (a fixed 1.15 times the bare core held at the median start of 0.04 and not at 0.025: a thin 1.2 percent on a 12 Earth-mass
+            # core adds 10 percent), and it is over the radius the planet was drawn with: the envelope inflates it
+            law = super_puff.radius_earth(mass_earth, rogue.envelope_mass_fraction, bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0], 4.5) * constants.EARTH_RADIUS_KM
+            assert rogue.radius == pytest.approx(law, rel=1e-3)
+            assert rogue.radius > rogue.build.bare_core["radius"]
             assert planet_type.planet_type(rogue) in (planet_type.TRANSITIONAL, planet_type.TERRESTRIAL)
             assert planet_classes.classify(rogue) == rogue.planet_class
             if rogue.envelope_mass_fraction >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
