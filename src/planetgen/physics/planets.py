@@ -25,7 +25,7 @@ import math
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, hot_cloud_deck, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_heating, tidal_spin, air_final, venus_spin
 from planetgen.physics import hill_perturbers, planet_moons, trojan_bodies, trojans
-from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, exosphere, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -785,6 +785,8 @@ def _calculate_atmospheric_conditions(planet, distance_override=None, host_eccen
     ore_deposits.generate(planet)
     # GEN.1377, GEN.1420: the isotope record of the elements the body holds (own streams, no draw of the run's)
     isotope_record.generate(planet)
+    # GEN.455 part B: the exosphere of a body with no air at all (own stream, no draw of the run's)
+    exosphere.generate(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
     # GEN.1577: where a giant's hot-condensate clouds sit and the most each trace gas can hold, from its profile and its star's gas (no draw)
@@ -877,6 +879,7 @@ def refresh_at_final_age(body):
         phosphorus_budget.generate(body)        # GEN.1367: the heat, the water and the ground moved
         ore_deposits.generate(body)         # GEN.1380: the heat, the water and the ground moved
         isotope_record.generate(body)       # GEN.1377: the air and the interior moved
+        exosphere.generate(body)            # GEN.455 part B: the air, the heat and the ground moved
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
     envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air

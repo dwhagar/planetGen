@@ -80,6 +80,7 @@ this API instead.</p>
 <h2 id="api-version-and-object-ids">API version and object IDs</h2>
 <p>Every <code>/api</code> answer carries the API version in the <code>X-PlanetGen-API-Version</code> header, and <code>/api/health</code> reports it as <code>api_version</code> (<code>src/planetgen/api/version.py</code>, API.22). A breaking change bumps it, the route snapshot <code>src/tests/fixtures/api_routes.json</code> moves with it, and it gets a line here and a row in <a href="api-compatibility.html">api-compatibility.md</a> (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from <code>docs/reference/api-versions.json</code>.</p>
 <ul>
+<li><strong>14</strong> (OPS.235): <code>GET /api/admin/work/workers</code> and <code>POST /api/admin/work/workers</code> are gone: the job engine sizes a stage by memory and the gate, so there is no worker count to read or set.</li>
 <li><strong>13</strong> (GEN.1212, DOC.103): <code>GET /api/systems/&lt;id&gt;</code>: a planet or moon has no <code>description</code>; the words of its class are in the system's description document (<code>GET /api/systems/&lt;id&gt;/description</code>). DOC.103: the stored values and API keys that were spelled the British way are spelled the American way, with no alias. <code>centre</code>, <code>centre_pc</code> and <code>centre_distance_pc</code> are <code>center</code>, <code>center_pc</code> and <code>center_distance_pc</code> (the sector, container, charted-region, region extent, galaxy-block and compact-remnant answers); the hydrosphere value <code>vapour</code> is <code>vapor</code>; the population <code>nuclear_disc</code> is <code>nuclear_disk</code>; the run and job states <code>cancelling</code> and <code>cancelled</code> are <code>canceling</code> and <code>canceled</code>, and a cancel answers <code>{&quot;ok&quot;, &quot;canceled&quot;, &quot;stopped&quot;}</code>.</li>
 <li><strong>12</strong> (GEN.1108): <code>GET /api/systems/&lt;id&gt;</code>: the <code>regions</code> of a planet's or moon's <code>equipment</code> is <code>{bands, mean_swing_k}</code>: <code>bands</code> is the seven bands of latitude from the north pole to the south pole (the day center to the night center for a world that turns once an orbit), each <code>{name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}</code>; <code>polar</code>, <code>north</code>, <code>equator</code>, <code>south</code>, <code>swing</code>, <code>day_side</code>, <code>terminator</code>, <code>night_side</code> and the swings by those names are gone. <code>GET /api/objects/&lt;ref&gt;/sheet</code> of a planet or moon has <code>bands</code>, the table of its seven bands, and no <code>temp_polar_k</code>, <code>temp_north_k</code>, <code>temp_equator_k</code>, <code>temp_south_k</code>, <code>temp_swing_k</code>, <code>temp_day_side_k</code>, <code>temp_terminator_k</code> or <code>temp_night_side_k</code> rows.</li>
 <li><strong>11</strong> (API.33): <code>GET /api/admin/backups</code> and <code>GET /api/admin/backups/&lt;name&gt;</code>: an archive and each of its parts have <code>size_bytes</code> where they had <code>size</code>.</li>
@@ -173,7 +174,10 @@ remnant around it, or <code>null</code>), <code>nearest</code> (its stored neare
 with <code>role</code> (<code>single</code>, <code>primary</code>, <code>secondary</code>, or <code>member</code> for a star beyond the pair)/<code>name</code>/<code>star_type</code>/<code>temperature_k</code>/<code>radius_km</code>/<code>luminosity_w</code>),
 <code>star_count</code>, <code>interstellar_debris_count</code> (an estimate of the
 interstellar comets and planetesimals drifting through it, far too many
-to store as rows), <code>neighbors</code> (every grid cell sharing a face with a
+to store as rows), <code>directive</code> (the minimums a run asked of the sector with <code>--directive</code> and how the draw came out
+(GEN.179): <code>digest</code>, <code>status</code> (<code>met_naturally</code>, <code>met_after_k_attempts</code>, <code>met_forced</code> or <code>unmet</code>), <code>attempts</code> and
+<code>minimums</code>, each <code>{key, wanted, got}</code> (<code>systems</code>, <code>habitable</code>, <code>type:G</code> ...); <code>null</code> for a sector drawn with no
+directive), <code>neighbors</code> (every grid cell sharing a face with a
 placed sector: its address, <code>designation</code>, <code>direction_pc</code>, <code>exists</code>
 and <code>sector_id</code>/<code>sector_name</code>, empty for an unplaced sector), and
 <code>phenomena</code> (every placed standalone phenomenon generated as part of
@@ -1033,7 +1037,7 @@ phoneme codec names takes a new name at once and no row is rewritten.
 409 before the galaxy is planned. Audited as <code>naming-key.change</code>. On the
 Stats page.</li>
 <li><code>GET /api/admin/work[?limit=&amp;offset=]</code> — the work queue (ADM.10, PERF.99):
-<code>{&quot;available&quot;, &quot;status&quot;: {&quot;workers_active&quot;, &quot;runs_active&quot;, &quot;paused&quot;, &quot;paused_by&quot;, &quot;paused_at&quot;, &quot;holder&quot;, &quot;holder_title&quot;, &quot;heartbeat_age_s&quot;, &quot;stale&quot;, &quot;load&quot;: {&quot;values&quot;, &quot;kind&quot;, &quot;text&quot;}}, &quot;items&quot;: [runs, newest first], &quot;total&quot;, &quot;limit&quot;, &quot;offset&quot;}</code>. A run is <code>{&quot;id&quot;, &quot;title&quot;, &quot;kind&quot; (&quot;generation&quot;, &quot;maintenance&quot; or &quot;check&quot;), &quot;who&quot;, &quot;database&quot;, &quot;job&quot; (the Generate page job that started it), &quot;argv&quot;, &quot;state&quot; (&quot;running&quot;, &quot;canceling&quot;, &quot;done&quot;, &quot;failed&quot; or &quot;canceled&quot;), &quot;error&quot;, &quot;live&quot;, &quot;stale&quot;, &quot;created&quot;, &quot;started&quot;, &quot;updated&quot;, &quot;finished&quot;, &quot;seconds&quot;, &quot;stage&quot;: {&quot;index&quot;, &quot;count&quot;, &quot;label&quot;, &quot;state&quot;}, &quot;units&quot;, &quot;units_done&quot;, &quot;percent&quot;, &quot;eta&quot;: {&quot;seconds&quot;, &quot;low&quot;, &quot;high&quot;, &quot;source&quot; (&quot;live&quot;, &quot;recorded&quot;, &quot;earlier runs&quot;, &quot;this run so far&quot; or &quot;not timed yet&quot;), &quot;from_earlier_runs&quot;, &quot;partial&quot;, &quot;stalled&quot;, &quot;rough&quot; (PERF.184: part of the time is an estimate from the host's workers and the stage's units, so </code>low<code>and</code>high<code> are wide)} or null}</code>, all read from the run record in Redis (<code>holder</code> is
+<code>{&quot;available&quot;, &quot;status&quot;: {&quot;workers_active&quot;, &quot;runs_active&quot;, &quot;paused&quot;, &quot;paused_by&quot;, &quot;paused_at&quot;, &quot;holder&quot;, &quot;holder_title&quot;, &quot;heartbeat_age_s&quot;, &quot;stale&quot;, &quot;load&quot;: {&quot;values&quot;, &quot;kind&quot;, &quot;text&quot;}}, &quot;items&quot;: [runs, newest first], &quot;total&quot;, &quot;limit&quot;, &quot;offset&quot;}</code>. <code>workers_active</code> is how many jobs the ledger has running now, in every run (OPS.235: it counted RQ workers before). A run is <code>{&quot;id&quot;, &quot;title&quot;, &quot;kind&quot; (&quot;generation&quot;, &quot;maintenance&quot; or &quot;check&quot;), &quot;who&quot;, &quot;database&quot;, &quot;job&quot; (the Generate page job that started it), &quot;argv&quot;, &quot;state&quot; (&quot;running&quot;, &quot;canceling&quot;, &quot;done&quot;, &quot;failed&quot; or &quot;canceled&quot;), &quot;error&quot;, &quot;live&quot;, &quot;stale&quot;, &quot;created&quot;, &quot;started&quot;, &quot;updated&quot;, &quot;finished&quot;, &quot;seconds&quot;, &quot;stage&quot;: {&quot;index&quot;, &quot;count&quot;, &quot;label&quot;, &quot;state&quot;}, &quot;units&quot;, &quot;units_done&quot;, &quot;percent&quot;, &quot;eta&quot;: {&quot;seconds&quot;, &quot;low&quot;, &quot;high&quot;, &quot;source&quot; (&quot;live&quot;, &quot;recorded&quot;, &quot;earlier runs&quot;, &quot;this run so far&quot; or &quot;not timed yet&quot;), &quot;from_earlier_runs&quot;, &quot;partial&quot;, &quot;stalled&quot;, &quot;rough&quot; (PERF.184: part of the time is an estimate from the host's workers and the stage's units, so </code>low<code>and</code>high<code> are wide)} or null}</code>, all read from the run record in Redis (<code>holder</code> is
 the run that owns the machine; <code>stale</code> says it has not been heard from
 for <code>max(120 s, 3 x its longest unit)</code>). <code>load.kind</code> is <code>load</code> (the 1, 5
 and 15 minute load average); <code>load.values</code> is null where the system has
@@ -1042,14 +1046,6 @@ no load average. <code>available</code> is false when no Redis server answers.</
 <code>{&quot;available&quot;, &quot;run&quot;: {&quot;state&quot;, &quot;started_at&quot;, &quot;finished_at&quot;, &quot;reason&quot;, &quot;error&quot;} or null, &quot;phases&quot;: [{&quot;name&quot;, &quot;text&quot;, &quot;families&quot;, &quot;state&quot;, &quot;state_text&quot;, &quot;line&quot;, &quot;built&quot;, &quot;cached&quot;, &quot;left_out&quot;, &quot;seconds&quot;, &quot;started_at&quot;, &quot;finished_at&quot;}], &quot;auto&quot;: {&quot;enabled&quot;, &quot;wanted&quot;, &quot;holder&quot;}, &quot;index&quot;: {&quot;size_bytes&quot;, &quot;kinds&quot;: [{&quot;kind&quot;, &quot;rows&quot;, &quot;mode&quot;, &quot;built_at&quot;, &quot;seconds&quot;}]}}</code>. <code>index</code> is the object index as its last runs recorded it (PERF.140). A phase's <code>state</code> is <code>waiting</code>, <code>running</code>, <code>built</code>, <code>unchanged</code>, <code>stopped</code>,
 <code>nothing</code>, <code>failed</code> or <code>interrupted</code> (null before any run); <code>auto</code> says whether a change starts the warm-up by itself,
 which changes it waits to warm for, and the process that holds it.</li>
-<li><code>GET /api/admin/work/workers</code> and <code>POST /api/admin/work/workers</code>
-<code>{&quot;count&quot;: n}</code> or <code>{&quot;ludicrous&quot;: true}</code> — the bulk queue's worker count
-(ADM.15, PERF.95). <code>{&quot;wanted&quot;, &quot;live&quot;, &quot;ludicrous&quot;, &quot;cpus&quot;}</code>: the count
-asked for (the admin's, else 80% of the cores), the workers running now,
-the count &quot;Ludicrous Speed&quot; sets (95% of the cores) and the cores. A
-POST needs a fresh admin login, is audited as <code>work.workers.set</code>, and
-lowering the count asks the extra workers to finish their unit and exit.
-503 when Redis does not answer.</li>
 <li><code>GET /api/admin/work/&lt;id&gt;</code> — one run (PERF.99): <code>{&quot;run&quot;: the run above with &quot;stages&quot;: [{&quot;key&quot;, &quot;label&quot;, &quot;state&quot; (&quot;waiting&quot;, &quot;running&quot; or &quot;done&quot;), &quot;units&quot;, &quot;done&quot;, &quot;cost&quot;, &quot;cost_done&quot;, &quot;started&quot;, &quot;ended&quot;, &quot;seconds&quot;, &quot;longest_unit&quot;}], &quot;events&quot;: the last 300 lines of its log [{&quot;id&quot;, &quot;t&quot;, &quot;level&quot;, &quot;kind&quot;, &quot;message&quot;} and, where the event has them, &quot;stage&quot; (from 0), &quot;stages&quot;, &quot;unit&quot; and &quot;seconds&quot;], &quot;log&quot;: true}</code>; 404 for an unknown run.
 <code>GET /api/admin/work/&lt;id&gt;/log</code> answers the whole log as <code>{&quot;text&quot;: ...}</code>,
 from Redis while the run's record lasts (30 days) and from the file in the
@@ -1086,8 +1082,8 @@ retry-held (OPS.221) carries a run that is held for a person on: it takes
 the machine back, queues each held unit again as it was cut and answers
 <code>{&quot;ok&quot;: true, &quot;requeued&quot;: n}</code>; <code>{&quot;ok&quot;: false}</code> for a run that is not held,
 409 when another run owns the machine. cancel also ends a held run.
-cancel stops a live run now: its waiting units are taken off the queue,
-its started units are sent RQ's stop command, and the machine is free
+cancel stops a live run now: its waiting units are ended in the ledger,
+its started units are stopped through the supervisor, and the machine is free
 (measured under a second for a run of 4,000 units); clear ends a run that
 has stopped answering (its process is gone, or it is stale) as failed and
 frees the machine, and is refused for a run that still answers.
@@ -1570,12 +1566,16 @@ it the same way <code>planetgen system</code> does, via <code>StarSystem(system_
 }
 </code></pre>
 <p>Accepted fields: <code>star_type</code>, <code>name</code>, <code>age</code> (<code>&quot;young&quot;</code>,
-<code>&quot;old&quot;</code>, or <code>null</code>), <code>num_orbits</code> (a positive integer up to 500, or <code>null</code>), and the
+<code>&quot;old&quot;</code>, or <code>null</code>), <code>num_orbits</code> (a positive integer up to 500, or <code>null</code>), <code>stars</code> (exactly this
+many stars, a whole number from 1 up to the cap, or <code>null</code> to leave the count to chance), <code>max_stars</code>
+(the cap on the count drawn, a whole number from 1 to 64, or <code>null</code> for the default of 12), and the
 tri-state booleans <code>habitable_world</code>/<code>asteroid_belt</code>/<code>large_star</code>/<code>moons</code>/
 <code>max_planets</code>/<code>planets</code>/<code>intelligent_life</code>/<code>binary_system</code>/<code>wide_binary</code>
 (<code>true</code>, <code>false</code>, or <code>null</code>) — <code>wide_binary</code> selects an S-type (wide) vs.
 P-type (close) binary and is only meaningful together with
-<code>binary_system: true</code>. An unrecognized field (including <code>slots</code>, or a
+<code>binary_system: true</code>. A count the cap or the pair options rule out is a <code>400</code> with the
+command line's words: <code>stars</code> under 1, over the cap or over 64, <code>max_stars</code> outside 1 to 64, one
+star with <code>binary_system</code> or <code>wide_binary</code> true, and two or more stars with <code>binary_system</code> false. An unrecognized field (including <code>slots</code>, or a
 fully-specified object graph shaped like <code>StarSystem.to_dict()</code>) is a
 <code>400</code> — not silently ignored.</p>
 <p><strong>Placing it in a sector.</strong> Two more optional fields: <code>sector_id</code> (a
