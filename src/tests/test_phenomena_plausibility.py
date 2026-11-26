@@ -194,11 +194,12 @@ def test_check_hard_invariants_flags_black_hole_event_horizon_mismatch():
 
 
 def test_check_hard_invariants_flags_black_hole_mass_out_of_range():
-    # 50 solar masses falls in the gap between the stellar-mass range
-    # (5-20) and the intermediate-mass range (100-1000) -- its own
-    # Schwarzschild radius is computed so only the mass-range check (not
-    # also a radius mismatch) fires.
-    mass_solar = 50.0
+    # The middle of the gap between the stellar-mass range (5 up to the
+    # stretched top a metal-poor place reaches, GEN.554) and the
+    # intermediate-mass range (100-1000) -- its own Schwarzschild radius is
+    # computed so only the mass-range check (not also a radius mismatch)
+    # fires.
+    mass_solar = 0.5 * (prog_c.BLACK_HOLE_MASS_TOP_SOLAR + prog_c.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0])
     radius_km = (2 * pc.G * (mass_solar * pc.SOLAR_MASS_TO_KG) / pc.SPEED_OF_LIGHT_M_S ** 2) / 1000
     issues = pp.check_hard_invariants(
         _base_record("black-hole", mass_solar=mass_solar, event_horizon_radius_km=radius_km)
