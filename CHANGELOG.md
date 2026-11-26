@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4815+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The nearby-objects list no longer fails on a system that has a trojan region.
+
+### Fixed
+- Listing the bodies of a system for the nearby search raised a KeyError when the system had a giant's trojan region: the list read a belt number for every belt, and a trojan region takes none. It now names every belt the way the rest of the product does (`Asteroid belt N`, or `<host> L4 trojan region`).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4814+db279.gen150.api14] - 2026-11-26
 
 **Headline:** A local name typed without its sector now finds the objects that have it, each with its sector, nearest sectors first.
