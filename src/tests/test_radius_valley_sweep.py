@@ -20,7 +20,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.phenomena import starless_host
 from planetgen.generation.star import Star
-from planetgen.physics import constants, envelope_capture, planet_classes, planet_type, super_puff
+from planetgen.physics import bulk_structure, constants, envelope_capture, planet_classes, planet_type, super_puff
 from planetgen.util import draw
 
 EARTH = constants.EARTH_MASS_TO_KG
@@ -34,7 +34,19 @@ twelve blocks (blocks 8 to 11 added) give 72 of 197 (0.365) by the count of the 
 INNER_DAYS = 100.0
 """float: [R1478] count the planets inside 100 days."""
 
-Row = collections.namedtuple("Row", "days radius mass envelope density planet_type planet_class")
+Row = collections.namedtuple("Row", "days radius mass envelope density planet_type planet_class bare_density")
+
+
+def _bare_density(planet):
+    """The density (g/cc) the dry part of `planet` (its metal and rock, in the shares it was drawn with) would have bare, by the generator's own fit of the solver (`bulk_structure.radius_fit_earth`, 0.1 to 20 Earth masses),
+    or infinity where the dry part is outside the fit. Water and an envelope are left off, and both only lower a body's mean density, so this is a ceiling of what the body can have."""
+    metal, rock = planet.metal_mass_fraction or 0.0, planet.rock_mass_fraction or 0.0
+    dry_earth = planet.mass / EARTH * (metal + rock)
+    if metal + rock <= 0.0 or not 0.1 <= dry_earth <= 20.0:
+        return math.inf
+    x_fe = bulk_structure.x_fe_from_feo_mass_fraction(planet.rock_feo_fraction) if planet.rock_feo_fraction else 0.0
+    radius_m = bulk_structure.radius_fit_earth(dry_earth, metal / (metal + rock), x_fe, 1.0) * constants.EARTH_RADIUS_KM * 1000.0
+    return dry_earth * EARTH / (4.0 / 3.0 * math.pi * radius_m ** 3) / 1000.0
 
 
 def _block_rows(block):
@@ -48,7 +60,7 @@ def _block_rows(block):
             if getattr(planet, "body_type", None) != "t" or planet.is_moon:
                 continue
             rows.append(Row(planet.period * 365.25, planet.radius / constants.EARTH_RADIUS_KM, planet.mass / EARTH,
-                            planet.envelope_mass_fraction or 0.0, planet.density, planet_type.planet_type(planet), planet.planet_class))
+                            planet.envelope_mass_fraction or 0.0, planet.density, planet_type.planet_type(planet), planet.planet_class, _bare_density(planet)))
     return rows
 
 
@@ -128,7 +140,11 @@ def test_a_rocky_planet_is_never_larger_than_a_sub_neptune_can_be(sweep):
     # 7.72 after the GEN.1521 respacing moved an orbit into the tide's range; none is a rocky letter. So the bound for an ordinary planet is 8.5, the tail's measured maximum with a margin.
     assert max(row.radius for row in ordinary) <= 8.5
     assert max((row.radius for row in puffed), default=0.0) <= 2.0 * 7.5       # a puff of 7.5 Earth radii under the tide's largest factor of 2
-    assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 6.0
+    # An ordinary planet that keeps an envelope is no denser than its own dry part would be bare: the envelope only adds volume (a gas lighter than rock) and water only lowers the density, so the ceiling is the density
+    # the generator's own fit of the structure solver gives the planet's metal and rock at that mass (`_bare_density`: 6.9 g/cc for a 10 Earth-mass planet of no iron, 15 for one of 0.8 iron),
+    # with 5 percent for the fit (0.4 percent in radius, 1.2 in density) and the squeeze the envelope's weight gives the core. The 6.0 g/cc that stood here was the largest density of the sample that
+    # drew it, not a physical edge: one 10.3 Earth-mass planet at 3.6 days (envelope 0.0033, 2.08 Earth radii, 6.28 g/cc, bare 6.9) is over it.
+    assert all(row.density < 1.05 * row.bare_density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE)
 
 
 def test_no_puffed_planet_escapes_the_super_puff_type(sweep):

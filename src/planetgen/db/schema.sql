@@ -1734,6 +1734,32 @@ CREATE TABLE IF NOT EXISTS sectors (
     CONSTRAINT fk_sectors_run FOREIGN KEY (run_id) REFERENCES generation_runs(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The directive a sector was drawn under (v277, GEN.179): a run given `--directive` minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and keeps what the draw
+-- came out as: `directive_digest` (the sixteen hexadecimal digits the attempt seeds are made from), `status` (`met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`) and the `attempts` made
+-- (a forced fill counts as one more). `sector_directive_minimums` has one row for each minimum asked: the key (`systems`, `habitable`, `type:G` ...), what was `wanted` and what the kept sector `got`.
+-- A sector drawn with no directive has no rows, and nothing is backfilled for a sector made before v277. The rows are written with the sector (a regenerated sector's are replaced) and go with it.
+CREATE TABLE IF NOT EXISTS sector_directives (
+    sector_id         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    directive_digest  CHAR(16) NOT NULL,
+    status            VARCHAR(24) NOT NULL CHECK (status IN ('met_naturally', 'met_after_k_attempts', 'met_forced', 'unmet')),
+    attempts          SMALLINT UNSIGNED NOT NULL CHECK (attempts >= 1),
+
+    CONSTRAINT fk_sector_directives_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    KEY idx_sector_directives_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sector_directive_minimums (
+    sector_id    BIGINT UNSIGNED NOT NULL,
+    minimum_key  VARCHAR(24) NOT NULL,
+    wanted       INT UNSIGNED NOT NULL,
+    got          INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (sector_id, minimum_key),
+    CONSTRAINT fk_sector_directive_minimums_sector
+        FOREIGN KEY (sector_id) REFERENCES sector_directives(sector_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- galaxy_shape / galaxy_shell -- the galaxy-wide density "skeleton"
 -- (v8, re-keyed to rings in v32, to layers in v33 and to shells in v91 --
@@ -4958,6 +4984,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     coma_active_area_fraction   DOUBLE,  -- v275 (GEN.455): the share of the nucleus surface that sublimates (CZ1)
     coma_outflow_1au_kms        DOUBLE,  -- v275 (GEN.455): the speed the gas of the coma leaves at, km/s at 1 AU lit distance (CZ2)
     nucleus_albedo              DOUBLE,  -- v275 (GEN.455): the Bond albedo of the nucleus (CZ3)
+    carbon_chain_depleted       TINYINT(1) NULL CHECK (carbon_chain_depleted IS NULL OR carbon_chain_depleted IN (0, 1)),  -- v278 (GEN.1227): drawn with little CN and C2, so no green coma
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
     KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
@@ -5670,6 +5697,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
     uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the phenomenon's Object ID, given when the scatter writes it, see the header comment
+    cluster_id           BIGINT UNSIGNED NULL,  -- v279 (GEN.163): the `galaxy_components.id` of the cluster the object belongs to, see the v279 comment at the end
 
     UNIQUE KEY uq_phenomenon_scatter_uid (uid),
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
@@ -5781,7 +5809,8 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
 -- dark_members (v194, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
 -- neutron star, a black hole or a stripped helium star. `parent_node_no` and `slot` name the node it hangs in and its place among
 -- that node's children (the numbering of `orbit_nodes`); the node masses above it count its `mass_solar`. It has no light and no
--- planets. A row goes with its system.
+-- planets. A row goes with its system. v276 (GEN.1204): `density_g_cm3` (g/cm3) and `binding_energy_j` (J; -1 for the infinite binding energy of a black hole)
+-- from the mass and the radius, as a single remnant's (`physics/body_strength.py`); NULL on a row made before.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS dark_members (
     star_system_id       BIGINT UNSIGNED NOT NULL,
@@ -5791,6 +5820,8 @@ CREATE TABLE IF NOT EXISTS dark_members (
     kind                 VARCHAR(16) NOT NULL,
     mass_solar           DOUBLE NOT NULL,
     radius_au            DOUBLE NULL,
+    density_g_cm3        DOUBLE NULL,
+    binding_energy_j     DOUBLE NULL,
     PRIMARY KEY (star_system_id, member_no),
     CONSTRAINT fk_dark_members_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
@@ -6824,6 +6855,9 @@ CREATE TABLE IF NOT EXISTS engine_items (
 -- v272 (GEN.1151): `planets` gains `lagrange_point` and `lagrange_host_id`: a planet grown in the 1:1 zone of a giant shares its orbit, 60 degrees ahead (`L4`) or behind (`L5`), and names the giant. NULL for every other planet
 -- and for a row made before v272, nothing is backfilled.
 
+-- v278 (GEN.1227): `interstellar_comets` gains `carbon_chain_depleted` (TINYINT(1): the nucleus was drawn with little CN and C2, so its coma has no green), the flag of the volatiles the nucleus was drawn with
+-- (`physics/comet_coma.py` reads the coma's class and dominant gases off the coma rows). NULL for a row made before v278, nothing is backfilled (a migration does not draw).
+
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.
 CREATE TABLE IF NOT EXISTS engine_piece_results (
@@ -6832,3 +6866,7 @@ CREATE TABLE IF NOT EXISTS engine_piece_results (
     result        MEDIUMTEXT NOT NULL,
     PRIMARY KEY (job_id, piece_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v279 (GEN.163): `phenomenon_scatter` gains `cluster_id`: the `galaxy_components.id` of the globular cluster a scattered object was drawn in (`component_pass.scatter_phenomena`), NULL for an object of the field,
+-- of a satellite, and for a row made before v279, nothing is backfilled. The built system reads it (`run_sector._build_scattered`): a pulsar of a cluster may hold a captured giant (`generation/pulsar_planets.py`).
+-- It is a plain column, not a foreign key: a cluster row may be replaced while its scattered objects stay.

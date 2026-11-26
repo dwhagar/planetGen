@@ -2,6 +2,23 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4784+db275.gen150.api14] - 2026-11-25
+
+**Headline:** The sector placement tests' stand-in systems carry the host surface the placement now reads
+
+### Fixed
+
+- TEST.833: `test_gen_sector_exhaustion.py` and `test_fuzz_sector_placement.py` were red on main since Train 60: the placement reads a system's hosts (`primary.orbiters`, `secondary`, `hosts_of`, `all_planets`, GEN.1664 renamed them from the primary and secondary star's lists) and their stand-in `_StubSystem` had none of them. No product change: the stub now has an empty host surface (111 tests pass).
+
+## [8.0.4783+db275.gen150.api14] - 2026-11-25
+
+**Headline:** The one-off system page and the system API take the star count and the cap and refuse what the command line refuses, in its words.
+
+### Added
+- ADM.128: `POST /api/systems` and a regeneration recipe take `stars` (exactly this many stars) and `max_stars` (the cap on the count drawn), as `planetgen system --stars --max-stars` does. A count under 1, a count over the cap or over 64, a cap outside 1 to 64, one star with a binary feature and two or more stars with `binary_system` off are a 400 with the command line's message. The one-off system page already had both fields; it now says the command line's words for a count under 1, over 64 and a cap outside 1 to 64 instead of its own range wording. Tests cover each refusal on all three surfaces and show that the three messages agree.
+
+generation-output: unchanged
+
 ## [8.0.4782+db275.gen150.api14] - 2026-11-24
 
 **Headline:** The 15 galaxy research requests are answered or kept as labelled placeholders, each with the item it feeds.

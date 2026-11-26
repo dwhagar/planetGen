@@ -42,8 +42,9 @@ def _shape(solar, free):
 
 
 def test_the_massive_stars_are_seven_tenths_of_a_percent_of_the_stars_born():
-    # The Chabrier function (GEN.927): 0.713% of the stars born; the Kroupa function it replaced gave 0.637%.
-    assert formation.imf_massive_share() == pytest.approx(0.00713, rel=0.01)
+    # The Chabrier function (GEN.927) gave 0.713% of the stars born, the Kroupa function it replaced 0.637%; its center
+    # at 0.092 solar masses (GEN.922, [R0705: Eq. 17]) makes it 0.772%.
+    assert formation.imf_massive_share() == pytest.approx(0.00772, rel=0.01)
 
 
 def test_a_young_window_has_made_four_fifths_of_its_remnants_and_an_older_one_all():
@@ -61,10 +62,10 @@ def test_the_failed_share_is_linear_in_the_metals_and_held_at_the_solar_value_ab
     assert f(np.array([-1.0, 0.0, 0.5]), 0.1, 0.3).tolist() == pytest.approx([0.28, 0.1, 0.1])
 
 
-def test_the_neutron_star_budget_caps_the_share_between_21_and_33_percent():
-    # 1 - 0.004 (1 + unbound) / 0.00713: the bound neutron stars are fixed by the census, the massive share is the IMF's.
-    assert formation.share_cap(0.4) == pytest.approx(0.214, abs=0.002)
-    assert formation.share_cap(0.2) == pytest.approx(0.327, abs=0.002)
+def test_the_neutron_star_budget_caps_the_share_between_27_and_38_percent():
+    # 1 - 0.004 (1 + unbound) / 0.00772: the bound neutron stars are fixed by the census, the massive share is the IMF's.
+    assert formation.share_cap(0.4) == pytest.approx(0.2745, abs=0.002)
+    assert formation.share_cap(0.2) == pytest.approx(0.378, abs=0.002)
     assert formation.share_cap(0.2) > formation.share_cap(0.3) > formation.share_cap(0.4)
 
 
@@ -86,7 +87,7 @@ def test_a_seed_draws_its_shares_in_range_and_the_same_every_time():
         assert solar <= free <= max(cap, solar) + 1e-12
         assert free <= max(low[1], solar) + 1e-12
         assert (solar, free) == structure_draw.draw_black_hole_shares(seed)
-    assert 0.21 <= cap <= 0.35
+    assert 0.27 <= cap <= 0.40
     assert len({structure_draw.draw_black_hole_shares(i.to_bytes(16, "big")) for i in range(50)}) == 50
 
 
@@ -153,8 +154,9 @@ def test_bound_plus_ejected_black_holes_are_what_the_galaxy_formed():
 
 
 def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_every_galaxy():
-    """T9: over a seed sweep, and the black holes stay within 0.9 to 4.6 times the old count (the cap on the failed share
-    rose with the massive share of the Chabrier function, GEN.927: 0.5 to 3.1 times on the Kroupa function)."""
+    """T9: over a seed sweep, and the black holes stay within 1.1 to 5.5 times the old count (the cap on the failed share
+    rose with the massive share of the Chabrier function, GEN.927, and again with its center, GEN.922: 0.5 to 3.1 times on
+    the Kroupa function)."""
     old = OLD_DENSITY_PC3 / tuning.REFERENCE_STELLAR_DENSITY_PC3
     budget = formation.imf_massive_share()
     ratios = []
@@ -166,7 +168,7 @@ def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_eve
         holes = remnant_density.formed_per_star(shape) * (1.0 - budget)
         assert neutron + holes <= budget * (1.0 + 1e-9), (i, neutron, holes, budget)
         ratios.append(remnant_density.base_rate_per_star() * remnant_density.mean_factor(shape) / old)
-    assert min(ratios) > 0.5 and max(ratios) < 5.0
+    assert min(ratios) > 0.5 and max(ratios) < 5.5
 
 
 # --- The scatter ---------------------------------------------------------------------------------------------------

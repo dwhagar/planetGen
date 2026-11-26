@@ -161,10 +161,10 @@ def test_a_disk_has_the_ranges_of_the_note_and_an_inner_edge_inside_it(monkeypat
     assert pms.draw_disk(1.0, 0.1 * MYR, 1.5, draw.Stream("a"))["disk_kind"] == "class-0"
 
 
-def test_a_stars_disk_time_is_its_own_and_does_not_move_with_its_age_and_is_held_at_the_planet_cut():
+def test_a_stars_disk_time_is_its_own_and_does_not_move_with_its_age_and_is_not_held_at_any_planet_cut():
     for mass in (0.1, 0.3, 0.5, 1.0, 1.4):
         assert pms.dispersal_yr(mass) == pms.dispersal_yr(mass)
-        assert 0.0 <= pms.dispersal_yr(mass) <= tuning.PLANET_MIN_STAR_AGE_GY * 1.0e9
+        assert pms.dispersal_yr(mass) > 0.0      # GEN.1552: the star's own time, no longer cut at 10 Myr
         classes = [pms.disk_class(age * MYR, pms.dispersal_yr(mass)) for age in (0.01, 0.2, 0.4, 0.6, 1.0, 2.0, 5.0, 9.0, 11.0)]
         assert classes == sorted(classes, key=["0", "I", "II", "III"].index), "the class only advances with age"
     masses = [0.1 + 1.3 * (i + 0.5) / 3000 for i in range(3000)]

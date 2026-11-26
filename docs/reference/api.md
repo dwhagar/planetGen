@@ -146,7 +146,10 @@ connectivity to that specific schema rather than the default one.
   with `role` (`single`, `primary`, `secondary`, or `member` for a star beyond the pair)/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`),
   `star_count`, `interstellar_debris_count` (an estimate of the
   interstellar comets and planetesimals drifting through it, far too many
-  to store as rows), `neighbors` (every grid cell sharing a face with a
+  to store as rows), `directive` (the minimums a run asked of the sector with `--directive` and how the draw came out
+  (GEN.179): `digest`, `status` (`met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`), `attempts` and
+  `minimums`, each `{key, wanted, got}` (`systems`, `habitable`, `type:G` ...); `null` for a sector drawn with no
+  directive), `neighbors` (every grid cell sharing a face with a
   placed sector: its address, `designation`, `direction_pc`, `exists`
   and `sector_id`/`sector_name`, empty for an unplaced sector), and
   `phenomena` (every placed standalone phenomenon generated as part of
@@ -1658,12 +1661,16 @@ it the same way `planetgen system` does, via `StarSystem(system_config=...)`:
 ```
 
 Accepted fields: `star_type`, `name`, `age` (`"young"`,
-`"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), and the
+`"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), `stars` (exactly this
+many stars, a whole number from 1 up to the cap, or `null` to leave the count to chance), `max_stars`
+(the cap on the count drawn, a whole number from 1 to 64, or `null` for the default of 12), and the
 tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
 `max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
 (`true`, `false`, or `null`) — `wide_binary` selects an S-type (wide) vs.
 P-type (close) binary and is only meaningful together with
-`binary_system: true`. An unrecognized field (including `slots`, or a
+`binary_system: true`. A count the cap or the pair options rule out is a `400` with the
+command line's words: `stars` under 1, over the cap or over 64, `max_stars` outside 1 to 64, one
+star with `binary_system` or `wide_binary` true, and two or more stars with `binary_system` false. An unrecognized field (including `slots`, or a
 fully-specified object graph shaped like `StarSystem.to_dict()`) is a
 `400` — not silently ignored.
 
