@@ -1163,6 +1163,10 @@ PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
 DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6))
+PLANET_HOST_MAX_MASS_SOLAR = 10.0
+"""float: The birth mass of a star at and above which it holds no planets (GEN.1866, registry row PH1 of 6.338): 10 solar masses. The most massive star known to hold a planet is b Cen (AB), 6 to 10 solar masses, with one giant
+at 556 AU; the disks of O and early B stars are blown away by their own light within a few tenths of a Myr (`physics/disk_dispersal.py`), before a giant core can grow, and the stars the cut removes (Wolf-Rayet, O, the heavy B)
+live 3 to 20 Myr. A star at the cut keeps its belts, the debris of what was there. A config that asks for a class or lists its slots overrides it. DESIGN: a pragmatic edge, hand-chosen inside 6 to 15."""
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface
