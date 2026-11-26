@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2049 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2050 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2022 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2023 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -57,8 +57,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 257 | 146 | 41 | 85 | 8 | 537 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
-| T9 | 55 | 20 | 6 | 120 | 42 | 243 |
-| All | 1164 | 434 | 106 | 279 | 66 | 2049 |
+| T9 | 55 | 20 | 7 | 120 | 42 | 244 |
+| All | 1164 | 434 | 107 | 279 | 66 | 2050 |
 
 ## How the labels were given
 
@@ -333,6 +333,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | MS5 | B | T3 | L0 | tuning.YOUNG_GROUP_RADIUS_AU_RANGE | 3.0e3 to 3.0e4 AU, log | a group of O and early-B stars | none: no measurement here; the draw's own tests keep the centre of mass at rest, they do not test the size | the measured separations of the Trapezium and of the catalogued trapezia | RECALLED (the Trapezium's core is some 0.03 pc, 6e3 AU, not read in the repository); the bracket is a factor of 3 either side | predicted only | - | - |
 | MS6 | B | T3 | L0 | tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS | 2.5 km/s, one dimension, fixed | a young group while it holds | test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycenter_at_rest | the measured dispersion of the Trapezium (proper-motion work), read | RECALLED (the Orion Trapezium cluster is some 2 to 3 km/s, not read in the repository) | predicted only | - | - |
 | MS7 | P | T4 | L0 | tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU | 300 AU, fixed | the hierarchy a decayed group leaves | test_gen_young_groups::test_a_group_older_than_its_decay_age_is_never_drawn_but_its_remnant_is | an N-body result for the remnant axes of a decayed trapezium (the decay papers of MS3 report them) | design: the remnant is the group's hierarchy hardened after the lightest member is ejected; the 300 AU cap is a guess with no source | predicted only | - | - |
+| MS8 | P | T9 | L2 | system_types.TUNING_KNOBS | tight_tail_weight 8.0 (6.0 at GEN.270; 1.0 is the plain draw) | primaries under the massive limit, periods under a day | test_system_type_rates::test_the_tuning_knobs_are_the_calibrated_defaults | a period law that carries its own tight tail, or a measured share of solar-type pairs under a day that this weight misses | design note 13.2 and 13.7, GEN.270, GEN.1855: the weight on the density of periods under a day for a star under the massive limit, tuned until the Algol share of a disk of constant star formation (0.05 to 10 Gy, living stars, any semi-detached pair) reaches the registry's lower limit of 0.1 percent (the `algol` row, "a lower limit"); measured over 1.5 million such systems (sigma 0.0025 percent): 6.0 gives 0.0881 percent, 7.0 0.0952 percent, 8.0 0.1002 percent; the contact share of FGK dwarfs goes 0.165 to 0.181 percent over the same two weights, inside its 0.2 to 0.77 percent window at 4 sigma | predicted only | - | - |
 
 ## 6.12 Stand-ins of the orbit elements
 
