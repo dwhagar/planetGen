@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4813+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The light job tests expect the time-limit message in the wording the product writes (1m 40s, 1s), so they pass again.
+
+### Fixed
+
+- TEST.837: `test_light_jobs.py` expected the time limit of a job that ran too long as 100 s and 1 s; the product writes it as 1m 40s and 1s since the duration rule. Tests only.
+
 ## [8.0.4812+db279.gen150.api14] - 2026-11-26
 
 **Headline:** Tests: the every-button test looks at each page in a page of its own, so no load is refused
