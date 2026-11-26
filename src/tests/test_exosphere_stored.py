@@ -34,9 +34,15 @@ def _bodies(system):
 
 
 def _system():
+    """The first system from `SEED` on that holds a planet and a moon (the draws of the generator move which seed does: the seed of a day is not kept for it)."""
     config = _config()
-    draw.set_run_seed(SEED)
-    return StarSystem(system_config=config), config
+    for seed in range(SEED, SEED + 40):
+        draw.set_run_seed(seed)
+        system = StarSystem(system_config=config)
+        bodies = list(_bodies(system))
+        if any(body.is_moon for body in bodies) and any(not body.is_moon for body in bodies):
+            return system, config
+    pytest.fail("no system of forty seeds holds a planet and a moon")
 
 
 def test_the_field_is_serialized_and_only_an_airless_ground_body_has_one():

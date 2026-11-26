@@ -1069,7 +1069,14 @@ def finish_orbit_oddities(planet):
         bool: Whether the eccentricity moved.
     """
     before = planet.eccentricity
+    old_inclination, old_node = planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0
     apply_orbit_oddities(planet)
+    new_inclination, new_node = planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0
+    if (new_inclination, new_node) != (old_inclination, old_node):
+        # a row that turns the plane (W4, the polar orbit) draws its angle again, and the secular exchange or the Kozai pump has moved the plane since the first draw: the body is turned onto it
+        # the way they turn it, so the position, the spin and the moons follow the elements (turn_orbit_plane)
+        planet.orbital_inclination_deg, planet.orbital_ascending_node_deg = old_inclination, old_node
+        turn_orbit_plane(planet, new_inclination, new_node)
     moved = abs(planet.eccentricity - before)
     if moved <= ECCENTRICITY_SETTLE_TOLERANCE:
         if moved > 0.0:
@@ -1077,6 +1084,22 @@ def finish_orbit_oddities(planet):
         return False
     remake_after_orbit_change(planet)
     return True
+
+
+def turn_orbit_plane(planet, inclination_deg, node_deg):
+    """
+    Turns the orbital plane of a planet to `inclination_deg` and `node_deg` and takes the planet with it: it keeps its place along the orbit (the argument of latitude) and its periapsis, its
+    spin axis and its moons follow the plane (`carry_spin_with_orbit`, the moons are written back in the planet's equator first, `release_moons`). The steps the secular exchange and the Kozai
+    pump take when they turn a plane (`secular_exchange`, `kozai_pump_planets`), for a row of the oddity table that turns it after them (W4). No draws.
+    """
+    old_inclination, old_node = planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0
+    arg_periapsis_deg = math.degrees(planet.orbit_from_vector()["arg_periapsis"])
+    phase = body_state.argument_of_latitude_deg((planet.position_x, planet.position_y, planet.position_z), old_inclination, old_node)
+    if getattr(planet, "moons", None):
+        release_moons(planet)
+    planet.orbital_inclination_deg, planet.orbital_ascending_node_deg = inclination_deg, node_deg
+    carry_spin_with_orbit(planet, old_inclination, old_node)
+    update_orbital_position(planet, phase, arg_periapsis_deg)
 
 
 def follow_orbit_change(planet):

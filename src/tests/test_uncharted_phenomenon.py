@@ -47,7 +47,7 @@ def _scatter(mysql_config, kind, subtype=None, point_pc=(30.0, 40.0, 0.0), veloc
              mass=None, cell=CELL, record=True):
     """Inserts one `phenomenon_scatter` row and returns its id."""
     conn = store.get_connection(mysql_config)
-    row = (*cell, kind, subtype, *(round(value * MPC_PER_PC) for value in point_pc), *velocity, seed, mass, None)
+    row = (*cell, kind, subtype, *(round(value * MPC_PER_PC) for value in point_pc), *velocity, seed, mass, None, None)
     store.insert_phenomenon_scatter(conn, [row])
     if record:
         store.record_phenomenon_scatter_classes(conn, {(kind, subtype or ""): 1})

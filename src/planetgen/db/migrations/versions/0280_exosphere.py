@@ -1,6 +1,6 @@
 """The exosphere of an airless body (GEN.455, part B).
 
-Schema v276 (a placeholder: the train that merges this renumbers it to the next free revision). `planet_exosphere` and `moon_exosphere` are new: one row for each species a source of the surface supplies to a body
+Schema v280 (a placeholder: the train that merges this renumbers it to the next free revision). `planet_exosphere` and `moon_exosphere` are new: one row for each species a source of the surface supplies to a body
 with no air at all (`physics/exosphere.py`): the order of the rows from 1 (the largest column first), the species (the gas table's formula), the column in atoms per square centimetre, the source that gives most of it
 and the scale height, km. A body stored before has no rows, and nothing is backfilled (a migration does not draw): the next regeneration makes them. A table already there is skipped, so a stopped run can be started again.
 """
@@ -10,8 +10,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0276"
-down_revision = "0275"
+revision = "0280"
+down_revision = "0279"
 branch_labels = None
 depends_on = None
 

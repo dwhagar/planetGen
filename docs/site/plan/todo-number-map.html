@@ -67,7 +67,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>MAP</td>
-<td>MAP.431</td>
+<td>MAP.434</td>
 </tr>
 <tr>
 <td>NAV</td>
@@ -75,11 +75,11 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>GEN</td>
-<td>GEN.1789</td>
+<td>GEN.1838</td>
 </tr>
 <tr>
 <td>PERF</td>
-<td>PERF.281</td>
+<td>PERF.288</td>
 </tr>
 <tr>
 <td>DB</td>
@@ -99,7 +99,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>TEST</td>
-<td>TEST.791</td>
+<td>TEST.827</td>
 </tr>
 <tr>
 <td>USR</td>
@@ -107,7 +107,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>OPS</td>
-<td>OPS.272</td>
+<td>OPS.297</td>
 </tr>
 <tr>
 <td>DOC</td>
@@ -3235,7 +3235,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>API.51</td>
 <td>The life-air API and the page chart read the stored air history, every gas</td>
 <td>GEN.1745</td>
-<td>open</td>
+<td>done (PR 7345, Lane 16, merged 2:24 AM EST 11-21)</td>
 </tr>
 <tr>
 <td>API.46</td>
@@ -6745,7 +6745,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.361</td>
 <td>The asteroid field page has a 3D view</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7304, Lane 05, merged 4:34 PM EST 11-19: the asteroid field page has its own 3D sensor view with the real body count over 1 km, column density and freeze-out time)</td>
 </tr>
 <tr>
 <td>GEN.362</td>
@@ -7723,7 +7723,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.524</td>
 <td>Tuned draw builder B16: halogens and trace gases</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7286, Lane 05, GEN.1559 slice, merged 11:42 AM EST 11-19: draw_trace_gases retired, design_flags kept by design)</td>
 </tr>
 <tr>
 <td>GEN.525</td>
@@ -9589,7 +9589,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.835</td>
 <td>The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7277, Lane 07, Train 50, PR 7294, merged 1:38 PM EST 11-19: sulfur ground on 0 to 41 of 3,256 rocky bodies in 200 systems)</td>
 </tr>
 <tr>
 <td>GEN.836</td>
@@ -11479,13 +11479,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1150</td>
 <td>Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule &quot;<host> L4 trojan region&quot;</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7303, Lane 06, Train 52, PR 7368, merged 11:05 AM EST 11-21; migration 0271)</td>
 </tr>
 <tr>
 <td>GEN.1151</td>
 <td>Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row</td>
 <td>none</td>
-<td>open</td>
+<td>open (Lane 06; slice A PR 7307, Train 52)</td>
 </tr>
 <tr>
 <td>GEN.1152</td>
@@ -12421,7 +12421,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1307</td>
 <td>Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7134 merged 8:48 PM EST 11-17: class 5a has no animals aloft, cap from the class row on LF40 tier T9 tweak L0; its life clock reads the cloud layer; the life text says where it lives)</td>
 </tr>
 <tr>
 <td>GEN.1308</td>
@@ -12481,7 +12481,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1317</td>
 <td>Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed</td>
 <td>GEN.1313</td>
-<td>open</td>
+<td>done (Lane 07, slice 2 PR 7369, 2026-11-21)</td>
 </tr>
 <tr>
 <td>GEN.1318</td>
@@ -12931,7 +12931,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1403</td>
 <td>Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7218, Train 47, PR 7235, merged 9:53 PM EST 11-18: water-limited weathering; stand-ins WW1, WW2 section 6.309)</td>
 </tr>
 <tr>
 <td>GEN.1404</td>
@@ -13135,7 +13135,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1447</td>
 <td>Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system</td>
 <td>none</td>
-<td>open</td>
+<td>done (moon case PR 5948, Train 23; planet case PR 6228 wired by GEN.1645; planet-planet exchange GEN.1450; Lane 07 check 9:20 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>GEN.1448</td>
@@ -13225,7 +13225,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1464</td>
 <td>Belts, asteroids and comets as tiny gravity sources: counted in the secular and tide terms of the planets, and a large asteroid or dwarf planet raising tides on its own moons</td>
 <td>GEN.1446</td>
-<td>open</td>
+<td>closed (Boss 5:53 PM EST 11-19: too small to matter, a belt adds at most 0.46 percent to any tide; stand-in TS5 says so; no epoch)</td>
 </tr>
 <tr>
 <td>GEN.1465</td>
@@ -13249,7 +13249,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1468</td>
 <td>An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only)</td>
 <td>GEN.1460</td>
-<td>open</td>
+<td>done (PR 7128 merged 8:30 PM EST 11-17: 52 single-star systems for 200,000 inner orbits, 47 stable, 5 encounters all between class D dwarfs under 0.006 Earth masses; report reports/gen1468-2026-11-18/findings.md; cap finding filed as GEN.1792)</td>
 </tr>
 <tr>
 <td>GEN.1469</td>
@@ -13615,7 +13615,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>TEST.696</td>
 <td>Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>done (Lane 14 run on main, 11-19: help, plane view, side strip and edit menu tests pass; controls fixed by PR 7278; the fixture-map extent fail became MAP.432, PR 7279)</td>
 </tr>
 <tr>
 <td>TEST.697</td>
@@ -15895,7 +15895,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>MAP.354</td>
 <td>Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7303, Lane 06, Train 52, PR 7368, merged 11:05 AM EST 11-21)</td>
 </tr>
 <tr>
 <td>MAP.355</td>
@@ -16735,13 +16735,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.16</td>
 <td>A daily maintenance script for Linux and macOS, with its lock helper</td>
 <td>none</td>
-<td>open</td>
+<td>open (8.9, with the OPS.55 backup chain; TODO 11-19)</td>
 </tr>
 <tr>
 <td>OPS.17</td>
 <td>Install and update set up the daily maintenance schedule</td>
 <td>none</td>
-<td>open</td>
+<td>open (8.9, with the OPS.55 backup chain; TODO 11-19)</td>
 </tr>
 <tr>
 <td>OPS.18</td>
@@ -17023,7 +17023,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.64</td>
 <td>The version code carries the database schema, generator epoch and API versions as well</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7315, Lane 13, merged 9:45 PM EST 11-19, early from 8.2: the stamp writes 8.0.4653+db268.gen150.api14)</td>
 </tr>
 <tr>
 <td>OPS.65</td>
@@ -17347,13 +17347,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.118</td>
 <td>Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>superseded (Lane 13, 5:14 AM EST 11-19: no RQ work horse remains; the engine records every killed attempt as lost with its signal and unit, launcher._outcome; memory kills covered by OPS.231 and OPS.249)</td>
 </tr>
 <tr>
 <td>OPS.133</td>
 <td>scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7)</td>
 <td>none</td>
-<td>open</td>
+<td>done (part 1 and the golden check with OPS.147 PR 7133; part 2 PR 7157 merged 10:27 PM EST 11-17: a fifth stage derived; the refill job and the map cache key are OPS.272 and MAP.431)</td>
 </tr>
 <tr>
 <td>OPS.134</td>
@@ -17413,7 +17413,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.143</td>
 <td>Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine</td>
 <td>OPS.137, OPS.140, OPS.141</td>
-<td>open</td>
+<td>superseded (Lane 13, 5:14 AM EST 11-19: fake-clock rule tests on main, test_heartbeat_rules, test_beat_judge, test_unit_beat, test_job_beat; the full-galaxy trial is OPS.247)</td>
 </tr>
 <tr>
 <td>OPS.144</td>
@@ -17431,13 +17431,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.146</td>
 <td>Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file</td>
 <td>OPS.140</td>
-<td>open</td>
+<td>superseded (built as OPS.223, PR 6621; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.147</td>
 <td>Per-stage golden digests so a train's declared stages can be checked against what its golden moved</td>
 <td>OPS.133</td>
-<td>open</td>
+<td>done (PR 7133 merged 8:46 PM EST 11-17: the golden build writes one digest per stage; scripts/train.py stages compares them)</td>
 </tr>
 <tr>
 <td>OPS.148</td>
@@ -17449,19 +17449,19 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.149</td>
 <td>Apply the adaptive worker limit to the maintenance lane (warm-ups)</td>
 <td>OPS.148</td>
-<td>open</td>
+<td>superseded (built as OPS.231, PR 7088; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.150</td>
 <td>Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent)</td>
 <td>OPS.148</td>
-<td>open</td>
+<td>superseded (built as OPS.233, PR 7064; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.151</td>
 <td>Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log</td>
 <td>OPS.148</td>
-<td>open</td>
+<td>superseded (carried by OPS.249; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.152</td>
@@ -17479,7 +17479,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.154</td>
 <td>Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB</td>
 <td>OPS.153</td>
-<td>open</td>
+<td>done (PR 6402 with migration 0254; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.155</td>
@@ -17581,7 +17581,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>PERF.272</td>
 <td>Promote belt members only when they are read (15 percent of a system's time)</td>
 <td>none</td>
-<td>open</td>
+<td>rejected (Boss, 11-15)</td>
 </tr>
 <tr>
 <td>PERF.273</td>
@@ -17623,13 +17623,31 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>PERF.279</td>
 <td>Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes)</td>
 <td>TEST.788</td>
-<td>open (Lane 16)</td>
+<td>done (Train 44, PR 7149)</td>
 </tr>
 <tr>
 <td>PERF.280</td>
 <td>Stage 9 skip or batch near-empty sky cells (design and measure first)</td>
 <td>OPS.270</td>
-<td>open (Lane 07)</td>
+<td>done (fix A PR 7101; fix B PR 7162, Train 45, PR 7202, merged 4:36 AM EST 11-18)</td>
+</tr>
+<tr>
+<td>PERF.281</td>
+<td>Stage 9 sampling tables: cache keyed by their inputs, built once before the shares</td>
+<td>PERF.280</td>
+<td>done (PR 7129)</td>
+</tr>
+<tr>
+<td>PERF.282</td>
+<td>Stage 9 stellar-evolution tables as flat numpy arrays shared by workers</td>
+<td>OPS.247, OPS.279</td>
+<td>open (Lane 13, gated on OPS.247)</td>
+</tr>
+<tr>
+<td>PERF.283</td>
+<td>The engine's warm app took about 18 s to start cold: the class catalog built two forced-star tables</td>
+<td>none</td>
+<td>done (PR 7314, Lane 13, merged 9:25 PM EST 11-19: the tables kept in band_table_cache, 14.3 s to 1.4 s)</td>
 </tr>
 <tr>
 <td>OPS.159</td>
@@ -17641,7 +17659,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.160</td>
 <td>Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)</td>
 <td>OPS.157</td>
-<td>open</td>
+<td>superseded (built as OPS.250, PR 7143; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.161</td>
@@ -17713,7 +17731,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.172</td>
 <td>Per-sector saved line moves to debug, with a roll-up through the progress ticker</td>
 <td>OPS.169</td>
-<td>open</td>
+<td>done (built; Lane 13 sweep 4:22 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.173</td>
@@ -17743,7 +17761,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.177</td>
 <td>A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7263, Lane 13, merged 7:10 AM EST 11-19: legacy/ with bump_database_to_8_0.py and the frozen revisions 0061 to 0130, run only on purpose)</td>
 </tr>
 <tr>
 <td>OPS.178</td>
@@ -17755,7 +17773,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.179</td>
 <td>cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list</td>
 <td>none</td>
-<td>open</td>
+<td>not planned (moot: OPS.235 removed cli/worker.py and RQ, PR 7180)</td>
 </tr>
 <tr>
 <td>OPS.180</td>
@@ -17809,7 +17827,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.188</td>
 <td>(bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run</td>
 <td>none</td>
-<td>open</td>
+<td>done (proved fixed by the job engine, PR 7251, Lane 13, merged 4:25 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.189</td>
@@ -17821,7 +17839,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.190</td>
 <td>(bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit</td>
 <td>none</td>
-<td>open</td>
+<td>done (proved fixed by the job engine, PR 7251, Lane 13, merged 4:25 AM EST 11-19)</td>
 </tr>
 <tr>
 <td>OPS.191</td>
@@ -18031,13 +18049,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.225</td>
 <td>Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143</td>
 <td>none</td>
-<td>open</td>
+<td>done (Lane 13 kill tests PRs 7220, 7221, 7222, 7224, 7242, 7243, 7245; merged 11-18 and 11-19 by 4:00 AM EST; no double write found)</td>
 </tr>
 <tr>
 <td>OPS.226</td>
 <td>Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side</td>
 <td>none</td>
-<td>open</td>
+<td>done (built and in use since OPS.228, Lane 06 check 1:27 AM EST 11-18; docstrings PR 7182; kill tests are OPS.236)</td>
 </tr>
 <tr>
 <td>OPS.227</td>
@@ -18091,13 +18109,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.235</td>
 <td>Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot</td>
 <td>none</td>
-<td>open</td>
+<td>done (slice 1 PR 7127, 1b 7138, 1c 7148, 1d 7151, slice 2 PR 7180 merged 1:26 AM EST 11-18: the rq library, cli/worker.py and every rq helper removed)</td>
 </tr>
 <tr>
 <td>OPS.236</td>
 <td>Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill)</td>
 <td>none</td>
-<td>open</td>
+<td>done (kill-retry fix PR 7192, real-process kill tests and dead-template fork fix PR 7193, dispatch sweep PR 7200 merged 2:41 AM EST 11-18; Lane 15)</td>
 </tr>
 <tr>
 <td>OPS.237</td>
@@ -18115,13 +18133,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.239</td>
 <td>Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle</td>
 <td>none</td>
-<td>open</td>
+<td>done (part A PR 6740, part B PR 6752; Lane 16 scan 7:31 PM EST 11-17: no expand function does more than plan, build-phenomenon-indexes left as one job)</td>
 </tr>
 <tr>
 <td>OPS.240</td>
 <td>Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126</td>
 <td>none</td>
-<td>open</td>
+<td>done (slices A to C PR 7171, slice D PR 7181 merged 1:26 AM EST 11-18; a launcher-kill-between-windows test goes to OPS.246)</td>
 </tr>
 <tr>
 <td>OPS.241</td>
@@ -18145,19 +18163,19 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.244</td>
 <td>Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203</td>
 <td>none</td>
-<td>open</td>
+<td>done (slice A PR 7107, slice B PR 7163, slice C PR 7168 merged 11:47 PM EST 11-17: Generate page jobs are ledger runs; Lane 15 re-measures the cold one-off request after the Train 45 gate)</td>
 </tr>
 <tr>
 <td>OPS.245</td>
 <td>Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice)</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7191, Lane 16, merged 2:04 AM EST 11-18: seeded random runs with windows, holds, kills; no engine bug found)</td>
 </tr>
 <tr>
 <td>OPS.246</td>
 <td>Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt)</td>
 <td>none</td>
-<td>open</td>
+<td>done (PRs 7244, 7246 and 7247, Lane 13, merged by 4:15 AM EST 11-19: launcher window kills, seeded chain kill test with seed and kill switches for the end-of-version hunt, TRANSITIONS table, cancel while killed)</td>
 </tr>
 <tr>
 <td>OPS.247</td>
@@ -18175,25 +18193,25 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.249</td>
 <td>Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7308, Lane 13, merged 7:33 PM EST 11-19: a SIGKILL reaches the learner as killed_memory; pressure run reports/ops249-pressure-run-2026-11-20/REPORT.md moved the edges both ways; the 2.0 clamp kept)</td>
 </tr>
 <tr>
 <td>OPS.250</td>
 <td>Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7143 merged 9:19 PM EST 11-17: a kind with 30 finished units on this machine shape and epoch leads with its learned memory claim and unit seconds; the typed figure is the default and a 4x clamp)</td>
 </tr>
 <tr>
 <td>OPS.251</td>
 <td>Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace</td>
 <td>none</td>
-<td>open</td>
+<td>done (slice 1 PR 7097, slice 2 PR 7124 merged 8:14 PM EST 11-17; the RQ workers' 90 s counter goes with OPS.235)</td>
 </tr>
 <tr>
 <td>OPS.252</td>
 <td>Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes</td>
 <td>none</td>
-<td>open</td>
+<td>done (slice 1 PR 7108, rest PR 7187 merged 1:46 AM EST 11-18: docs/design/operations/job-engine.md covers stages 0 to 6 as built)</td>
 </tr>
 <tr>
 <td>OPS.253</td>
@@ -18247,7 +18265,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.261</td>
 <td>Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in</td>
 <td>OPS.219</td>
-<td>open</td>
+<td>done (PR 7117 merged 7:55 PM EST 11-17: the in-process deadlock retry loop is gone; run_once tries once, rolls back, explains and raises, and the engine retries from its cursor)</td>
 </tr>
 <tr>
 <td>OPS.262</td>
@@ -18300,14 +18318,164 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <tr>
 <td>OPS.270</td>
 <td>(high) Only 3 of 16 sky shares of Stage 9 run at once</td>
-<td>open (Lane 13)</td>
+<td>closed (slices 1 and 2 merged 11-18; the rest waits on the OPS.247 trial, PERF.282)</td>
 <td></td>
 </tr>
 <tr>
 <td>OPS.271</td>
 <td>Ledgerless runs run their units without RQ, so the bulk RQ unit path can be deleted</td>
 <td>OPS.228</td>
-<td>open (Lane 13)</td>
+<td>done (PR 7090, PR 7111)</td>
+</tr>
+<tr>
+<td>OPS.272</td>
+<td>The refill job reads the derived stage</td>
+<td>OPS.133</td>
+<td>done (PR 7206, Lane 13, merged 3:38 AM EST 11-18: bring-to-epoch refills the derived stage by the existing jobs)</td>
+</tr>
+<tr>
+<td>OPS.273</td>
+<td>Rogue planet draws key on a seed-derived donor identity, not its Object ID</td>
+<td>none</td>
+<td>done (PR 7176, Train 46, PR 7215, merged 6:54 AM EST 11-18: rogue draws keyed on galaxy position, not the donor Object ID)</td>
+</tr>
+<tr>
+<td>OPS.274</td>
+<td>Resume and finish tests follow the hold-and-continue rule</td>
+<td>none</td>
+<td>done (PR 7179, Lane 15, merged 1:03 AM EST 11-18)</td>
+</tr>
+<tr>
+<td>OPS.275</td>
+<td>A held unit's error keeps its last traceback frames</td>
+<td>none</td>
+<td>done (PR 7185, Lane 15, merged 1:41 AM EST 11-18: last 3 frames, file:line in function, masked)</td>
+</tr>
+<tr>
+<td>OPS.276</td>
+<td>A unit held with IndexError (sky charting, bright star scatter)</td>
+<td>none</td>
+<td>open (Lane 16)</td>
+</tr>
+<tr>
+<td>OPS.277</td>
+<td>Held-run reds in maintenance and finish-run tests</td>
+<td>none</td>
+<td>done (PR 7231, Lane 15, merged 8:30 PM EST 11-18: both test faults; the held-run outcome is right)</td>
+</tr>
+<tr>
+<td>OPS.278</td>
+<td>Galaxy test database lacks engine_runs</td>
+<td>none</td>
+<td>done (PR 7233, Lane 07, merged 8:58 PM EST 11-18: shared control_config fixture builds the control schema in the test database)</td>
+</tr>
+<tr>
+<td>OPS.279</td>
+<td>Template heap copied into each sky share</td>
+<td>OPS.270</td>
+<td>done (measured, Lane 13, 4:20 AM EST 11-19: 341 MB copied per worker, 256 MB of it refcount only, mostly stellar-evolution tables; gc.freeze no help; report /mnt/project-files/engine/ops279/REPORT.md; follow-up PERF.282)</td>
+</tr>
+<tr>
+<td>OPS.280</td>
+<td>New galaxy job stops at the luminosity scatter (stage 7 already stored it)</td>
+<td>none</td>
+<td>done (PR 7240, Lane 13, merged 2:58 AM EST 11-19: a prepared luminosity scatter no longer refuses after the backfill)</td>
+</tr>
+<tr>
+<td>OPS.281</td>
+<td>Generation runs never show as running</td>
+<td>none</td>
+<td>done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: runs record running and started_at, and done with finished_at)</td>
+</tr>
+<tr>
+<td>OPS.282</td>
+<td>Stage 7 backfill shows no counts</td>
+<td>none</td>
+<td>done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: backfill progress line with counts and HMS time left)</td>
+</tr>
+<tr>
+<td>OPS.283</td>
+<td>Big unit arguments overflow the template socket; a unit that cannot start leaves its run waiting</td>
+<td>none</td>
+<td>done (PR 7248, Lane 15, merged 4:20 AM EST 11-19: arguments over 64 KB go by a file in the state folder; a start failure holds the run with its error)</td>
+</tr>
+<tr>
+<td>OPS.284</td>
+<td>A run's record lives only in Redis: a restart or Redis loss leaves a run that cannot carry on</td>
+<td>OPS.247</td>
+<td>done (PRs 7319, 7320, 7322, Lane 15, merged 11-20)</td>
+</tr>
+<tr>
+<td>OPS.285</td>
+<td>A failed unit's error text names its own sector or id range</td>
+<td>none</td>
+<td>done (PR 7309, Lane 13, merged 7:33 PM EST 11-19)</td>
+</tr>
+<tr>
+<td>OPS.286</td>
+<td>update.sh no longer runs the math check (about 49 s cold as an engine run); check-math, the admin button, web startup and the test gate keep it</td>
+<td>none</td>
+<td>done (PR 7312, Lane 13, merged 9:13 PM EST 11-19, Boss's complaint)</td>
+</tr>
+<tr>
+<td>OPS.287</td>
+<td>A reset or data check ended by SIGTERM says who sent it</td>
+<td>none</td>
+<td>done (PR 7313, Lane 13, merged 9:13 PM EST 11-19, from Boss's 9:00 PM EST reset kill)</td>
+</tr>
+<tr>
+<td>OPS.288</td>
+<td>A full disk holds a run instead of failing it</td>
+<td>OPS.247</td>
+<td>done (Lane 15, PR 7399, 2026-11-22)</td>
+</tr>
+<tr>
+<td>OPS.289</td>
+<td>Stage 13 counts its sectors on a real-count bar</td>
+<td>PERF.284</td>
+<td>done (PR 7323, Lane 13, merged 11-20)</td>
+</tr>
+<tr>
+<td>OPS.290</td>
+<td>(bug) A stopped-and-carried-on run gave a different digest from an uninterrupted one</td>
+<td>OPS.247</td>
+<td>done (fixed by PR 7377, GEN.1827; Lane 13 rerun passed 2026-11-21)</td>
+</tr>
+<tr>
+<td>OPS.291</td>
+<td>(bug) Nebula field slabs deadlocked when two ran at once</td>
+<td>OPS.247</td>
+<td>done (Lane 15, PR 7382, 2026-11-21)</td>
+</tr>
+<tr>
+<td>OPS.292</td>
+<td>A run spec can name its start sector</td>
+<td>OPS.247</td>
+<td>done (Lane 15, PR 7398, 2026-11-22)</td>
+</tr>
+<tr>
+<td>OPS.293</td>
+<td>(bug) A follower with no supervisor waits and then stops loudly</td>
+<td>OPS.247</td>
+<td>done (Lane 13, PR 7402, 2026-11-22)</td>
+</tr>
+<tr>
+<td>OPS.294</td>
+<td>(bug) A plain SIGKILL is recorded as lost, not as a memory kill</td>
+<td>OPS.247</td>
+<td>done (Lane 13, PR 7401, 2026-11-22)</td>
+</tr>
+<tr>
+<td>OPS.295</td>
+<td>(bug) A stopped reset logs its last line at a real level</td>
+<td>OPS.247</td>
+<td>done (Lane 14, PR 7412, 2026-11-23)</td>
+</tr>
+<tr>
+<td>OPS.296</td>
+<td>Find what removes a running job's row</td>
+<td>OPS.247</td>
+<td>open (Lane 14)</td>
 </tr>
 <tr>
 <td>DOC.120</td>
@@ -19129,7 +19297,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>PERF.136</td>
 <td>Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default</td>
 <td>none</td>
-<td>open</td>
+<td>closed (re-measured; the default stays Few)</td>
 </tr>
 <tr>
 <td>PERF.137</td>
@@ -19195,7 +19363,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>PERF.147</td>
 <td>A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7255, Lane 13, merged 5:08 AM EST 11-19: date-civilizations and refresh-technology show real counts)</td>
 </tr>
 <tr>
 <td>PERF.148</td>
@@ -19513,7 +19681,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>PERF.200</td>
 <td>Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion</td>
 <td>none</td>
-<td>open</td>
+<td>done (slice 1 PR 7317, slice 2 PR 7365, Lane 13, merged 10:24 AM EST 11-21; no slice 3)</td>
 </tr>
 <tr>
 <td>PERF.201</td>
@@ -23153,7 +23321,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 </tr>
 <tr>
 <td>GEN.1621</td>
-<td>(bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N<sub>2</sub>O at 0.033 Pa or O<sub>3</sub> at 0.03 Pa each add 21 K in the table against 1 K in the model</td>
+<td>(bug) The greenhouse table misses the trace-gas warming the model gives (N<sub>2</sub>O, O<sub>3</sub>, SO<sub>2</sub>, NH<sub>3</sub>, HCN, CO)</td>
 </tr>
 <tr>
 <td>GEN.1622</td>
@@ -23824,6 +23992,78 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <td>Review giant scattering physics; comets follow (Science comets 0 percent)</td>
 </tr>
 <tr>
+<td>GEN.1789</td>
+<td>(high) Oxygen source against reductant sink: reshape options for the oxygen stand-ins, report first</td>
+</tr>
+<tr>
+<td>GEN.1790</td>
+<td>Envelope past the climate ceiling boils off; lava vapor held and logged</td>
+</tr>
+<tr>
+<td>GEN.1791</td>
+<td>Lever search for Class M and M-like worlds at the Abundant tier (report)</td>
+</tr>
+<tr>
+<td>GEN.1792</td>
+<td>(bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps</td>
+</tr>
+<tr>
+<td>GEN.1793</td>
+<td>M dwarfs carry about half the observed close-in small planets</td>
+</tr>
+<tr>
+<td>GEN.1794</td>
+<td>Cold-air condensation laws for OCS, CS<sub>2</sub> and SO<sub>3</sub></td>
+</tr>
+<tr>
+<td>GEN.1795</td>
+<td>Train 45 gate: the W20 other-branch search stops after two agreeing starts</td>
+</tr>
+<tr>
+<td>GEN.1796</td>
+<td>Greenhouse table refit for cold dense nitrogen airs (TEST.790 red)</td>
+</tr>
+<tr>
+<td>GEN.1797</td>
+<td>Giant occurrence at 2 to 8 au under the observed range (0.050 against 0.0556 to 0.2283)</td>
+</tr>
+<tr>
+<td>GEN.1798</td>
+<td>Build earlier life steps (LF49) for the Class M set</td>
+</tr>
+<tr>
+<td>GEN.1799</td>
+<td>Build the lower oxygenic CO<sub>2</sub> floor (class 1 0.5 Pa, class 2 2 Pa)</td>
+</tr>
+<tr>
+<td>GEN.1800</td>
+<td>Build the quiet interior lever, sink factor inside the published range</td>
+</tr>
+<tr>
+<td>GEN.1801</td>
+<td>Build second oxygen rise ratio 2 (BO12)</td>
+</tr>
+<tr>
+<td>GEN.1802</td>
+<td>Planets spaced at birth from dials drawn for the first zone (dial reach)</td>
+</tr>
+<tr>
+<td>GEN.1803</td>
+<td>Untabled infrared gases get sourced band strengths, not a per-kilogram stand-in</td>
+</tr>
+<tr>
+<td>GEN.1804</td>
+<td>Moons held in the evection resonance only while the tide and the spin allow it</td>
+</tr>
+<tr>
+<td>GEN.1805</td>
+<td>(bug report) The same seed seemed to differ after other seeds in one process</td>
+</tr>
+<tr>
+<td>GEN.1806</td>
+<td>(bug) A NaN effect contribution stops a sector save (effect_ledger.split_sources via save_sector)</td>
+</tr>
+<tr>
 <td>GEN.1532</td>
 <td>(bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure</td>
 </tr>
@@ -23838,6 +24078,130 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <tr>
 <td>GEN.1477</td>
 <td>Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5)</td>
+</tr>
+<tr>
+<td>GEN.1807</td>
+<td>Widen the habitable-world testing zone by 50 percent of its width on each side</td>
+</tr>
+<tr>
+<td>GEN.1808</td>
+<td>Adaptation record for life classes 1a, 1b, 1c and 2, with the refuge temperature range</td>
+</tr>
+<tr>
+<td>GEN.1809</td>
+<td>The adaptations life needed are stored for every living body</td>
+</tr>
+<tr>
+<td>GEN.1810</td>
+<td>Research refuge limits for life classes 3a to 9</td>
+</tr>
+<tr>
+<td>GEN.1811</td>
+<td>The adaptation record covers every life class, naming what life needed past measured limits</td>
+</tr>
+<tr>
+<td>GEN.1812</td>
+<td>Past habitable windows and high-CO2 worlds measured</td>
+</tr>
+<tr>
+<td>GEN.1813</td>
+<td>Hot ocean worlds hold the sulfur their supply and sinks allow</td>
+</tr>
+<tr>
+<td>GEN.1814</td>
+<td>Lava worlds hold the sulfur their melt can dissolve</td>
+</tr>
+<tr>
+<td>GEN.1815</td>
+<td>Moon ladder adds a Radau step for stiff moon histories</td>
+</tr>
+<tr>
+<td>GEN.1816</td>
+<td>The silent &quot;moons stay as born&quot; fallback becomes physics: moons that fall within the age are lost and the planet is flagged</td>
+</tr>
+<tr>
+<td>GEN.1817</td>
+<td>A W5 chain planet's forced eccentricity always rebuilds its position</td>
+</tr>
+<tr>
+<td>GEN.1818</td>
+<td>The moon integrator's error control holds the heat state to its own tolerance</td>
+</tr>
+<tr>
+<td>GEN.1819</td>
+<td>Life records the pressure it lives under</td>
+</tr>
+<tr>
+<td>GEN.1820</td>
+<td>Code the trojan and air-history work built is read or removed</td>
+</tr>
+<tr>
+<td>GEN.1821</td>
+<td>Life draws CO<sub>2</sub> down as a carbon sink</td>
+</tr>
+<tr>
+<td>GEN.1822</td>
+<td>The sub-ice and aquifer clocks read the habitat temperature</td>
+</tr>
+<tr>
+<td>GEN.1823</td>
+<td>Class 4b loses its unsourced abiotic nitrate</td>
+</tr>
+<tr>
+<td>GEN.1824</td>
+<td>Sealed oceans keep the oxygen their sources and sinks allow</td>
+</tr>
+<tr>
+<td>GEN.1825</td>
+<td>Sealed-ocean life capped by its fuel supply</td>
+</tr>
+<tr>
+<td>GEN.1826</td>
+<td>Class 4b life drawn after the final air</td>
+</tr>
+<tr>
+<td>GEN.1827</td>
+<td>The fingerprint keys planets.lagrange_host_id by the giant, so chart order does not change it</td>
+</tr>
+<tr>
+<td>GEN.1828</td>
+<td>Research: why the late-accretion giant groups sit at the floor</td>
+</tr>
+<tr>
+<td>GEN.1829</td>
+<td>Research: why the Earth analog drifted warm</td>
+</tr>
+<tr>
+<td>GEN.1830</td>
+<td>The wet-land setting WW2 moves from 0.71 to 0.55 so Earth's own water waters Earth's land</td>
+</tr>
+<tr>
+<td>GEN.1831</td>
+<td>Research: does an Earth copy hold too much nitrogen</td>
+</tr>
+<tr>
+<td>GEN.1832</td>
+<td>A More Habitable Worlds checkbox replaces the Class M tier choice</td>
+</tr>
+<tr>
+<td>GEN.1833</td>
+<td>Research: the nitrogen sinks of a rocky world's air</td>
+</tr>
+<tr>
+<td>GEN.1834</td>
+<td>Oceans dissolve nitrogen out of the air</td>
+</tr>
+<tr>
+<td>GEN.1835</td>
+<td>Research: why a true Earth copy is cold and oxygen-poor</td>
+</tr>
+<tr>
+<td>GEN.1836</td>
+<td>A wet world's albedo centres on the Earth's 0.30</td>
+</tr>
+<tr>
+<td>GEN.1837</td>
+<td>The oxygen source scales by the world's own ocean area</td>
 </tr>
 <tr>
 <td>MAP.2.1</td>
@@ -24026,6 +24390,22 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <tr>
 <td>PERF.256</td>
 <td>A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4)</td>
+</tr>
+<tr>
+<td>PERF.284</td>
+<td>Stage 13 builds the phenomenon scatter address index first</td>
+</tr>
+<tr>
+<td>PERF.285</td>
+<td>Find why generation is 4.5 times slower than on 11-15</td>
+</tr>
+<tr>
+<td>PERF.286</td>
+<td>The galaxy fingerprint streams its rows</td>
+</tr>
+<tr>
+<td>PERF.287</td>
+<td>The galaxy fingerprint keeps its output out of memory</td>
 </tr>
 <tr>
 <td>SEC.2.1</td>
@@ -27304,6 +27684,150 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <td>A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse</td>
 </tr>
 <tr>
+<td>TEST.791</td>
+<td>Stale test reds on main (fill order, unit reports, readme, cut neutral, stats)</td>
+</tr>
+<tr>
+<td>TEST.792</td>
+<td>Main reds after Train 47: test_page_shell (galaxynebulae.js import) and test_user_agent (gaia_nearby.py not in OUTGOING)</td>
+</tr>
+<tr>
+<td>TEST.793</td>
+<td>(bug) test_atmosphere_standin_registry red on row AM104 (constant cell split on more than one dot)</td>
+</tr>
+<tr>
+<td>TEST.794</td>
+<td>(bug) test_life_standin_registry red: habitability.GAS_ORDER has no row or reason</td>
+</tr>
+<tr>
+<td>TEST.795</td>
+<td>(bug) Engine-side main reds: hand-formatted units in five engine files, a quiet handler, the removed worker in the help list, the update order test</td>
+</tr>
+<tr>
+<td>TEST.796</td>
+<td>(bug) Generator-side main reds: four hand mass conversions, TODO codes in shown strings, two quiet handlers</td>
+</tr>
+<tr>
+<td>TEST.797</td>
+<td>(bug) test_life_air reds: fixture fluxes fixed for a smaller air; oxygen check by the ledger's share</td>
+</tr>
+<tr>
+<td>TEST.798</td>
+<td>(bug) test_fuzz_planet_inputs KeyError composition (stale since GEN.1619)</td>
+</tr>
+<tr>
+<td>TEST.799</td>
+<td>(bug) Ten browser test files miss the sample_ledger_job fixture (OPS.271 side effect)</td>
+</tr>
+<tr>
+<td>TEST.800</td>
+<td>(bug) Cold and heat adaptation traits read the surface mean instead of the habitat temperature</td>
+</tr>
+<tr>
+<td>TEST.801</td>
+<td>(bug) test_habitability_fill hangs: the test's inline pump swallowed a refused control login</td>
+</tr>
+<tr>
+<td>TEST.802</td>
+<td>(bug) bodymarkers.test.mjs looked for a capital letter that is not a class (all 26 are)</td>
+</tr>
+<tr>
+<td>TEST.803</td>
+<td>(bug) test_hydrosphere: a saturated halite sea's activity is outside the drawn chloride-brine range</td>
+</tr>
+<tr>
+<td>TEST.804</td>
+<td>(bug) test_stored_outputs: the belt's captured_mass_kg had no home line</td>
+</tr>
+<tr>
+<td>TEST.805</td>
+<td>(bug) surface_air.setting_of built a local closure that a process pool cannot pickle (test_describe and test_insolation red on main)</td>
+</tr>
+<tr>
+<td>TEST.806</td>
+<td>(bug) test_class_m_request_dial: a tier with no request share was expected to match science although sparse's other dials move planets</td>
+</tr>
+<tr>
+<td>TEST.807</td>
+<td>The rich galaxy is built once per machine and shared by the heavy DB tests</td>
+</tr>
+<tr>
+<td>TEST.808</td>
+<td>(bug) reset.py SIGTERM message over the log line limit</td>
+</tr>
+<tr>
+<td>TEST.809</td>
+<td>(bug) The cosmic dust tests search seeds for a system with an acid cloud</td>
+</tr>
+<tr>
+<td>TEST.810</td>
+<td>(bug) The scored search sample stopped at six systems short of moons</td>
+</tr>
+<tr>
+<td>TEST.811</td>
+<td>(bug) hot_cloud_deck.TOLERANCE had no registry row</td>
+</tr>
+<tr>
+<td>TEST.812</td>
+<td>(bug) generate-sectors wrote rogue_planet_interior_layers undeclared</td>
+</tr>
+<tr>
+<td>TEST.813</td>
+<td>(bug) The promoted belt planet test compared ranks across belts</td>
+</tr>
+<tr>
+<td>TEST.814</td>
+<td>(bug) Job log durations under a second printed decimals</td>
+</tr>
+<tr>
+<td>TEST.815</td>
+<td>(bug) The update-pages step test read nine update.sh stages</td>
+</tr>
+<tr>
+<td>TEST.816</td>
+<td>Stand-in section 6.316 joins the stand-in tag sections</td>
+</tr>
+<tr>
+<td>TEST.817</td>
+<td>Old-schema fixtures for v272 and v273</td>
+</tr>
+<tr>
+<td>TEST.818</td>
+<td>Hypergiant systems keep their bodies in orbital order</td>
+</tr>
+<tr>
+<td>TEST.819</td>
+<td>The Earth analog script runs the generator's order and its baseline is renewed</td>
+</tr>
+<tr>
+<td>TEST.820</td>
+<td>The Earth analog pins Earth's veneer, mantle and radiogenic heat</td>
+</tr>
+<tr>
+<td>TEST.821</td>
+<td>test_full_matrix checks trojans against their giant</td>
+</tr>
+<tr>
+<td>TEST.822</td>
+<td>Job-engine tests red on main pass again</td>
+</tr>
+<tr>
+<td>TEST.823</td>
+<td>The surface-air start-independence sample grows from 12 to 24 seeds</td>
+</tr>
+<tr>
+<td>TEST.824</td>
+<td>The fresh-after-CLI galaxy test marks its stamp check as just made after the slow run</td>
+</tr>
+<tr>
+<td>TEST.825</td>
+<td>The fresh-after-CLI tests plan a seeded galaxy</td>
+</tr>
+<tr>
+<td>TEST.826</td>
+<td>The train gate runs both pre-gate set files; the no-TODO-codes guard joins the pre-gate set</td>
+</tr>
+<tr>
 <td>USR.1.1</td>
 <td>USR.2</td>
 </tr>
@@ -28400,6 +28924,21 @@ commit that wrote them. Only the last row is still in the code.</p>
 <td>MAP.430</td>
 <td>At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in</td>
 <td>MAP.429</td>
+</tr>
+<tr>
+<td>MAP.431</td>
+<td>Map tile cache keyed on stage inputs, not the epoch</td>
+<td>OPS.133</td>
+</tr>
+<tr>
+<td>MAP.432</td>
+<td>(bug) The whole-galaxy block prisms pass the 10 kpc part extent: checked by the float32 precision rule instead</td>
+<td>none</td>
+</tr>
+<tr>
+<td>MAP.433</td>
+<td>The 3D scene draws a trojan region as an arc around the giant's L4 or L5 point, not a ring</td>
+<td>GEN.1150</td>
 </tr>
 <tr>
 <td>Still in the code at 7.40.0</td>

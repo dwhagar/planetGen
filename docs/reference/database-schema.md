@@ -1077,6 +1077,28 @@ This is what turns a generation race (two runs reaching one address)
 into a clear `IntegrityError` its caller recovers from, instead of a silent
 duplicate row at the same address.
 
+### `sector_directives` / `sector_directive_minimums`
+
+Added in v277 (GEN.179). The directive a sector was drawn under and how the draw came out: a run given `--directive` minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and the sector keeps the record (`store.save_directive_record`, written in the sector's own transaction; a regenerated sector's rows are replaced). A sector drawn with no directive has no rows, and nothing is backfilled for a sector made before v277. The sector's API detail gives it as `directive`, its page shows it in the "Drawn under" row, `check-db counts` finds a record that contradicts itself, and the fingerprint leaves it out (it records what was asked, not what was made).
+
+`sector_directives` (one row for each directed sector):
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `sector_id` | BIGINT UNSIGNED | PK | FK -> `sectors.id` (`ON DELETE CASCADE`). |
+| `directive_digest` | CHAR(16) | NOT NULL | `Directive.digest()`: the sixteen hexadecimal digits the attempt seeds are made from. |
+| `status` | VARCHAR(24) | NOT NULL, CHECK | `met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`. Indexed. |
+| `attempts` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The draws made (a forced fill counts as one more). |
+
+`sector_directive_minimums` (one row for each minimum asked):
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `sector_id` | BIGINT UNSIGNED | PK | FK -> `sector_directives.sector_id` (`ON DELETE CASCADE`). |
+| `minimum_key` | VARCHAR(24) | PK | `systems`, `habitable` or `type:X` (`G`, `K`, `wd`, `bh`, `ns` ...). |
+| `wanted` | INT UNSIGNED | NOT NULL | The least count asked. |
+| `got` | INT UNSIGNED | NOT NULL | What the kept sector held when the draw ended. |
+
 ### `galaxy_shape`
 
 The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
@@ -1602,7 +1624,7 @@ Added in v274 (GEN.1809). What the life of a planet or moon had to become able t
 
 ### `planet_exosphere` / `moon_exosphere`
 
-Added in v276 (GEN.455 part B). What the exosphere of a planet or moon with no air at all holds (`physics/exosphere.py`): one row for each species a source of the surface supplies (thermal release of the ices, photon-stimulated desorption of Na and K, micrometeoroid impact vaporisation and ion sputtering of the rock), the largest column first. A body with any air, a giant and a row made before v276 have none.
+Added in v280 (GEN.455 part B). What the exosphere of a planet or moon with no air at all holds (`physics/exosphere.py`): one row for each species a source of the surface supplies (thermal release of the ices, photon-stimulated desorption of Na and K, micrometeoroid impact vaporisation and ion sputtering of the rock), the largest column first. A body with any air, a giant and a row made before v280 have none.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2633,13 +2655,17 @@ Migration 0271 adds `lagrange_point`, `libration_amplitude_deg`, `libration_phas
 
 Migration 0273 creates `planet_life_ages` and `moon_life_ages` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
 
-### v276 (GEN.455 part B): the exosphere of an airless body
+### v280 (GEN.455 part B): the exosphere of an airless body
 
-Migration 0276 creates `planet_exosphere` and `moon_exosphere` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come with the next regeneration.
+Migration 0280 creates `planet_exosphere` and `moon_exosphere` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come with the next regeneration.
 
 ### v274 (GEN.1809): the adaptations the life of a world needed
 
 Migration 0274 creates `planet_adaptations` and `moon_adaptations` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
+
+### v277 (GEN.179): the directive a sector was drawn under
+
+Migration 0277 (a placeholder revision: the train that merges it renumbers it) creates `sector_directives` and `sector_directive_minimums` (a table already there is kept). A sector stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when a sector is drawn under a directive.
 
 ### v267 (GEN.1231): the mass a belt's star threw inward
 
