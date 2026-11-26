@@ -43809,7 +43809,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
+              "envelope_capture.MEDIAN_START 0.025: the median envelope a rocky planet of 2.3 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711), then 0.04, the fitted value itself; GEN.1845 moved it to 0.025, the low edge of the fitted interval (L1), because heavy cores (8 to 12 Earth masses) were untuned in the valley survey (core-mass width 0.25 against the generator's 1.06 in ln) and kept 3 percent at 40 days: 3.33 to 4.12 Earth radii held 0.089 planets a star against 0.034 of [R1478]"
             ],
             [
               "The range it moves in",
@@ -43817,7 +43817,7 @@
             ],
             [
               "Where it holds",
-              "rocky planets of 2.7 to 20 Earth masses"
+              "rocky planets of 2.3 to 20 Earth masses"
             ],
             [
               "What would show it wrong",
@@ -43829,7 +43829,7 @@
             ],
             [
               "Evidence",
-              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8, 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
+              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8) and at 0.025 (z 0.16 and 0.64; 0.02 fails at z 2.4; 24 surveys of 4000 planets; 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
             ]
           ],
           "id": "EC1",
@@ -43838,9 +43838,9 @@
           "slug": "6-206-ec1",
           "tier": "T1",
           "tier_code": "T1",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
+          "what": "envelope_capture.MEDIAN_START 0.025: the median envelope a rocky planet of 2.3 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711), then 0.04, the fitted value itself; GEN.1845 moved it to 0.025, the low edge of the fitted interval (L1), because heavy cores (8 to 12 Earth masses) were untuned in the valley survey (core-mass width 0.25 against the generator's 1.06 in ln) and kept 3 percent at 40 days: 3.33 to 4.12 Earth radii held 0.089 planets a star against 0.034 of [R1478]"
         },
         {
           "burn_down": [
@@ -43851,7 +43851,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
+              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.3 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, then 0.025 at GEN.1845, the planets of 1 to 2.3 Earth masses keep their starts)"
             ],
             [
               "The range it moves in",
@@ -43882,7 +43882,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
+          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.3 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, then 0.025 at GEN.1845, the planets of 1 to 2.3 Earth masses keep their starts)"
         },
         {
           "burn_down": null,
