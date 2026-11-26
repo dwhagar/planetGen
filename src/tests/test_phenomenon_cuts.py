@@ -16,6 +16,7 @@ from planetgen.galaxy.scatter_limits import BASELINE, CORE, HALO, ScatterLimits,
 from planetgen.generation import component_pass, phenomenon_reach as reach, phenomenon_scatter as scatter
 from planetgen.generation.phenomenon_cuts import Cuts, as_cuts
 from tests import test_gen_scatter_tiers as tiers
+from tests.anchor_masses import anchor_mass
 from tests.test_gen_component_pass import _cluster
 
 SHAPE, EDGE = tiers.SHAPE, tiers.EDGE_PC
@@ -77,11 +78,11 @@ def test_a_core_band_places_the_compact_objects_down_to_its_own_cut_and_no_furth
     high, rows = _shell(tiers.CORE_SHELL, _core_cuts())
     holes = [row for row in rows if (row[3], row[4]) == ("black-hole", "stellar")]
     assert len(holes) > 30
-    masses = np.array([row[12] for row in holes])
-    assert masses.min() >= CORE_CUT and masses.min() < BASE, "the core places holes the baseline's cut would leave to the sectors"
+    masses = np.array([anchor_mass(row, SHAPE) for row in holes])      # the cut is in the anchor law's masses (GEN.554)
+    assert masses.min() >= CORE_CUT - 1e-6 and masses.min() < BASE, "the core places holes the baseline's cut would leave to the sectors"
     flat = [row for row in scatter.scatter_shell(SHAPE, tiers.CORE_SHELL, high, EDGE, PLACED_PER_STAR[tiers.CORE_SHELL], 11, min_mass_solar=BASE)
             if (row[3], row[4]) == ("black-hole", "stellar")]
-    assert min(row[12] for row in flat) >= BASE
+    assert min(anchor_mass(row, SHAPE) for row in flat) >= BASE - 1e-6
     # the share of the law above each cut: more holes where the cut is lower
     assert len(holes) / len(flat) == pytest.approx(scatter.share_above("black-hole", "stellar", CORE_CUT) / scatter.share_above("black-hole", "stellar", BASE), rel=0.45)
 
@@ -89,7 +90,7 @@ def test_a_core_band_places_the_compact_objects_down_to_its_own_cut_and_no_furth
 def test_a_disk_band_keeps_the_baseline_cut_whatever_the_core_takes():
     _high, rows = _shell(tiers.DISK_SHELL, _core_cuts())
     holes = _compact(rows)
-    assert holes and min(row[12] for row in holes) >= BASE
+    assert holes and min(anchor_mass(row, SHAPE) for row in holes) >= BASE - 1e-6
 
 
 def test_a_halo_band_and_a_baseline_band_each_cut_at_their_own_tier_limit():
@@ -99,10 +100,10 @@ def test_a_halo_band_and_a_baseline_band_each_cut_at_their_own_tier_limit():
     tier_of = scatter_limits.tier_indices(SHAPE, shell, high, EDGE)
     by_tier = collections.defaultdict(list)
     for row in _compact(rows):
-        by_tier[int(tier_of[row[1] + high])].append(row[12])
+        by_tier[int(tier_of[row[1] + high])].append(anchor_mass(row, SHAPE))
     assert set(by_tier) == {BASELINE, HALO}
-    assert min(by_tier[BASELINE]) >= BASE
-    assert min(by_tier[HALO]) >= HALO_CUT and min(by_tier[HALO]) < BASE, "the halo's lower cut places holes under the baseline's"
+    assert min(by_tier[BASELINE]) >= BASE - 1e-6
+    assert min(by_tier[HALO]) >= HALO_CUT - 1e-6 and min(by_tier[HALO]) < BASE, "the halo's lower cut places holes under the baseline's"
 
 
 def test_cuts_that_agree_draw_what_one_cut_drew():
@@ -143,8 +144,8 @@ def test_a_clusters_phenomena_are_cut_at_the_tier_of_the_band_each_lands_in():
     flat = _compact(list(component_pass.scatter_phenomena([cluster], EDGE, 9, min_mass_solar=BASE, shape=SHAPE)))
     assert rows and flat
     for row in rows:
-        assert row[12] >= cuts.tiers[scatter_limits.tier_index(SHAPE, row[0], row[1], EDGE)] - 1e-9
-    assert min(row[12] for row in rows) < BASE <= min(row[12] for row in flat)
+        assert anchor_mass(row, SHAPE) >= cuts.tiers[scatter_limits.tier_index(SHAPE, row[0], row[1], EDGE)] - 1e-6
+    assert min(anchor_mass(row, SHAPE) for row in rows) < BASE <= min(anchor_mass(row, SHAPE) for row in flat) + 1e-6
 
 
 def test_the_stage_line_names_the_tiers_that_cut_elsewhere():

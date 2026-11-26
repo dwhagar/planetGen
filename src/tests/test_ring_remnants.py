@@ -15,6 +15,7 @@ from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import ring_remnants, run_galaxy, run_plan
 from planetgen.generation import scatter_companions
 from tests import first_fill
+from tests.anchor_masses import anchor_mass
 from tests.test_phenomenon_scatter import EDGE_PC, E_VALUE, SHAPE, _rows, _scatter_args, _seed_galaxy
 
 CUT = 20.0
@@ -185,7 +186,7 @@ def test_gen377_a_ring_sector_draws_what_lies_under_its_own_bands_cut(mysql_conf
         by_number = ring_remnants.rows_for(conn, skeleton, limits, 7, 12.0, RING, held=set())
         by_cuts = ring_remnants.rows_for(conn, skeleton, limits, 7, _cuts(12.0), RING, held=set())
         assert by_cuts == by_number and by_cuts
-        assert all(row[12] < 12.0 for row in by_cuts if row[3] in store.BELOW_CUT_REMNANT_KINDS)
+        assert all(anchor_mass(row, skeleton.shape, sector_position_pc(*row[:3], skeleton.edge_pc)) < 12.0 for row in by_cuts if row[3] in store.BELOW_CUT_REMNANT_KINDS)      # the cut is in the anchor law's masses (GEN.554)
         assert by_cuts != ring_remnants.rows_for(conn, skeleton, limits, 7, 20.0, RING, held=set())
     finally:
         conn.close()
