@@ -927,6 +927,13 @@ MIST_REIMERS_ETA = 0.1
 # to 7,600 K, red edge 6,100 to 6,250 K); red horizontal-branch stars fill the
 # 4,600 to 6,100 K below it; 20,000 K is the usual extreme boundary [P].
 HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (35.0, 50.0)
+CLUSTER_BRIGHT_FLOOR_SOL = HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL[0]
+"""float: The luminosity floor of a globular cluster's own pre-placed stars, solar luminosities (GEN.161): the faint edge of the horizontal branch, 35. The
+scatter's floor (18,000 by default) would leave every cluster entirely to its sectors' fill, which is 1e5 to 6e5 systems a sector; a floor at the horizontal branch places each
+cluster's giants and its whole horizontal branch (about 150 giants and as many branch stars in a 2e5 solar mass cluster) at plan time for the cost of a few hundred rows,
+and the fill takes them off its count and caps its own stars under it. Applies to the `cluster` population in a pass that has no upper limit and no mass range
+(`star_population.population_floor`); no cluster star is brighter than the floor of a white dwarf (the oldest cluster's white dwarfs are far fainter than 35).
+[Stand-in 6.336 HB1, tier T9, tweak L0]"""
 HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
     "red": (4600.0, 6100.0), "rr-lyrae": (6100.0, 7500.0),
     "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
