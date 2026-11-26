@@ -322,19 +322,19 @@ def kept_weights(components, fractions, tiered, edge_pc):
             for component in components if component.kind in COMPONENT_KINDS]
 
 
-def phenomenon_rates(min_mass_solar):
+def phenomenon_rates(min_mass_solar, highest=None):
     """`(kind, subtype, rate per system)` of the classes every component has: the black holes, neutron stars and
     planetary nebulae, not the supernova remnants (gas) or the magnetars (young stars), which only a satellite can have
     (`satellite_rates`)."""
-    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar)
+    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar, highest)
             if not phenomenon_reach._follows_young_stars(kind, subtype)
             and kind not in phenomenon_scatter.GAS_WEIGHTED_KINDS]
 
 
-def satellite_rates(min_mass_solar):
+def satellite_rates(min_mass_solar, highest=None):
     """`(kind, subtype, rate per system)` of the classes only a satellite has (GEN.528): the supernova remnants, kept
     where its gas is, and the magnetars, born of its young stars."""
-    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar)
+    return [(kind, subtype, rate) for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar, highest)
             if phenomenon_reach._follows_young_stars(kind, subtype) or kind in phenomenon_scatter.GAS_WEIGHTED_KINDS]
 
 
@@ -345,9 +345,10 @@ def expected_phenomena(component, min_mass_solar):
     if component_table.is_open_cluster(component):
         return 0.0
     cut = as_cuts(min_mass_solar).lowest       # GEN.377: the lowest cut's rate, an upper bound where the cut differs by place
-    rates = phenomenon_rates(cut)
+    highest = as_cuts(min_mass_solar).highest
+    rates = phenomenon_rates(cut, highest)
     if component.kind == "satellite":
-        rates = rates + satellite_rates(cut)
+        rates = rates + satellite_rates(cut, highest)
     return systems_of(component) * sum(rate for _kind, _subtype, rate in rates)
 
 
@@ -409,8 +410,8 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
             `scatter_stars` takes them; a component it leaves out is drawn whole.
     """
     cuts = as_cuts(min_mass_solar)
-    rates = phenomenon_rates(cuts.lowest)
-    extra = satellite_rates(cuts.lowest)
+    rates = phenomenon_rates(cuts.lowest, cuts.highest)
+    extra = satellite_rates(cuts.lowest, cuts.highest)
     skip_addresses = skip_addresses or set()
     for component in components:
         if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):

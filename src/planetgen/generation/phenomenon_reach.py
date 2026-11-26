@@ -73,7 +73,7 @@ def scattered_fractions(min_mass_solar, structure):
     reach's rows per unit of stellar density, which the expected-count estimates of `bright_stars` take as the
     fractions of one tier. With cuts that differ by place (GEN.377) the lowest cut's, an upper bound."""
     total = {population: 0.0 for population in POPULATIONS}
-    for kind, subtype, rate in phenomenon_scatter._scattered_rates(as_cuts(min_mass_solar).lowest):
+    for kind, subtype, rate in phenomenon_scatter._scattered_rates(as_cuts(min_mass_solar).lowest, as_cuts(min_mass_solar).highest):
         for population, fraction in class_fractions(kind, subtype, structure).items():
             total[population] += rate * fraction
     return [total]
@@ -187,7 +187,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         tuple: One row per object, in `PHENOMENON_SCATTER_COLUMNS` order.
     """
     cuts = as_cuts(min_mass_solar)
-    rates = phenomenon_scatter._scattered_rates(cuts.lowest)
+    rates = phenomenon_scatter._scattered_rates(cuts.lowest, cuts.highest)
     if not rates:
         return
     groups = object_first.ReachGroups.for_shell(shell_index, high_band, edge_pc)
@@ -201,7 +201,7 @@ def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, 
     """The phenomena of shells `first_shell .. last_shell`, all beyond the outline and so far out that each holds
     almost none (`far_shells`), drawn together from the stream `{seed}:phenomena:far:{first_shell}`."""
     cuts = as_cuts(min_mass_solar)
-    rates = phenomenon_scatter._scattered_rates(cuts.lowest)
+    rates = phenomenon_scatter._scattered_rates(cuts.lowest, cuts.highest)
     if not rates or last_shell < first_shell:
         return
     groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)

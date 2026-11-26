@@ -38,7 +38,7 @@ def _three_cuts():
 
 
 def _compact(rows):
-    return [row for row in rows if row[3] in COMPACT and row[4] != scatter.MAGNETAR_SUBTYPE]
+    return [row for row in rows if row[3] in COMPACT and row[4] != scatter.MAGNETAR_SUBTYPE and not scatter.is_pair(row[3], row[4])]
 
 
 def _shell(shell, cuts, seed=11):

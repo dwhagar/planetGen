@@ -70,8 +70,8 @@ def base_rate_per_star(kind=BLACK_HOLE):
 
 def follows_metals(kind, subtype):
     """Whether a scatter class's rate follows the metals: the stellar-mass black holes and the neutron stars that are not
-    magnetars (the magnetars follow the young stars, the intermediate-mass black holes have a rate of their own)."""
-    return (kind == BLACK_HOLE and subtype == "stellar") or (kind == NEUTRON_STAR and subtype is None)
+    magnetars (the magnetars follow the young stars, the intermediate-mass black holes have a rate of their own), and the promoted pairs of those two (GEN.263)."""
+    return (kind == BLACK_HOLE and subtype in ("stellar", "stellar-pair")) or (kind == NEUTRON_STAR and subtype in (None, "pair"))      # GEN.263: a promoted compact pair follows the class it is made of
 
 
 def _check_kind(kind):

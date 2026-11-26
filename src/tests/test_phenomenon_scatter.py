@@ -825,7 +825,8 @@ def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_cl
 
 def test_the_mass_respects_the_cut_and_repeats_with_the_seed():
     rows = [_as_dict(row) for row in _shell(min_mass_solar=12.0)]
-    assert all(row["mass_solar"] >= 12.0 for row in rows if row["mass_solar"] is not None)
+    assert all(row["mass_solar"] >= 12.0 for row in rows if row["mass_solar"] is not None and not scatter.is_pair(row["kind"], row["subtype"]))
+    assert all(row["mass_solar"] <= 12.0 for row in rows if scatter.is_pair(row["kind"], row["subtype"]))      # GEN.263: a compact pair is drawn below the cut
     assert _shell(seed=8) == _shell(seed=8)
 
 
