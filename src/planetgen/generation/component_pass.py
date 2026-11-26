@@ -35,7 +35,8 @@ import math
 
 import numpy as np
 
-from planetgen.generation import bright_stars, phenomenon_reach, phenomenon_scatter
+from planetgen import tuning
+from planetgen.generation import bright_stars, cluster_blue_stragglers, phenomenon_reach, phenomenon_scatter
 from planetgen.generation.phenomenon_cuts import as_cuts
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
 from planetgen.galaxy import remnant_density, component_field, components as component_table, nebula_field, profile
@@ -217,6 +218,19 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
             placed[(tier, population)].append((shell_index, band_index, wedge, point))
         yield from bright_stars.draw_placed(placed, pass_bands, rng, fe_h_peaks=component_field.fe_h_peaks_of(component),
                                             cluster_id=component.id if component.kind == "cluster" else None)
+
+
+def scatter_blue_stragglers(components, edge_pc, seed, skip_addresses=None, slices=None):
+    """
+    The blue stragglers of the globular clusters among `components` (GEN.326, `cluster_blue_stragglers`), in `store.BRIGHT_STAR_COLUMNS` order: a few
+    tens of rows a cluster, in its core, from a stream of their own. They are no part of `scatter_stars`: a blue straggler is a few solar luminosities, far
+    under the floor of a tier, and the sector fill draws none (it draws a cluster's ordinary stars), so they are placed here whatever the tiers keep.
+    A component drawn in slices has them once, with its first slice (`slices` as for `scatter_stars`).
+    """
+    skip_addresses = skip_addresses or set()
+    for component in components:
+        if (slices or {}).get((component.kind, component.key), (0, 1))[0] == 0:
+            yield from cluster_blue_stragglers.blue_straggler_rows(component, edge_pc, seed, skip_addresses, positions_mpc, _address)
 
 
 def expected_stars(components, fractions, tiered=None):

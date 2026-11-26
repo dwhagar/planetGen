@@ -79651,6 +79651,166 @@
       "title": "Stand-ins of the white dwarf merger products (GEN.708)"
     },
     {
+      "key": "6.331",
+      "number": "6.331",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "[R2397]: \"a power law fit suggests N_BSS ~ M^0.38 +- 0.04\" of the number of blue stragglers in the core against the total stellar mass in the core, 56 clusters (Spearman 0.71, p 4e-10; 34 dense-core clusters 0.84); [R5367] has 0.40 +- 0.05 for the same law (Table 1, its last row), and the text of [R2397] later writes 0.4 to 0.5; the slope is taken from the first"
+            ],
+            [
+              "What it is",
+              "tuning.CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT"
+            ],
+            [
+              "The range it moves in",
+              "0.38 (0.33 to 0.50)"
+            ],
+            [
+              "Where it holds",
+              "globular clusters, the core mass from the King model inside its scale radius"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_the_count_goes_as_the_core_mass_to_the_exponent_and_is_the_normalization_at_1e4"
+            ],
+            [
+              "What replaces it",
+              "the same fit on the clusters of a larger sample with its core masses from the same King model"
+            ]
+          ],
+          "id": "BN1",
+          "key": "6.331:BN1",
+          "kind": "B",
+          "slug": "6-331-bn1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "not in the sources reached: [R2397] gives the slope only (the intercept is in a figure) and [R5367] none; the number is chosen for the output the design note asks for, 'tens to a few hundred' blue stragglers in a typical cluster (12 at a core of 1e3 solar masses, 30 at 1e4, 72 at 1e5, 37 for a cluster of 2e5 solar masses with a half-mass radius of 5 pc)"
+            ],
+            [
+              "What it is",
+              "tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS"
+            ],
+            [
+              "The range it moves in",
+              "30 at a core mass of 1e4 solar masses (10 to 100)"
+            ],
+            [
+              "Where it holds",
+              "globular clusters"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_a_clusters_blue_stragglers_are_tens_to_a_few_hundred"
+            ],
+            [
+              "What replaces it",
+              "the per-cluster counts of the HST sample of the Leigh, Sills and Knigge work with the core masses of its King models: a fit of the intercept at the slope of BN1"
+            ]
+          ],
+          "id": "BN2",
+          "key": "6.331:BN2",
+          "kind": "B",
+          "slug": "6-331-bn2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "[R2397] takes 1.5 Gy for how long a blue straggler stays one (from the works it cites; only the number is read, not those works); the age drawn is uniform from 0 to it or to the main-sequence life of the mass when that is shorter"
+            ],
+            [
+              "What it is",
+              "tuning.BLUE_STRAGGLER_LIFETIME_GY"
+            ],
+            [
+              "The range it moves in",
+              "1.5 Gy (1 to 2)"
+            ],
+            [
+              "Where it holds",
+              "blue stragglers of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_a_blue_straggler_is_a_young_main_sequence_star_of_the_mass_range_brighter_than_the_turn_off"
+            ],
+            [
+              "What replaces it",
+              "the lifetimes of blue straggler models of mergers and mass transfer"
+            ]
+          ],
+          "id": "BN3",
+          "key": "6.331:BN3",
+          "kind": "B",
+          "slug": "6-331-bn3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.BLUE_STRAGGLER_LIFETIME_GY"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "physics: a merger or a mass transfer of two stars under the turn-off of a cluster (0.85 solar masses) gives under 1.7 solar masses, and the lightest that is brighter than the turn-off is 1.0 (the item's 1 to 1.7); the mass is drawn from the initial mass function in that range, not from a measured blue straggler mass distribution"
+            ],
+            [
+              "What it is",
+              "tuning.BLUE_STRAGGLER_MASS_RANGE_SOL"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 1.7 solar masses, initial mass function"
+            ],
+            [
+              "Where it holds",
+              "blue stragglers of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_a_blue_straggler_is_a_young_main_sequence_star_of_the_mass_range_brighter_than_the_turn_off"
+            ],
+            [
+              "What replaces it",
+              "the masses measured for blue stragglers"
+            ]
+          ],
+          "id": "BN4",
+          "key": "6.331:BN4",
+          "kind": "B",
+          "slug": "6-331-bn4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.BLUE_STRAGGLER_MASS_RANGE_SOL"
+        }
+      ],
+      "slug": "6-331-stand-ins-of-the-blue-stragglers-gen-326",
+      "title": "Stand-ins of the blue stragglers (GEN.326)"
+    },
+    {
       "key": "6.332",
       "number": "6.332",
       "rows": [
