@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2050 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2054 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,23 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2023 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2027 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 232 | 23 | 12 | 1 | 0 | 268 |
-| T2 | 189 | 78 | 5 | 0 | 0 | 272 |
+| T1 | 233 | 23 | 12 | 1 | 0 | 269 |
+| T2 | 190 | 78 | 5 | 0 | 0 | 273 |
 | T3 | 137 | 71 | 12 | 10 | 0 | 230 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 257 | 146 | 41 | 85 | 8 | 537 |
+| T6 | 258 | 146 | 41 | 85 | 8 | 538 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
-| T9 | 55 | 20 | 7 | 120 | 42 | 244 |
-| All | 1164 | 434 | 107 | 279 | 66 | 2050 |
+| T9 | 56 | 20 | 7 | 120 | 42 | 245 |
+| All | 1168 | 434 | 107 | 279 | 66 | 2054 |
 
 ## How the labels were given
 
@@ -3637,6 +3637,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | WM1 | B | T2 | L0 | tuning.WHITE_DWARF_MERGER_FRACTION_BY_MASS | five bins from 0.9 to 1.35 solar masses, 25, 36, 78, 49 and 38 percent | white dwarfs of 0.9 solar masses and up, old population | test_white_dwarf_merger::test_the_heavy_white_dwarfs_of_a_population_are_mostly_mergers_as_the_100_pc_sample_has_them | the Table 7 bins read from the paper's own text, and a sample with no temperature cut | [R5355]: the merger products are 25 percent of the white dwarfs of 0.9 to 1 solar masses, 78 (+4, -7) percent of 1.1 to 1.2 and 49 percent of 1.2 to 1.3 (abstract); Table 7 as summarized second hand gives 12 of 48, 13 of 36 (36 percent), 45 of 58, 24 of 49 and 5 of 13 above 1.3 (38 percent), 99 of 204 in all (49 percent); the merger evidence is magnetism, velocity, rapid rotation or a peculiar atmosphere, from a sample cut at 11,000 K | predicted only | - | - |
 | WM2 | B | T3 | L0 | tuning.WHITE_DWARF_MERGER_BELOW_SHARE | 0.25 (0.15 to 0.35) | white dwarfs of 0.7 to 0.9 solar masses, old population | test_white_dwarf_merger::test_an_old_population_is_a_merger_product_share_inside_the_factor_of_two_of_the_100_pc_sample | the merger fraction by mass bin below 0.9 solar masses from magnetism and kinematics of a volume-limited sample | [R5354]: the mass distribution of the 13,928 white dwarfs within 100 pc has a second peak at 0.80 solar masses holding 25 percent of the stars of 0.7 to 1; [R5355] has the same 25 percent at 0.9 to 1; the peak is not all mergers (the paper puts the mergers at about 14 percent of single white dwarfs with a factor of 2), so the 25 percent below 0.9 is a stand-in; an old population comes to 8 to 12 percent flagged | predicted only | - | - |
 | WM3 | B | T4 | L0 | tuning.WHITE_DWARF_MERGER_FLOOR_SOL | 0.7 solar masses (0.6 to 0.8) | double white dwarf merger products | test_white_dwarf_merger::test_the_share_of_a_mass_is_the_bin_it_is_in | the mass distribution of the merger products of a volume-limited sample, or the mass of merged pairs from a binary population synthesis | [R5354] reads the secondary peak from stars of 0.7 to 1 solar masses; no source gives the lowest mass of a merger product, so 0.7 is the lower edge of that range, not a measurement | predicted only | - | - |
+
+## 6.331 Stand-ins of the blue stragglers (GEN.326)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| BN1 | B | T1 | L0 | tuning.CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT | 0.38 (0.33 to 0.50) | globular clusters, the core mass from the King model inside its scale radius | test_cluster_blue_stragglers::test_the_count_goes_as_the_core_mass_to_the_exponent_and_is_the_normalization_at_1e4 | the same fit on the clusters of a larger sample with its core masses from the same King model | [R2397]: "a power law fit suggests N_BSS ~ M^0.38 +- 0.04" of the number of blue stragglers in the core against the total stellar mass in the core, 56 clusters (Spearman 0.71, p 4e-10; 34 dense-core clusters 0.84); [R5367] has 0.40 +- 0.05 for the same law (Table 1, its last row), and the text of [R2397] later writes 0.4 to 0.5; the slope is taken from the first | predicted only | - | - |
+| BN2 | B | T9 | L0 | tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS | 30 at a core mass of 1e4 solar masses (10 to 100) | globular clusters | test_cluster_blue_stragglers::test_a_clusters_blue_stragglers_are_tens_to_a_few_hundred | the per-cluster counts of the HST sample of the Leigh, Sills and Knigge work with the core masses of its King models: a fit of the intercept at the slope of BN1 | not in the sources reached: [R2397] gives the slope only (the intercept is in a figure) and [R5367] none; the number is chosen for the output the design note asks for, 'tens to a few hundred' blue stragglers in a typical cluster (12 at a core of 1e3 solar masses, 30 at 1e4, 72 at 1e5, 37 for a cluster of 2e5 solar masses with a half-mass radius of 5 pc) | predicted only | - | - |
+| BN3 | B | T2 | L0 | tuning.BLUE_STRAGGLER_LIFETIME_GY | 1.5 Gy (1 to 2) | blue stragglers of a globular cluster | test_cluster_blue_stragglers::test_a_blue_straggler_is_a_young_main_sequence_star_of_the_mass_range_brighter_than_the_turn_off | the lifetimes of blue straggler models of mergers and mass transfer | [R2397] takes 1.5 Gy for how long a blue straggler stays one (from the works it cites; only the number is read, not those works); the age drawn is uniform from 0 to it or to the main-sequence life of the mass when that is shorter | predicted only | - | - |
+| BN4 | B | T6 | L0 | tuning.BLUE_STRAGGLER_MASS_RANGE_SOL | 1.0 to 1.7 solar masses, initial mass function | blue stragglers of a globular cluster | test_cluster_blue_stragglers::test_a_blue_straggler_is_a_young_main_sequence_star_of_the_mass_range_brighter_than_the_turn_off | the masses measured for blue stragglers | physics: a merger or a mass transfer of two stars under the turn-off of a cluster (0.85 solar masses) gives under 1.7 solar masses, and the lightest that is brighter than the turn-off is 1.0 (the item's 1 to 1.7); the mass is drawn from the initial mass function in that range, not from a measured blue straggler mass distribution | predicted only | - | - |
 
 ## 6.332 Stand-ins of the size of a dwarf galaxy (GEN.612)
 

@@ -2270,6 +2270,24 @@ WHITE_DWARF_MERGER_FLOOR_SOL = 0.7
 """float: The lightest white dwarf that can be a merger product, solar masses: the lower edge of the secondary peak of [R5354] (stars of
 0.7 to 1 solar mass); no source gives the edge itself. Tier T4, tweak level L0 (registry row WM3)."""
 
+# The blue stragglers of the globular clusters (GEN.326, docs/design/research/gap-filling-plan.md 6.331, rows BN1 to BN4).
+CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT = 0.38
+"""float: The exponent of the number of blue stragglers in a cluster core against the mass in the core, N_BSS ~ M_core^0.38 ([R2397], a
+power-law fit to 56 clusters, 0.38 +- 0.04; [R5367] has 0.40 +- 0.05 for the same law). Read in the paper. Tier T1, tweak level L0 (registry row BN1)."""
+CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS = 30.0
+"""float: The number of blue stragglers in the core of a cluster whose core holds 1e4 solar masses: the normalization of the law, which [R2397]
+does not give (the fit's intercept is in a figure, and the per-cluster counts are in a table of a later paper). 30 is a number inside the 'tens
+to a few hundred' a cluster holds (docs/design/galaxy/globular-clusters.md): 12 at 1e3 solar masses, 72 at 1e5. Tier T9 (the output
+needed), tweak level L0 (registry row BN2)."""
+BLUE_STRAGGLER_LIFETIME_GY = 1.5
+"""float: How long a blue straggler stays one, Gy: the time a merger product takes to lose the light of its extra mass ([R2397] takes 1.5 Gy from
+the works it cites). The age of a drawn blue straggler is uniform up to it, or to its main-sequence life when that is shorter. Tier T2, tweak
+level L0 (registry row BN3)."""
+BLUE_STRAGGLER_MASS_RANGE_SOL = (1.0, 1.7)
+"""tuple: The mass of a blue straggler, solar masses, drawn from the initial mass function between them: the merger of two stars under the turn-off
+of a cluster (0.85 solar masses) is under 1.7 (docs/design/galaxy/globular-clusters.md). Tier T6, tweak level L0 (registry row BN4)."""
+
+
 # Accreting compact binaries (GEN.272, docs/design/systems/multi-star-systems.md 13.4). Every figure below is a stand-in
 # unless it names a source; the shares of the registry rows (`high-mass-xray-binary`, `low-mass-xray-binary`,
 # `microquasar`, `millisecond-pulsar-companion`) are in `generation/phenomena/system_types.py`.
