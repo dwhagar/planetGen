@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2039 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2040 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2012 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2013 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,7 +50,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 232 | 23 | 12 | 1 | 0 | 268 |
-| T2 | 189 | 78 | 5 | 0 | 0 | 272 |
+| T2 | 190 | 78 | 5 | 0 | 0 | 273 |
 | T3 | 137 | 71 | 12 | 10 | 0 | 230 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
@@ -58,7 +58,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 77 | 44 | 11 | 31 | 0 | 163 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 120 | 42 | 242 |
-| All | 1160 | 428 | 106 | 279 | 66 | 2039 |
+| All | 1161 | 428 | 106 | 279 | 66 | 2040 |
 
 ## How the labels were given
 
@@ -2742,6 +2742,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SE2 | T | T1 | L0 | MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step | the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K | mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more) | a second calculation outside 1.1 to 1.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
 | SE3 | T | T1 | L0 | Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step | the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K | mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more) | a second calculation outside 2.5 to 3.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1, Section 5] | predicted only | - | - |
 | SE4 | P | T4 | L0 | bulk_structure mantle table (`_MANTLE_RHO` to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is | none | rocky planets of 0.1 to 20 Earth masses | a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach | SE1 to SE3 with a density of the products | the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered | predicted only | - | - |
+| SE5 | D | T2 | L0 | bulk_structure.core_radius_earth: the radius of the rock and iron core under an envelope, R = (1.07 - 0.21 f_iron) M^(1/3.7) Earth radii at the 2:1 rock to iron of the envelope law ([R4882: Eq. 2], read in the paper; about 0.01 Earth radii from its PREM-based models over 1 to 8 Earth masses and an iron fraction of 0 to 0.4), taken beyond 8 Earth masses as the same power law; it replaces the 0.25 power of [R2741: Eq. 1], 3 percent under the same models at 5 Earth masses (GEN.1862) | bulk_structure.CORE_RADIUS_COEFFICIENT, CORE_RADIUS_IRON_SLOPE, CORE_RADIUS_MASS_EXPONENT, CORE_RADIUS_IRON_FRACTION | rocky and mixed cores of 0.1 to 20 Earth masses under an envelope (the fit's own range is 1 to 8) | a core of 8 to 20 Earth masses whose radius differs from the interior solver's (`radius_fit_earth` at an Earth-like iron fraction) by more than 5 percent: the power law is 2 percent over it at 12 Earth masses and 5 percent at 20 | the interior solver's radius at the core's mass | READ ([R4882] Eq. 2 and its table of closed forms; checked here against the interior solver: 1.002 / 0.994, 1.208 / 1.207, 1.457 / 1.454, 1.757 / 1.734 at 1, 2, 4, 8 Earth masses) | predicted only | - | - |
 
 ## 6.246 Stand-ins of the other suns in a planet's sky
 

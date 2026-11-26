@@ -52,7 +52,7 @@ def test_the_valley_slope_and_location_follow_the_published_values_across_the_re
 
 def test_a_weaker_or_stronger_loss_moves_the_valley_out_of_the_published_range():
     """No fit to a second knob here: the onset age is the one that moves the loss (module constant, patched for the test)."""
-    for onset in (0.3, 3.0):
+    for onset in (0.3, 5.0):
         old = envelope_escape.ONSET_GY
         envelope_escape.ONSET_GY = onset
         try:

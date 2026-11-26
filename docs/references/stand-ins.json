@@ -62509,6 +62509,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "bulk_structure mantle table (_MANTLE_RHO to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "bulk_structure.core_radius_earth: the radius of the rock and iron core under an envelope, R = (1.07 - 0.21 f_iron) M^(1/3.7) Earth radii at the 2:1 rock to iron of the envelope law ([R4882: Eq. 2], read in the paper; about 0.01 Earth radii from its PREM-based models over 1 to 8 Earth masses and an iron fraction of 0 to 0.4), taken beyond 8 Earth masses as the same power law; it replaces the 0.25 power of [R2741: Eq. 1], 3 percent under the same models at 5 Earth masses (GEN.1862)"
+            ],
+            [
+              "The range it moves in",
+              "bulk_structure.CORE_RADIUS_COEFFICIENT, CORE_RADIUS_IRON_SLOPE, CORE_RADIUS_MASS_EXPONENT, CORE_RADIUS_IRON_FRACTION"
+            ],
+            [
+              "Where it holds",
+              "rocky and mixed cores of 0.1 to 20 Earth masses under an envelope (the fit's own range is 1 to 8)"
+            ],
+            [
+              "What would show it wrong",
+              "a core of 8 to 20 Earth masses whose radius differs from the interior solver's (radius_fit_earth at an Earth-like iron fraction) by more than 5 percent: the power law is 2 percent over it at 12 Earth masses and 5 percent at 20"
+            ],
+            [
+              "What replaces it",
+              "the interior solver's radius at the core's mass"
+            ],
+            [
+              "Evidence",
+              "READ ([R4882] Eq. 2 and its table of closed forms; checked here against the interior solver: 1.002 / 0.994, 1.208 / 1.207, 1.457 / 1.454, 1.757 / 1.734 at 1, 2, 4, 8 Earth masses)"
+            ]
+          ],
+          "id": "SE5",
+          "key": "6.245:SE5",
+          "kind": "D",
+          "slug": "6-245-se5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "bulk_structure.core_radius_earth: the radius of the rock and iron core under an envelope, R = (1.07 - 0.21 f_iron) M^(1/3.7) Earth radii at the 2:1 rock to iron of the envelope law ([R4882: Eq. 2], read in the paper; about 0.01 Earth radii from its PREM-based models over 1 to 8 Earth masses and an iron fraction of 0 to 0.4), taken beyond 8 Earth masses as the same power law; it replaces the 0.25 power of [R2741: Eq. 1], 3 percent under the same models at 5 Earth masses (GEN.1862)"
         }
       ],
       "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
