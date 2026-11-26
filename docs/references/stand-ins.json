@@ -79423,7 +79423,7 @@
           "fields": [
             [
               "What it is",
-              "exosphere.VAPOUR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
+              "exosphere.VAPOR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
             ],
             [
               "The range it moves in",
@@ -79454,7 +79454,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "exosphere.VAPOUR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
+          "what": "exosphere.VAPOR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
         },
         {
           "burn_down": null,
