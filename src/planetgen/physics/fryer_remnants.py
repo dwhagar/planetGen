@@ -26,8 +26,11 @@ from planetgen.physics import imf, metallicity
 from planetgen.physics.units import pc_to_ly
 
 _GRID_STEP_DEX = 0.1
+"""float: The step, dex, of the [Fe/H] grid the trend `mass_trend` is tabulated on (a numerical setting, defined by the integration: GEN.554; the trend between two grid points is interpolated)."""
 _CELLS_PER_WINDOW = 160
+"""int: How many log-spaced cells the mean hole mass of one failure window is summed over (a numerical resolution of the integral over the initial mass function, defined by the integration: GEN.554; not a physical value)."""
 _HERMITE_POINTS = 15
+"""int: How many Gauss-Hermite nodes average the trend over the [Fe/H] scatter of the intermediate disk that normalizes it (a numerical resolution of that mean, defined by the integration: GEN.554; not a physical value)."""
 
 
 def delayed_baryonic_mass_sol(initial_mass_sol, z_relative):
