@@ -51,7 +51,7 @@ Hot Jupiters are compared on a mixture of metallicities (N(-0.03, 0.2) dex, the 
 
 - Giants inside 2.5 AU and the exact metallicity slope are still loose. Giants between 2 and 8 AU are 0.11 per Sun-like star against 0.141 observed, the best the search found with the 182 K line. Several tuned constants sit near the edge of their search range (`PLANET_OUTER_GROWTH_AU` 11.4); a disc-evolution model (GEN.509, GEN.510) replaces them.
 - Hot-Jupiter statistics need n of several thousand to test.
-- The inner masses pile up near the inner core cap (`PLANET_INNER_CORE_MAX_EARTH` 12); warm super-Earths of 1 Earth mass or more are about 0.06 per star against 0.20 observed.
+- The inner masses no longer pile up near a tuned 12 Earth-mass cap (GEN.1861 gave inner cores the `GIANT_NO_GAS_CORE_MAX_EARTH` 20 limit of the outer ones, row PM8); warm super-Earths of 1 Earth mass or more are about 0.06 per star against 0.20 observed.
 - An F-type host has a multiplicity (2.9) above the observed 1.8 of [R4812]; the multiplicity has no stellar-mass dependence yet.
 - The transit multiplicity has more doubles than [R4898] (0.22 against 0.17), because the harness uses its inclination law and the model's singles are intrinsically fewer.
 

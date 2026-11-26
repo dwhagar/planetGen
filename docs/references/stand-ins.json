@@ -12519,7 +12519,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass)"
+              "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass; inside the snow line too since GEN.1861, which retired the tuned 12 Earth-mass inner cap)"
             ],
             [
               "The range it moves in",
@@ -12527,7 +12527,7 @@
             ],
             [
               "Where it holds",
-              "beyond the snow line"
+              "any solid core, inside or beyond the snow line"
             ],
             [
               "What would show it wrong",
@@ -12550,7 +12550,7 @@
           "tier_code": "T5",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass)"
+          "what": "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass; inside the snow line too since GEN.1861, which retired the tuned 12 Earth-mass inner cap)"
         },
         {
           "burn_down": null,
