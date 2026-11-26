@@ -133,9 +133,8 @@ def _stars(conn, system_id, stars, row):
     offsets = {r["id"]: r for r in conn.execute(
         "SELECT id, offset_x_au, offset_y_au, offset_z_au FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
     in_tree = any(star["role"] == "member" for star in stars)    # a pair inside a larger tree sits where the tree puts it
-    primary_xyz = _xyz(row, "binary_primary_position_")
-    secondary_xyz = _xyz(row, "binary_secondary_position_")
-    mutual_xyz = _xyz(row, "binary_mutual_position_")
+    pair = orbit_trees.pair_places_km(conn, system_id) if row["is_binary"] else None    # GEN.640: the pair is the tree's node, as the update last left it
+    primary_xyz, secondary_xyz, mutual_xyz = (pair["primary_km"], pair["secondary_km"], pair["mutual_km"]) if pair else ([0.0] * 3,) * 3
     out = []
     for star in stars:
         ref = f"star:{star['id']}"
@@ -152,12 +151,12 @@ def _stars(conn, system_id, stars, row):
                 item["position_km"] = mutual_xyz
             item["orbit"] = {
                 "around": "barycenter" if row["binary_configuration"] == "close" else f"star:{stars[0]['id']}",
-                "distance_km": row["binary_separation_km"],
-                "period_years": row["binary_mutual_orbital_period_years"],
-                "inclination_deg": row["binary_mutual_orbital_inclination_deg"],
-                "ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
-                "phase_deg": row["binary_mutual_orbital_phase_deg"],
-                "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
+                "distance_km": pair["node"].separation_km,
+                "period_years": pair["node"].period_years,
+                "inclination_deg": pair["node"].inclination_deg,
+                "ascending_node_deg": pair["node"].ascending_node_deg,
+                "phase_deg": pair["node"].mean_anomaly_deg,
+                "secondary_mass_fraction": pair["secondary_mass_fraction"],
             }
         elif star["role"] == "member":    # GEN.630: a star beyond the pair, at the offset its row stores
             item["position_km"] = _offset_km(offsets[star["id"]])

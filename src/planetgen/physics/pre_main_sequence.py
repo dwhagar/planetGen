@@ -230,11 +230,9 @@ def state(mass_sol, age_yr, fe_h=0.0):
 def dispersal_yr(mass_sol, close_companion=False):
     """
     The age at which this star loses its disk, years (GEN.1551): its own time (`disk_dispersal.draw_dispersal_time_yr`), drawn from the stream of its initial mass and no
-    age, so it does not move when the star's age does; held to `tuning.PLANET_MIN_STAR_AGE_GY` until GEN.1552 lets bodies stand once the disk is gone, so that no star holds a disk and
-    planets at once. A star with a close companion (`disk_truncation.disk_time_yr` finds it from the companions the system attached) takes the shorter time of the same draw.
+    age, so it does not move when the star's age does. Its bodies stand once it has passed (GEN.1552, `StarSystem._holds_its_disk`). A star with a close companion (`disk_truncation.disk_time_yr` finds it from the companions the system attached) takes the shorter time of the same draw.
     """
-    own = disk_dispersal.draw_dispersal_time_yr(f"mass:{mass_sol!r}", mass_sol, close_companion)
-    return min(own, tuning.PLANET_MIN_STAR_AGE_GY * 1.0e9)
+    return disk_dispersal.draw_dispersal_time_yr(f"mass:{mass_sol!r}", mass_sol, close_companion)
 
 
 def disk_class(age_yr, dispersal_age_yr):
@@ -251,6 +249,10 @@ def sublimation_radius_au(luminosity_sol):
     metres = math.sqrt(luminosity_sol * constants.SOLAR_LUMINOSITY
                        / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT * tuning.DISK_DUST_SUBLIMATION_K ** 4))
     return _m_to_au(metres)
+
+
+DISK_KINDS = ("class-0", "class-i", "class-ii")
+"""tuple: The `disk_kind` of a star that still holds its own disk (`draw_disk`); a star past it holds none (class III), and a debris disk (`debris_dust.DEBRIS_KIND`) is what is left after."""
 
 
 def draw_disk(mass_sol, age_yr, luminosity_sol, rng=draw):

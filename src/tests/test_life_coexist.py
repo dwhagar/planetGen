@@ -12,7 +12,7 @@ from planetgen.generation import life
 from planetgen.generation.build_record import HasBuildRecord
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, life_classes
+from planetgen.physics import atmosphere, life_classes, trial_copy
 from planetgen.util import draw
 from planetgen.generation.build_record import BuildRecord
 
@@ -99,7 +99,7 @@ def test_a_body_with_life_keeps_its_classes_through_an_edit(mixed):
 
 def test_a_trial_air_leaves_the_body_as_it_was(mixed):
     body = mixed[0]
-    clone = life._trial_copy(body)
+    clone = trial_copy.trial_copy(body)
     cands = [life._Cand(life_classes.BY_ID[entry["life_class"]], life_classes.score_classes(body)[entry["life_class"]], entry["share"], ages=tuple(entry["ages"]))
              for entry in body.life_living]
     before = copy.deepcopy(atmosphere.gas_partials_pa(body))
@@ -125,7 +125,7 @@ def test_a_trial_copy_shares_the_bodies_a_planet_holds_and_does_not_walk_a_long_
         chain = Body(follow=(chain,) if chain is not None else ())
     planet = Body(moons=[chain], notes={"a": [1, 2]}, star=object())
     planet.build.born_moons = [chain]
-    clone = life._trial_copy(planet)
+    clone = trial_copy.trial_copy(planet)
     assert clone.build.born_moons == planet.build.born_moons and clone.build.born_moons is not planet.build.born_moons and clone.build.born_moons[0] is chain
     clone.notes["a"].append(3)
     assert planet.notes == {"a": [1, 2]}

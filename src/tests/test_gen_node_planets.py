@@ -137,7 +137,7 @@ def test_a_nodes_planets_are_named_after_its_pair():
     system.assign_names("Voranthis")
     for host, bodies in system.hosts_of("node"):
         label = system.node_label(host)
-        assert label.startswith("Voranthis ") and label != "Voranthis"
+        assert label == "Voranthis" or label.startswith("Voranthis ")      # GEN.312: the root pair is the system's name, any other pair its path code
         for number, body in enumerate((body for body in bodies if body.body_type != "a"), start=1):
             assert body.name.startswith(f"{label} ")
     names = [body.name for body in system.all_planets if body.body_type != "a"]

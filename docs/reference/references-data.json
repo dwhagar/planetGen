@@ -146029,6 +146029,46 @@
    "volume": "649",
    "year": 2021
   },
+  "10.1051/0004-6361/202140985": {
+   "arxiv": "2104.14972",
+   "authors": [
+    [
+     "Reylé",
+     "C."
+    ],
+    [
+     "Jardine",
+     "K."
+    ],
+    [
+     "Fouqué",
+     "P."
+    ],
+    [
+     "Caballero",
+     "J. A."
+    ],
+    [
+     "Smart",
+     "R. L."
+    ],
+    [
+     "Sozzetti",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202140985",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A201",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "The 10 parsec sample in the Gaia era",
+   "type": "journal-article",
+   "volume": "650",
+   "year": 2021
+  },
   "10.1051/0004-6361/202141506": {
    "arxiv": "2106.05228",
    "authors": [
@@ -150646,6 +150686,38 @@
    "title": "$\\mathsf{^{26}}$Al in the inner Galaxy",
    "type": "journal-article",
    "volume": "449",
+   "year": 2006
+  },
+  "10.1051/0004-6361:20054351": {
+   "arxiv": "astro-ph/0511788",
+   "authors": [
+    [
+     "Bica",
+     "E."
+    ],
+    [
+     "Bonatto",
+     "C."
+    ],
+    [
+     "Barbuy",
+     "B."
+    ],
+    [
+     "Ortolani",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361:20054351",
+   "editors": [],
+   "journal": "A&A",
+   "page": "105",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Globular cluster system and Milky Way properties revisited",
+   "type": "journal-article",
+   "volume": "450",
    "year": 2006
   },
   "10.1051/0004-6361:20054551": {
@@ -160662,6 +160734,34 @@
    "title": "Stellar Disk Truncations at High z : Probing Inside-Out Galaxy Formation",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "630",
+   "year": 2005
+  },
+  "10.1086/491580": {
+   "arxiv": "astro-ph/0507551",
+   "authors": [
+    [
+     "Rhode",
+     "K. L."
+    ],
+    [
+     "Zepf",
+     "S. E."
+    ],
+    [
+     "Santos",
+     "M. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/491580",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "L21",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Metal-poor Globular Clusters and the Formation of Their Host Galaxies",
+   "type": "journal-article",
    "volume": "630",
    "year": 2005
   },
@@ -186669,6 +186769,50 @@
    "title": "The detailed structure and the onset of galaxy formation in low-mass gaseous dark matter haloes",
    "type": "journal-article",
    "volume": "498",
+   "year": 2020
+  },
+  "10.1093/mnras/staa2785": {
+   "arxiv": "2007.06577",
+   "authors": [
+    [
+     "Sormani",
+     "M. C."
+    ],
+    [
+     "Magorrian",
+     "J."
+    ],
+    [
+     "Nogueras-Lara",
+     "F."
+    ],
+    [
+     "Neumayer",
+     "N."
+    ],
+    [
+     "Schönrich",
+     "R."
+    ],
+    [
+     "Klessen",
+     "R. S."
+    ],
+    [
+     "Mastrobuono-Battisti",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/staa2785",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "7",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Jeans modelling of the Milky Way’s nuclear stellar disc",
+   "type": "journal-article",
+   "volume": "499",
    "year": 2020
   },
   "10.1093/mnras/staa2859": {
@@ -220118,6 +220262,30 @@
    "volume": "358",
    "year": 2005
   },
+  "10.1111/j.1365-2966.2005.08925.x": {
+   "arxiv": "astro-ph/0502447",
+   "authors": [
+    [
+     "Parmentier",
+     "G."
+    ],
+    [
+     "Grebel",
+     "E. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2005.08925.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "615",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "On the origin of the radial mass density profile of the Galactic halo globular cluster system",
+   "type": "journal-article",
+   "volume": "359",
+   "year": 2005
+  },
   "10.1111/j.1365-2966.2005.09087.x": {
    "authors": [
     [
@@ -222891,6 +223059,50 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "On the velocity dispersion of young star clusters: super-virial or binaries?",
+   "type": "journal-article",
+   "volume": "402",
+   "year": 2010
+  },
+  "10.1111/j.1365-2966.2009.16057.x": {
+   "arxiv": "0908.0272",
+   "authors": [
+    [
+     "Comerón",
+     "S."
+    ],
+    [
+     "Knapen",
+     "J. H."
+    ],
+    [
+     "Beckman",
+     "J. E."
+    ],
+    [
+     "Laurikainen",
+     "E."
+    ],
+    [
+     "Salo",
+     "H."
+    ],
+    [
+     "Martínez-Valpuesta",
+     "I."
+    ],
+    [
+     "Buta",
+     "R. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2009.16057.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "2462",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "AINUR: Atlas of Images of NUclear Rings",
    "type": "journal-article",
    "volume": "402",
    "year": 2010
@@ -255409,6 +255621,34 @@
    "volume": "856",
    "year": 2018
   },
+  "10.3847/1538-4357/aab6b4": {
+   "arxiv": "1803.01501",
+   "authors": [
+    [
+     "Ma",
+     "C."
+    ],
+    [
+     "de Grijs",
+     "R."
+    ],
+    [
+     "Ho",
+     "L. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/aab6b4",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "116",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Connections between Star Cluster Populations and Their Host Galaxy Nuclear Rings",
+   "type": "journal-article",
+   "volume": "857",
+   "year": 2018
+  },
   "10.3847/1538-4357/aab784": {
    "arxiv": "1707.06701",
    "authors": [
@@ -280254,6 +280494,40 @@
    "volume": "",
    "year": 2018
   },
+  "arXiv:1805.01227": {
+   "arxiv": "1805.01227",
+   "authors": [
+    [
+     "Kilic",
+     "M."
+    ],
+    [
+     "Hambly",
+     "N. C."
+    ],
+    [
+     "Bergeron",
+     "P."
+    ],
+    [
+     "Genest-Beaulieu",
+     "C."
+    ],
+    [
+     "Rowell",
+     "N."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Gaia Reveals Evidence for Merged White Dwarfs",
+   "type": "preprint",
+   "volume": "",
+   "year": 2018
+  },
   "arXiv:1807.08593": {
    "arxiv": "1807.08593",
    "authors": [
@@ -283658,6 +283932,56 @@
    "volume": "",
    "year": 2024
   },
+  "arXiv:2407.04827": {
+   "arxiv": "2407.04827",
+   "authors": [
+    [
+     "Jewett",
+     "G."
+    ],
+    [
+     "Kilic",
+     "M."
+    ],
+    [
+     "Bergeron",
+     "P."
+    ],
+    [
+     "Moss",
+     "A."
+    ],
+    [
+     "Blouin",
+     "S."
+    ],
+    [
+     "Brown",
+     "W. R."
+    ],
+    [
+     "Kosakowski",
+     "A."
+    ],
+    [
+     "Toonen",
+     "S."
+    ],
+    [
+     "Agüeros",
+     "M. A."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Massive White Dwarfs in the 100 pc Sample: Magnetism, Rotation, Pulsations, and the Merger Fraction",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
   "arXiv:2407.05853": {
    "arxiv": "2407.05853",
    "authors": [
@@ -285644,6 +285968,28 @@
    "page": "",
    "src": "arxiv",
    "title": "TRAPUM search for pulsars in supernova remnants and pulsar wind nebulae - II. Survey analysis and population study",
+   "type": "preprint",
+   "volume": "",
+   "year": 2025
+  },
+  "arXiv:2510.17768": {
+   "arxiv": "2510.17768",
+   "authors": [
+    [
+     "Laing",
+     "J. M."
+    ],
+    [
+     "Wilson",
+     "C. D."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Increased molecular gas velocity dispersion and star formation efficiency in barred galaxy centres",
    "type": "preprint",
    "volume": "",
    "year": 2025
@@ -289908,6 +290254,7 @@
   "10.1051/0004-6361/202140663": "R5120",
   "10.1051/0004-6361/202140789": "R0884",
   "10.1051/0004-6361/202140793": "R0405",
+  "10.1051/0004-6361/202140985": "R5364",
   "10.1051/0004-6361/202141506": "R4866",
   "10.1051/0004-6361/202141546": "R3917",
   "10.1051/0004-6361/202141617": "R2809",
@@ -290012,6 +290359,7 @@
   "10.1051/0004-6361:20053842": "R5135",
   "10.1051/0004-6361:20054081": "R3126",
   "10.1051/0004-6361:20054301": "R1109",
+  "10.1051/0004-6361:20054351": "R5361",
   "10.1051/0004-6361:20054551": "R0918",
   "10.1051/0004-6361:20054596": "R2408",
   "10.1051/0004-6361:20054745": "R3884",
@@ -290344,6 +290692,7 @@
   "10.1086/444620": "R4031",
   "10.1086/468179": "R3185",
   "10.1086/491472": "R4435",
+  "10.1086/491580": "R5362",
   "10.1086/496914": "R4997",
   "10.1086/497030": "R3061",
   "10.1086/497092": "R2193",
@@ -290984,6 +291333,7 @@
   "10.1093/mnras/staa2487": "R3282",
   "10.1093/mnras/staa2615": "R3545",
   "10.1093/mnras/staa2698": "R0338",
+  "10.1093/mnras/staa2785": "R5357",
   "10.1093/mnras/staa2859": "R2965",
   "10.1093/mnras/staa2917": "R0478",
   "10.1093/mnras/staa3029": "R3453",
@@ -291713,6 +292063,7 @@
   "10.1111/j.1365-2966.2004.08424.x": "R3687",
   "10.1111/j.1365-2966.2004.08614.x": "R2617",
   "10.1111/j.1365-2966.2005.08855.x": "R2483",
+  "10.1111/j.1365-2966.2005.08925.x": "R5363",
   "10.1111/j.1365-2966.2005.09087.x": "R1966",
   "10.1111/j.1365-2966.2005.09096.x": "R3761",
   "10.1111/j.1365-2966.2005.09161.x": "R0077",
@@ -291799,6 +292150,7 @@
   "10.1111/j.1365-2966.2009.15746.x": "R3880",
   "10.1111/j.1365-2966.2009.15845.x": "R0395",
   "10.1111/j.1365-2966.2009.15993.x": "R1554",
+  "10.1111/j.1365-2966.2009.16057.x": "R5359",
   "10.1111/j.1365-2966.2009.16149.x": "R3074",
   "10.1111/j.1365-2966.2009.16177.x": "R0452",
   "10.1111/j.1365-2966.2009.16198.x": "R5100",
@@ -292600,6 +292952,7 @@
   "10.3847/1538-4357/aaab53": "R5173",
   "10.3847/1538-4357/aab0a1": "R1512",
   "10.3847/1538-4357/aab264": "R3633",
+  "10.3847/1538-4357/aab6b4": "R5358",
   "10.3847/1538-4357/aab784": "R3732",
   "10.3847/1538-4357/aabc10": "R0886",
   "10.3847/1538-4357/aac104": "R2629",
@@ -293056,6 +293409,7 @@
   "arxiv:0907.0234": "R2867",
   "arxiv:0907.2512": "R3147",
   "arxiv:0907.2952": "R2166",
+  "arxiv:0908.0272": "R5359",
   "arxiv:0908.1422": "R1826",
   "arxiv:0908.2995": "R4736",
   "arxiv:0908.3848": "R0685",
@@ -293702,6 +294056,7 @@
   "arxiv:1802.09526": "R4898",
   "arxiv:1802.10223": "R2724",
   "arxiv:1803.00072": "R4081",
+  "arxiv:1803.01501": "R5358",
   "arxiv:1803.01511": "R2358",
   "arxiv:1803.01706": "R1865",
   "arxiv:1803.03303": "R4720",
@@ -293723,6 +294078,7 @@
   "arxiv:1804.08627": "R3227",
   "arxiv:1804.10589": "R2177",
   "arxiv:1804.11176": "R0044",
+  "arxiv:1805.01227": "R5354",
   "arxiv:1805.01453": "R1477",
   "arxiv:1805.03671": "R2315",
   "arxiv:1805.07094": "R3872",
@@ -293931,6 +294287,7 @@
   "arxiv:2007.05561": "R1268",
   "arxiv:2007.05562": "R1269",
   "arxiv:2007.05563": "R3955",
+  "arxiv:2007.06577": "R5357",
   "arxiv:2007.07715": "R5181",
   "arxiv:2007.09059": "R2965",
   "arxiv:2007.10783": "R1892",
@@ -294229,6 +294586,7 @@
   "arxiv:2406.06885": "R0974",
   "arxiv:2406.14134": "R4535",
   "arxiv:2407.04677": "R0248",
+  "arxiv:2407.04827": "R5355",
   "arxiv:2407.05853": "R1893",
   "arxiv:2407.08518": "R0323",
   "arxiv:2407.11680": "R3243",
@@ -294328,6 +294686,7 @@
   "arxiv:2510.15453": "R3596",
   "arxiv:2510.16164": "R4316",
   "arxiv:2510.16618": "R4454",
+  "arxiv:2510.17768": "R5360",
   "arxiv:2510.26308": "R2811",
   "arxiv:2510.26785": "R2751",
   "arxiv:2511.13716": "R0646",
@@ -294434,6 +294793,7 @@
   "arxiv:astro-ph/0412253": "R3753",
   "arxiv:astro-ph/0412641": "R2850",
   "arxiv:astro-ph/0502420": "R4996",
+  "arxiv:astro-ph/0502447": "R5363",
   "arxiv:astro-ph/0503176": "R1654",
   "arxiv:astro-ph/0503346": "R2915",
   "arxiv:astro-ph/0503488": "R0423",
@@ -294449,12 +294809,14 @@
   "arxiv:astro-ph/0506539": "R1499",
   "arxiv:astro-ph/0506659": "R0007",
   "arxiv:astro-ph/0507464": "R0686",
+  "arxiv:astro-ph/0507551": "R5362",
   "arxiv:astro-ph/0508460": "R4824",
   "arxiv:astro-ph/0510224": "R3999",
   "arxiv:astro-ph/0510255": "R3185",
   "arxiv:astro-ph/0510285": "R5142",
   "arxiv:astro-ph/0510784": "R4491",
   "arxiv:astro-ph/0511082": "R0921",
+  "arxiv:astro-ph/0511788": "R5361",
   "arxiv:astro-ph/0512334": "R1109",
   "arxiv:astro-ph/0512585": "R1333",
   "arxiv:astro-ph/0603091": "R2242",

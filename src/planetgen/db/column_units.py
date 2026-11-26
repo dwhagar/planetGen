@@ -326,6 +326,8 @@ TABLES = {
         "index": ("member_no", "parent_node_no", "slot"),
         "Msun": ("mass_solar",),
         "au": ("radius_au",),
+        "g_cm3": ("density_g_cm3",),
+        "J": ("binding_energy_j",),
     },
     "designations": {
         "id": ("id", "object_row_id"),
@@ -484,7 +486,7 @@ TABLES = {
         "1/s": ("water_production_1au_per_s",),
         "km": ("nucleus_diameter_km",),
         "km_s": ("velocity_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "coma_outflow_1au_kms"),
-        "flag": ("is_active",),
+        "flag": ("is_active", "carbon_chain_depleted"),
         "Gyr": ("galactic_orbital_period_gy",),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years",),
@@ -683,7 +685,7 @@ TABLES = {
         "flag": ("window_capped", "focusing_radius_used", "borderline", "already_overlapping", "numeric_warning"),
     },
     "phenomenon_scatter": {
-        "id": ("id",),
+        "id": ("id", "cluster_id"),
         "index": ("shell_index", "band_index", "wedge_index"),
         "mpc": ("position_x_mpc", "position_y_mpc", "position_z_mpc"),
         "key": ("cell_key",),
@@ -723,6 +725,14 @@ TABLES = {
     "planet_life_class_scores": {
         "id": ("id", "planet_id"),
         "score9": ("score",),
+    },
+    "sector_directives": {
+        "id": ("sector_id",),
+        "count": ("attempts",),
+    },
+    "sector_directive_minimums": {
+        "id": ("sector_id",),
+        "count": ("wanted", "got"),
     },
     "planet_adaptations": {
         "id": ("id", "planet_id"),

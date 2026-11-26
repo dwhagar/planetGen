@@ -38,8 +38,8 @@ def _star_offsets_au(system):
             system.orbit_nodes[0].epoch_unix, dark)))
     if len(stars) < 2:
         return [(stars[0], (0.0, 0.0, 0.0))]
-    if getattr(system, "binary_type", None) == "wide" and getattr(system, "wide_binary", None) is not None:
-        pair, template = system.wide_binary, "{which}_position_{axis}_au"
+    if getattr(system, "binary_type", None) == "wide":
+        pair, template = system.pair_orbit, "{which}_position_{axis}_au"
     else:
         pair, template = system.star, "binary_{which}_position_{axis}"
     offsets = []

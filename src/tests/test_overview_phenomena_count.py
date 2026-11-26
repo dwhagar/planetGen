@@ -76,7 +76,7 @@ def test_the_overview_count_follows_every_scatter_fill_and_edit(site, mysql_conf
 
     # A scatter places five neutron stars no sector has built.
     conn = store.get_connection(mysql_config)
-    rows = [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None, slot + 1, None, None) for slot in range(5)]
+    rows = [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None, slot + 1, None, None, None) for slot in range(5)]
     store.insert_phenomenon_scatter(conn, rows)
     store.record_phenomenon_scatter_classes(conn, {("neutron-star", ""): 5})
     conn.commit()

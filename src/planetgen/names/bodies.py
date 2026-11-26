@@ -15,6 +15,9 @@ the system is named from it:
   `Voranthis Pikkita`. The second star's word is drawn from
   `names.COMPANION_STAR_NAMES` (words for small, little, daughter, son and
   child), so it sounds like a diminutive.
+- A tree of more stars has path codes and a word for each branch of a wide
+  split (GEN.312, `names/tree_names.py`): `Voranthis Kelmoor Aa`,
+  `Voranthis Ba`.
 - Planets are numbered in orbit order with roman numerals: `Voranthis I`,
   `Voranthis II`. A single star's and a close pair's planets use the
   system name. A wide pair's primary's planets use the shared first word
@@ -28,6 +31,8 @@ Since the system name is unique, every derived name is too, so planets and
 moons never need a database-wide uniqueness search. `rename_prefix` keeps
 those derived names in step when a system or star is renamed later.
 """
+
+import re
 
 from planetgen.names.wordlists import (COMPANION_STAR_NAMES, COMPANION_STAR_PREFIXES, COMPANION_STAR_SUFFIXES, STAR_NAMES,
                     STAR_PREFIXES, STAR_SUFFIXES)
@@ -86,56 +91,30 @@ def generate_star_word(exclude=(), companion=False):
             return word
 
 
-CLOSE_PAIR_LETTERS = ("A", "B")
-"""tuple: The letters after the system name for a close pair's primary and
-secondary star (GEN.62)."""
-
-
 def wide_pair_first_word(system_name):
-    """The word a wide pair's two stars share, and its primary's planets
-    are named for: the system name's first word (GEN.62)."""
+    """The word the stars of a wide split share, and the planets of the branch that holds the primary are named for: the system name's first word (GEN.62,
+    GEN.312)."""
     return system_name.split()[0]
 
 
-def wide_pair_star_words(system_name, primary_name, secondary_name):
-    """
-    A wide pair's two star words read back from the names its two stars carry (DB.125): `assign_names` names them `<first word> <primary word>` and
-    `<first word> <secondary word>` (GEN.62), so the words are what follows the system name's first word. `None` where either name does not have that
-    shape (a pair renamed by hand, or stored before star words), which `StarSystem.assign_names` then draws again as it does for an old export.
-    """
-    first_word = wide_pair_first_word(system_name)
-    words = []
-    for name in (primary_name, secondary_name):
-        head, _, word = (name or "").partition(" ")
-        if head != first_word or not word or " " in word:
-            return None
-        words.append(word)
-    return tuple(words)
+_CODE = re.compile(r"[A-Z][a-z]?[0-9]*(\.[0-9]+)*")
+"""Pattern: A path code of `names.tree_names` as the last word of a star's name: `A`, `B`, `Aa`, `Ba1`, `Aa1.2`. A branch word of more than two letters is not one."""
 
 
 def close_pair_label(primary_name, secondary_name):
     """
     The two stars of a close pair named together: `Voranthis A / B` for
-    `Voranthis A` and `Voranthis B`, or `<primary> & <secondary>` for names
-    that don't share that shape (a pair renamed by hand, or stored before
-    GEN.62).
+    `Voranthis A` and `Voranthis B`, `Voranthis Aa / Ab` for the pair a
+    deeper tree names `Voranthis Aa` and `Voranthis Ab` (GEN.312), or
+    `<primary> & <secondary>` for names that don't share that shape (a pair
+    renamed by hand, or stored before GEN.62).
     """
-    primary_base, _, primary_letter = primary_name.rpartition(" ")
-    secondary_base, _, secondary_letter = secondary_name.rpartition(" ")
-    if (primary_base and primary_base == secondary_base
-            and (primary_letter, secondary_letter) == CLOSE_PAIR_LETTERS):
-        return f"{primary_base} {primary_letter} / {secondary_letter}"
+    primary_base, _, primary_code = primary_name.rpartition(" ")
+    secondary_base, _, secondary_code = secondary_name.rpartition(" ")
+    if (primary_base and primary_base == secondary_base and primary_code != secondary_code
+            and _CODE.fullmatch(primary_code) and _CODE.fullmatch(secondary_code)):
+        return f"{primary_base} {primary_code} / {secondary_code}"
     return f"{primary_name} & {secondary_name}"
-
-
-def node_pair_label(system_name, star_names, node_no):
-    """
-    The name of the pair of stars at an inner node of a system's tree (GEN.332, slice A), as the Washington Double Star catalogue writes
-    a pair: the system's name and the letters of the node's stars together (`Voranthis CD`; a star and a pair about it are
-    `Voranthis ABC`), `Voranthis node N` for stars named some other way.
-    """
-    letters = [name[len(system_name) + 1:] for name in star_names if name.startswith(f"{system_name} ")]
-    return f"{system_name} {''.join(sorted(letters))}" if letters and len(letters) == len(star_names) else f"{system_name} node {node_no}"
 
 
 def name_bodies(prefix, bodies):

@@ -16,6 +16,8 @@ from planetgen.describe import build
 from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from planetgen.names import tree_names
+from planetgen.names.bodies import to_roman
 from planetgen.physics import constants, planet_zones
 from planetgen.util import draw
 
@@ -66,11 +68,17 @@ def test_a_close_pair_beside_a_member_keeps_its_circumbinary_planets_inside_the_
 
 
 def test_a_members_planets_are_named_after_it():
+    """GEN.312: a planet takes the planet stem of its host (`tree_names`): the member's own name when the tree has no branch word for it (`Voranthis Ba I`), the word of its
+    branch when it hangs under a wide split (`Littiyola I` for the star `Aeshuon Littiyola`, as GEN.62 names the planets of a wide pair's second star)."""
     system, _cfg = _with_member_planets()
+    nodes, slots = system._name_inputs()
+    tree = tree_names.name_tree(system.name, nodes, slots, system.star_words or ())
     for member, bodies in system.hosts_of("member"):
+        stem = tree.member_stems[system.stars.index(member)]
+        assert stem in member.name
         rocky = [body for body in bodies if body.body_type != "a"]
         for number, body in enumerate(rocky, start=1):
-            assert body.name.startswith(f"{member.name} ")
+            assert body.name == f"{stem} {to_roman(number)}"
         names = [body.name for body in system.all_planets if body.body_type != "a"]
         assert len(names) == len(set(names))
 

@@ -162,3 +162,78 @@ def test_the_rows_are_stored_and_a_loaded_comet_gets_them_back(mysql_config):
             assert reloaded[comet.name].water_production_1au_per_s == comet.water_production_1au_per_s
     finally:
         conn.close()
+
+
+def _coma(*rows):
+    """A `Coma` with the given `(species, production)` rows (water first), the other numbers of no matter."""
+    return comet_coma.Coma(1.0e28, 0.1, 0.7, 0.05, tuple((species, rate, None) for species, rate in rows))
+
+
+def test_the_coma_class_is_the_carbon_oxide_that_leaves_faster_and_equal_rates_read_as_carbon_dioxide():
+    """GEN.1227: read off the rows of the coma, no draw."""
+    assert comet_coma.coma_class(_coma(("H2O", 9e27), ("CO2", 3e27), ("CO", 1e27))) == comet_coma.CO2_DOMINATED
+    assert comet_coma.coma_class(_coma(("H2O", 9e27), ("CO2", 1e27), ("CO", 3e27))) == comet_coma.CO_DOMINATED
+    assert comet_coma.coma_class(_coma(("H2O", 9e27), ("CO2", 2e27), ("CO", 2e27))) == comet_coma.CO2_DOMINATED
+    assert comet_coma.coma_class(_coma(("H2O", 9e27), ("CO", 1e27))) == comet_coma.CO_DOMINATED         # a gas the nucleus lacks is no rate
+    assert comet_coma.coma_class(_coma(("H2O", 9e27), ("CO2", 1e27))) == comet_coma.CO2_DOMINATED
+    assert comet_coma.coma_class(_coma(("H2O", 9e27), ("CH4", 1e26))) is None                          # neither of the two
+    assert comet_coma.coma_class(None) is None                                                          # an inactive comet has no coma
+
+
+def test_the_dominant_volatiles_are_the_fastest_gases_after_water_with_ties_broken_by_formula():
+    coma = _coma(("H2O", 9e27), ("CO", 1e27), ("CO2", 3e27), ("CH3OH", 2e26), ("NH3", 1e26))
+    assert comet_coma.dominant_volatiles(coma) == ("CO2", "CO", "CH3OH")
+    assert comet_coma.dominant_volatiles(coma, 1) == ("CO2",)
+    assert comet_coma.dominant_volatiles(_coma(("H2O", 9e27), ("CO2", 2e27), ("CO", 2e27), ("CH4", 2e27), ("NH3", 2e27))) == ("CH4", "CO", "CO2")
+    assert comet_coma.dominant_volatiles(_coma(("H2O", 9e27))) == ()
+    assert comet_coma.dominant_volatiles(None) == ()
+
+
+def test_an_active_comets_class_and_dominant_gases_follow_the_volatiles_its_nucleus_was_drawn_with():
+    seen = set()
+    for seed in range(60):
+        with draw.bound(seed):
+            comet = InterstellarComet(SystemConfig())
+        coma = comet_coma.of(comet)
+        if coma is None:
+            continue
+        percent = comet.makeup.detail["volatiles"]
+        expected = comet_coma.CO2_DOMINATED if percent.get("CO2", 0.0) >= percent.get("CO", 0.0) else comet_coma.CO_DOMINATED
+        if "CO2" in percent or "CO" in percent:
+            assert comet_coma.coma_class(coma) == expected
+            seen.add(expected)
+        dominant = comet_coma.dominant_volatiles(coma)
+        assert 0 <= len(dominant) <= comet_coma.DOMINANT_COUNT and "H2O" not in dominant
+    assert seen == set(comet_coma.COMA_CLASSES)
+
+
+def test_an_interstellar_comet_keeps_the_carbon_chain_flag_its_nucleus_was_drawn_with():
+    seen = set()
+    for seed in range(120):
+        with draw.bound(seed):
+            comet = InterstellarComet(SystemConfig())
+        assert comet.carbon_chain_depleted is bool(comet.makeup.detail["carbon_chain_depleted"])
+        seen.add(comet.carbon_chain_depleted)
+    assert seen == {True, False}
+    with draw.bound(3):
+        comet = InterstellarComet(SystemConfig())
+    back = InterstellarComet.from_dict(comet.to_dict(), SystemConfig())
+    assert back.carbon_chain_depleted == comet.carbon_chain_depleted
+    data = comet.to_dict()
+    data.pop("carbon_chain_depleted", None)
+    assert InterstellarComet.from_dict(data, SystemConfig()).carbon_chain_depleted is None      # a record made before the flag was kept
+
+
+def test_the_row_keeps_the_carbon_chain_flag_and_the_sheet_shows_it(mysql_config):
+    from planetgen.describe import sheet
+    with draw.bound(11):
+        comet = InterstellarComet(SystemConfig())
+    conn = store.get_connection(mysql_config)
+    try:
+        comet_id = store.insert_interstellar_comet(conn, comet)
+        conn.commit()
+        row = conn.execute("SELECT carbon_chain_depleted FROM interstellar_comets WHERE id = ?", (comet_id,)).fetchone()
+    finally:
+        conn.close()
+    assert row["carbon_chain_depleted"] == int(comet.carbon_chain_depleted)
+    assert "carbon_chain_depleted" in [spec.key for spec in sheet.specs_for("interstellar_comet")]

@@ -204,7 +204,9 @@ def test_the_spiral_written_as_components_gives_the_density_it_gave_before(name)
     density and the halo are the old ones times one number per shape (1.00039 to 1.00040, checked point by point before the fixture was rewritten), the total mass and
     every population's units unchanged. It was made again for GEN.1202 on the same train (the disk's rings use 0.95 of the star formation law's coefficient, which moves the star
     formation history and so the old population's units by 0.998): every density and the halo are the GEN.618 fixture's times one number per shape (0.99963 to 0.99974),
-    the total mass unchanged. The fixture's key for the nuclear disk follows
+    the total mass unchanged. It was made again for Train 62 (the mean system mass rose by about 5 percent under the train's changes): every density and
+    the halo are the old ones times one number per shape (0.95169 to 0.95213), the total mass unchanged, and the young and intermediate units are 1.005 to 1.010 times and the old
+    ones 0.9992 to 0.9995 times the old. The fixture's key for the nuclear disk follows
     DOC.103's American spelling of stored names."""
     with open(IDENTITY, encoding="utf-8") as handle:
         data = json.load(handle)

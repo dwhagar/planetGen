@@ -13,7 +13,7 @@ JUPITER = 1.898e27
 
 
 def _wide(planets, secondary, periapsis_au=200.0):
-    return SimpleNamespace(binary_type="wide", primary=Host(None, "primary", list(planets)), secondary=Host(None, "secondary", list(secondary)), wide_binary=SimpleNamespace(periapsis_au=periapsis_au),
+    return SimpleNamespace(binary_type="wide", primary=Host(None, "primary", list(planets)), secondary=Host(None, "secondary", list(secondary)), pair_orbit=SimpleNamespace(periapsis_au=periapsis_au),
                            primary_star=SimpleNamespace(mass=SUN, a_crit_au=80.0), secondary_star=SimpleNamespace(mass=SUN, a_crit_au=80.0))
 
 
