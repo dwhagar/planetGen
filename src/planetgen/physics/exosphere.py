@@ -54,7 +54,7 @@ SOURCES = ("thermal release", "photon-stimulated desorption", "micrometeoroid im
 """tuple: The four sources of part 04 section 5.1, the names a record carries."""
 
 MAX_SPECIES = 8
-"""int: The most species a record holds (the largest columns)."""
+"""int: The most species a record holds (the largest columns): a limit of presentation, not of the physics [Stand-in 6.328 EX8, tier T7, tweak L0.]"""
 
 COLUMN_FLOOR_CM2 = 1.0e4
 """float: A column under this, atoms per cm2, is not recorded (a floor of presentation: nothing above a body's ground is measured under it) [Stand-in 6.328 EX8, tier T7, tweak L0.]"""
@@ -76,7 +76,7 @@ PSD_PHOTON_FLUX_REFERENCE_CM2_S = 2.0e15
 """float: The 250 to 400 nm photon flux at the Moon's distance from the Sun, per cm2 and second [R4783]; another star or distance scales it by its light and its share in the band [Stand-in 6.328 EX1, tier T6, tweak L1.]"""
 
 PSD_BAND_NM = (250.0, 400.0)
-"""tuple: The band of the desorbing photons, nm."""
+"""tuple: The band of the desorbing photons, nm: the band the cross sections are measured in [R4783]."""
 
 PSD_WEIBULL = (575.0, 1.7)
 """tuple: The Weibull scale (m/s) and shape of the speed of the desorbed atoms [R4783]."""
