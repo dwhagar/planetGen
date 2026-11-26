@@ -3726,7 +3726,7 @@ def resolve_object(conn, kind, object_id):
                     parents.append({"ref": object_ref.format("planet", planet), "kind": "planet",
                                     "name": one("planets", planet, "name")["name"]})
             if host_kind is not None:
-                host_name = (belt_names.label(belt_names.numbers_for_belts(conn, [host_id])[host_id])
+                host_name = (belt_names.names_for_belts(conn, [host_id])[host_id]      # NAV.80: a trojan region takes no number; its name is its giant's
                              if host_kind == "belt" else one(host_table, host_id, "name")["name"])
                 parents.append({"ref": object_ref.format(host_kind, host_id), "kind": host_kind, "name": host_name})
         else:
@@ -3769,7 +3769,7 @@ def resolve_object(conn, kind, object_id):
                 positions["galaxy_pc"] = [rogue["center_x_pc"], rogue["center_y_pc"], rogue["center_z_pc"]]
         else:
             parents, positions = system_parents_and_positions(row["star_system_id"])
-        name = belt_names.label(belt_names.numbers_for_belts(conn, [object_id])[object_id]) if kind == "belt" else row["name"]
+        name = belt_names.names_for_belts(conn, [object_id])[object_id] if kind == "belt" else row["name"]      # NAV.80: a trojan region is named for its giant, not numbered
         if kind == "star":
             positions["system_km"] = star_offset(object_id)
         elif kind in ("planet", "comet"):
