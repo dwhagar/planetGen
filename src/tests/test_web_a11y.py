@@ -60,6 +60,9 @@ from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests import dbpool  # noqa: E402
+from tests import rich_galaxy_cache  # noqa: E402
+from tests.rich_galaxy_support import _make_the_cluster_field  # noqa: E402
+from tests.air_history_off import air_history_off  # noqa: E402
 from tests.publicids import pid  # noqa: E402
 from tests.served import served  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
@@ -250,6 +253,36 @@ def _seat_loose_systems(config):
         conn.close()
 
 
+def _build_site_galaxy(config):
+    """Builds the site galaxy in `config`'s empty database: the same draws every time (the run seed)."""
+    state = draw.getstate()
+    draw.set_run_seed(20260924)
+    try:
+        target = mysql_argv(config)
+        # The real scatter places tens of millions of stars over the
+        # whole galaxy; a few hundred near the core are enough for the
+        # Galaxy Map to draw some.
+        run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + target)
+        _add_bright_stars(config)
+        # TEST.835: the pages these tests walk do not read the record of the air history (GEN.1745), which was most of
+        # the cost of a system: with it the build of this galaxy took 935 s alone (15 min 35 s) and over the watchdog's 1740 s on a shared
+        # run. `tests/air_history_off.py` (TEST.831) builds the same systems without it, proven there by digest.
+        with forced_system_config(PLANETS=True), air_history_off():
+            run_cli("sectors", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+            for root in ("link", "backfill", "settle"):
+                run_cli(root, ["--quiet"] + target)
+        with forced_system_config(PLANETS=True), air_history_off():   # the sector fill above makes planet-less systems (GEN.227)
+            run_cli("system", ["--quiet"] + target)
+        _seat_loose_systems(config)
+        for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
+            run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
+        _add_population(config)
+        _add_scattered_phenomenon(config)
+        _add_scattered_star(config)
+    finally:
+        draw.setstate(state)
+
+
 @pytest.fixture(scope="module")
 def site_db(_mysql_server_available):
     """A throwaway database with a small generated galaxy in it, for the
@@ -265,29 +298,18 @@ def site_db(_mysql_server_available):
         admin_conn.close()
     config = MySQLConfig(database=name, **kwargs)
     try:
-        state = draw.getstate()
-        draw.set_run_seed(20260924)
-        try:
-            target = mysql_argv(config)
-            # The real scatter places tens of millions of stars over the
-            # whole galaxy; a few hundred near the core are enough for the
-            # Galaxy Map to draw some.
-            run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + target)
-            _add_bright_stars(config)
-            with forced_system_config(PLANETS=True):
-                run_cli("sectors", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
-                for root in ("link", "backfill", "settle"):
-                    run_cli(root, ["--quiet"] + target)
-            with forced_system_config(PLANETS=True):   # the sector fill above makes planet-less systems (GEN.227)
-                run_cli("system", ["--quiet"] + target)
-            _seat_loose_systems(config)
-            for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
-                run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
-            _add_population(config)
-            _add_scattered_phenomenon(config)
-            _add_scattered_star(config)
-        finally:
-            draw.setstate(state)
+        folder = rich_galaxy_cache.cache_folder()
+        if folder is None:
+            _build_site_galaxy(config)
+        else:
+            # TEST.835: the galaxy is the same for every module that uses it (about 20 files, each in a process of its own on a gate), so with the
+            # dump cache of TEST.807 one process builds it for a code state and the rest load the dump (`tests/rich_galaxy_cache.py`).
+            # This file is in the key, so a change to the build is another galaxy.
+            here = os.path.dirname(os.path.abspath(__file__))
+            key = rich_galaxy_cache.key_of(config, os.path.join(here, "..", "planetgen"), here, os.environ.get("PLANETGEN_DATA_DIR"),
+                                           extra_files=(os.path.abspath(__file__), os.path.join(here, "..", "..", "config.json")))
+            if rich_galaxy_cache.build_or_load(config, lambda: _build_site_galaxy(config), folder, key) == "loaded":
+                _make_the_cluster_field(config)
         yield config
     finally:
         store.close_pool(config)

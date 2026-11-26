@@ -6682,6 +6682,8 @@ a.help-mark {
 .life-air-key.life-air-g3 { border-top: 2px dashed var(--tier-blue); }
 .life-air-key.life-air-g4 { border-top: 2px dashed var(--tier-yellow); }
 .life-air-key.life-air-g5 { border-top: 2px dotted var(--text-muted); }
+.life-air-key.life-air-stage-key { border-top: 2px dotted var(--line); }
+.life-air-key.life-air-event-key { border-top: 2px dashed var(--tier-red); }
 
 .life-air-stages {
   margin: 0.25rem 0 0.5rem 1.25rem;

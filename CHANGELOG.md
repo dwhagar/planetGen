@@ -2,6 +2,134 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4819+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The planet physics tests' host star no longer changes with the test order
+
+### Fixed
+
+- TEST.839: `test_surface_temperature_never_drops_below_the_cosmic_background[20.0]` failed under `pytest-randomly` for some orders (seeds 17 and others on main). The cause was the module's `host_star` fixture: it drew the star outside any stream, so it took whatever the process run stream held when the first test of the file asked for it. A different age and luminosity changed the heat a 20 Earth-mass planet radiates (326 K for a young star against 43 to 85 K for an older one) and whether the draw is a giant ("g") or a smaller body with an envelope ("t"). The star is now drawn on its own named stream at the Sun's age and mass. No product change, no bound loosened, no retry.
+
+generation-output: unchanged
+
+## [8.0.4818+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The zone mix test counts planets, not the belt members promoted to planets
+
+### Fixed
+
+- TEST.838: `test_zone_mix_is_spread` counted the ten heaviest round bodies of every belt that GEN.1510 (11-11) promotes to planets (they keep `belt_rank`, all cold): 553 of 837 counted bodies in a 60-system sample, and a hot share of 0.058 on main (218/3736). The test now skips them, as it skips asteroids. No product change, no band change. The hot share is still 0.181 (207/1143) against the floor of 0.20, which is a generation question (GEN.1858), not part of this fix.
+
+generation-output: unchanged
+
+## [8.0.4817+db279.gen150.api14] - 2026-11-26
+
+**Headline:** `planetgen repair-db --regenerate` draws a damaged sector again from the galaxy's seed when parity cannot mend it.
+
+### Changed
+
+- `repair-db` used to leave a sector parity could not rebuild (its record behind the database, no parity group, too many lost blocks) with the words "regenerate it from its seed or restore a backup" and nothing behind them. With `--regenerate` it now deletes and draws that sector again through the same job as the sector page's Regenerate button, under the directive its stored record names (GEN.179), and says what became of each sector. `--dry-run` lists what would be drawn again.
+- A sector is refused, with the reason, when it was made under another generator epoch than the running code's (the seed draws another sector then; the reason names the release of that epoch), when it records no epoch, when it has no grid address or when its directive cannot be made again.
+- Admin edits are not restored by a redraw (ADM.61's replay is a later item). The dry run and the result line say how many edits the sector has ("N admin edit(s) are NOT restored"), counted from the edit journal and the admin audit log.
+- With no parity file, `repair-db --regenerate` sends every damaged sector to the seed instead of stopping.
+- `api_jobs.regenerate_sector`, `fill_emptied_sector` and `run_galaxy.regenerate_sector_cell` take an optional `directive`; the sector page's Regenerate button passes none, as before.
+
+generation-output: unchanged
+
+## [8.0.4816+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The Life and air chart says in plain words what its axes and lines are, and the page lists only the real mass extinctions.
+
+### Changed
+- **The Life and air chart explains itself (UX.322).** Its axes carry names and units (time since the star formed in Gyr, the gas pressure in kPa), the key names the numbered stage lines and the dashed extinction lines, and three plain sentences say how to read it.
+- **The planet page lists only mass extinctions (UX.321).** A shock that killed less than the share that ends an age of life (30 percent) is no longer listed or drawn as a mass extinction; each age of life now names the mass extinction that ended it instead of repeating its cause and kill share.
+
+## [8.0.4815+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The nearby-objects list no longer fails on a system that has a trojan region.
+
+### Fixed
+- Listing the bodies of a system for the nearby search raised a KeyError when the system had a giant's trojan region: the list read a belt number for every belt, and a trojan region takes none. It now names every belt the way the rest of the product does (`Asteroid belt N`, or `<host> L4 trojan region`).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4814+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A local name typed without its sector now finds the objects that have it, each with its sector, nearest sectors first.
+
+### Added
+
+- `GET /api/lookup?text=Zaidonr+Jaisonn[&near=<sector>]`: a bare local name (GEN.1255) names an object in every sector at once, so the lookup undoes the scramble of each sector in turn and reads the Object ID it gives. One match opens as an Object ID typed in full does (`current`, with its `sector`); several come back as `matches`, each with its sector; none is `unknown` and says how many sectors were searched. Every answer carries `searched`, `of` and `complete`.
+- A search that is not done inside the request goes on as a job and answers `202 searching` with the matches of the nearest sectors so far. `GET /api/lookup/jobs/<id>` reports `searched` of `of` sectors with a progress line (`Searched 1,200 of 480,000 sectors in 1s`), the time left in clock form and the finished answer. The search never stops short without saying so.
+- The sectors searched are every sector row, every cell of the scatter tables and every birth sector of the standalone phenomena, the one nearest `near` (the sector the person is in) first.
+
+### Changed
+
+- The scramble of a sector's serials is found 49 times faster (0.460 ms to 0.009 ms a sector, the same parameters for every sector, held by a test), which makes a pass over every sector cheap. No name changes.
+
+generation-output: unchanged
+
+## [8.0.4813+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The light job tests expect the time-limit message in the wording the product writes (1m 40s, 1s), so they pass again.
+
+### Fixed
+
+- TEST.837: `test_light_jobs.py` expected the time limit of a job that ran too long as 100 s and 1 s; the product writes it as 1m 40s and 1s since the duration rule. Tests only.
+
+## [8.0.4812+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: the every-button test looks at each page in a page of its own, so no load is refused
+
+### Fixed
+
+- TEST.836: `test_every_plain_button_does_something` sent one browser page to the address again for every button, and after about ten loads the browser refused the next load's scripts (`ERR_INSUFFICIENT_RESOURCES`: each load makes about 250 requests, the Shoelace modules among them, and the requests of the loads before it stay outstanding in that page's renderer until the server has answered them). The Shoelace elements were then never defined and the click waited for a button that was not there (`web.generate_task`, `web.admin_queue`, `web.admin_queue_jobs`, `web.admin_queue_run`, `web.polities`, `web.sector`, `web.system` came and went red with the load). Each look is now a page of its own; those pages pass (12 passed) and a new page opened right after a refused load always loaded, which is what pointed at the page and not the server.
+
+## [8.0.4811+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: the page tests' site galaxy builds in minutes, and once, not in 15 minutes per module
+
+### Fixed
+
+- TEST.835 (the browser tests that "hang for 29 minutes"): they were waiting on the module fixture `site_db` (`tests/test_web_a11y.py`, about 20 files), which generates real systems and, since the air history (GEN.1745), took 935 s (15 min 35 s) alone, and over the 1740 s of the TEST.621 watchdog on a shared run, which ended the worker in setup. Now it builds its systems without the air-history record (`tests/air_history_off.py`, TEST.831: the pages these tests walk do not read it; the chart has its own tests, `test_life_air_chart` and `test_item_pages`), which cut the build to 334 s and 203 s on two runs, and the built galaxy is kept in the TEST.807 dump cache, so the rest of the files load it in about 13 s.
+
+## [8.0.4810+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: a double click on a star or a body flies to it and opens its information
+
+### Fixed
+
+- MAP.140 (GitHub issue 714): the behaviour was built by the fly-through (MAP.146, MAP.226, MAP.304) and the select-and-open that goes with it was only half covered. Two browser tests now hold it: on the Galaxy Map a single click on a star selects it and opens its information without a flight, and a double click flies the camera onto it with the information still open; on the System Map's 3D view a double click on a planet flies the camera closer to it and its name is in the information panel.
+
+## [8.0.4809+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A row with a missing value for a required column is refused where it is made, and the error names the body and the columns left empty.
+
+### Fixed
+- A row refused for a NULL in a required column (`rotation_period_hours` came out so once in four runs of a two-worker run, and the error named the column and nothing else) now says the table, the required columns that were left empty, and the object's class and name, kind and place, so the next occurrence points at the body and the path that made it. The check is made as the row is built, because a sector save holds its INSERTs back and the server only refuses at the flush, after the body is gone. The error is the server's own class and number (1048); the generated numbers do not change.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4808+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Two hand-written mass conversions use the unit registry again
+
+### Fixed
+
+- TEST.834: `test_mass_conversions` was red on main: the GEN.1493 slice 3 late supply (`late_supply.eject_share`, a planet's mass over the star's mass in kilograms) and the GEN.1814 melt sulfur (`melt_sulfur`, a body's mass in Earth masses) each multiplied or divided by a mass constant by hand. Both now call `unit_registry.converter`; the numbers are the same to the last bit (200,000 draws compared), so generation output is unchanged (35 tests pass across `test_mass_conversions`, `test_late_supply`, `test_melt_sulfur`).
+
+generation-output: unchanged
+
+## [8.0.4807+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The Galaxy Map opens flown in to the largest charted region, not the whole galaxy
+
+### Changed
+
+- MAP.189 (GitHub issue 1232): with sectors charted, the first frame of the Galaxy Map flies in to the largest charted region (the first of the charted-regions list: its window, the camera where the region's sphere fills the view, as a click on the region lands, MAP.319) and shows only that space at the start; the wheel or Whole galaxy still reaches the whole galaxy. An address that asks for something else (a camera, a sector, a system) is left as it was, and `?whole=1` opens the whole galaxy as before; the whole galaxy's own address carries `whole=1` when the map has a region to fly to, so a fresh load of an address shows the view it names (MAP.106). Browser test `test_the_galaxy_map_opens_flown_in_to_the_largest_charted_region_and_zooms_out_to_the_whole_galaxy`; the browser tests that look at the whole galaxy ask for `?whole=1`.
+
 ## [8.0.4806+db279.gen150.api14] - 2026-11-26
 
 **Headline:** The star mass function's centre is nudged from 0.079 to 0.092 solar masses (inside the paper's own uncertainty), so the primaries of 0.6 to 0.8 solar masses are in their census band and the star mass function census has no known anomaly left.

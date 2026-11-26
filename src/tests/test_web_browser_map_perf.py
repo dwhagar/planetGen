@@ -177,7 +177,7 @@ def _dive_and_climb(page, steps):
 
 
 def test_the_node_path_stays_within_budget_on_a_dive_a_flight_across_and_a_climb_over_a_large_galaxy(page, large_site):
-    _open(page, f"{large_site}/galaxy", GALAXY_CANVAS)
+    _open(page, f"{large_site}/galaxy?whole=1", GALAXY_CANVAS)
     page.evaluate(INSTRUMENT)
     _settle(page)
     steps = []

@@ -30,6 +30,15 @@ that still exists; a row that has to be inserted gets them as the column's defau
 no history of its orbit). The sector is checked against the checksum again before the transaction commits, and rolled back if
 it differs.
 
+**Drawing a sector again (DB.17).** With `regenerate`, a sector parity cannot rebuild (`UNREPAIRABLE`) is drawn again from the galaxy's
+seed and its address (`queue.api_jobs.regenerate_sector`, the job behind the sector's Regenerate button), under the directive its
+stored record names (GEN.179, `generation.directives.directive_texts_of`). It is refused, and says why, when the sector was made
+under another generator epoch than this code's (the seed then draws another sector), when its epoch is not recorded, when it has no
+grid address, or when the directive its record names cannot be made again. The redraw is not a restore: admin edits of the sector
+(`edit_journal`, the admin audit log) are not replayed, and the dry run and the result line say so. A sector the redraw cannot
+check against parity (its record is the stale one) is reported as drawn again, not as verified. A sector whose tables the server will
+not read (`UNREADABLE`) is rebuilt as a table first (`--salvage`, `--reload`).
+
 **The parity file itself.** A record that fails its CRC, or a file damaged behind its last record, is made again from the
 database: the file is compacted (the unreadable records are dropped) and `parity.refresh` protects every sector the file no
 longer holds, which it does only for a sector that still hashes to its checksum.
@@ -53,6 +62,8 @@ RESEALED = "resealed"
 WOULD_REPAIR = "would repair"
 UNREPAIRABLE = "unrepairable"
 UNREADABLE = "unreadable"
+REDRAWN = "drawn again"
+WOULD_REDRAW = "would be drawn again"
 PROGRESS_EVERY = 1000
 
 
@@ -88,7 +99,7 @@ class Report:
     @property
     def clean(self):
         """True when nothing is left damaged (a dry run's `WOULD_REPAIR` is still damage)."""
-        return not any(result.outcome in (WOULD_REPAIR, UNREPAIRABLE, UNREADABLE) for result in self.results)
+        return not any(result.outcome in (WOULD_REPAIR, WOULD_REDRAW, UNREPAIRABLE, UNREADABLE) for result in self.results)
 
 
 def find_damaged(conn, scope=None, say=log.normal):
@@ -332,10 +343,149 @@ def _damaged_records(parity_store):
         return bad, parity_store.file.damaged_at
 
 
-def repair(conn, scope=None, dry_run=False, say=log.normal):
+# ---------------------------------------------------------------------
+# Drawing a sector again from its seed (DB.17)
+# ---------------------------------------------------------------------
+
+def _edits_of(conn, sector_id, audited):
+    """How many admin edits a sector has: its `edit_journal` rows and the audit log's edits of it (`audited`, `bring_to_epoch.edited_sectors`)."""
+    try:
+        journal = conn.execute("SELECT COUNT(*) AS n FROM edit_journal WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+    except READ_ERRORS:
+        conn.rollback()
+        journal = 0
+    conn.commit()
+    return max(journal, len(audited.get(sector_id, ())))
+
+
+def redraw_check(conn, sector_id, audited):
+    """
+    Whether a damaged sector can be drawn again from its seed, and what to tell the person about it.
+
+    Returns:
+        tuple: `(refusal, directive, notes, stored)`. `refusal` is why not (else `None`); `directive` the `--directive` texts of the
+            record the sector holds (else `None`); `notes` what the person is told about a redraw that goes ahead (admin edits that are
+            not restored, a build that is not the one that made the sector); `stored` the sector's stored directive record
+            (`query.sector_directive`) or `None`.
+    """
+    from planetgen.db import query
+    from planetgen.generation import directives
+    from planetgen.galaxy import version_key
+    from planetgen.util import generator_epoch
+    try:
+        row = conn.execute("SELECT s.shell_index, s.band_index, s.wedge_index, s.generator_epoch AS epoch, r.version_key AS built"
+                           " FROM sectors s LEFT JOIN generation_runs r ON r.id = s.run_id WHERE s.id = ?", (sector_id,)).fetchone()
+        conn.commit()
+    except READ_ERRORS as exc:
+        conn.rollback()
+        return f"its row cannot be read ({type(exc).__name__}: {exc}); rebuild the table first", None, [], None
+    if row is None:
+        return "there is no such sector row", None, [], None
+    if row["shell_index"] is None:
+        return "it is a hand-made sector with no grid address, so no seed draws it", None, [], None
+    if row["epoch"] is None:
+        return "it does not record the generator epoch it was made under, so the seed cannot be trusted to draw it again", None, [], None
+    now = generator_epoch.generator_epoch()
+    if row["epoch"] != now:
+        release = generator_epoch.first_release(row["epoch"])
+        where = f"; check out release {release} or later of that epoch to draw it" if release else ""
+        return (f"it was made under generator epoch {row['epoch']} and this code is epoch {now}, which draws another sector from "
+                f"the same seed{where}"), None, [], None
+    notes = []
+    current_key = version_key.version_key()
+    if row["built"] and row["built"] != current_key:
+        notes.append(f"made by build {row['built']}, drawn by {current_key} (the same generator epoch)")
+    try:
+        stored = query.sector_directive(conn, sector_id)
+        conn.commit()
+    except READ_ERRORS:
+        conn.rollback()
+        stored = None
+    texts = None
+    if stored is not None:
+        texts = directives.directive_texts_of(stored["digest"], [(item["key"], item["wanted"]) for item in stored["minimums"]])
+        if texts is None:
+            return (f"it was drawn under directive {stored['digest']}, which this code cannot make again from the minimums the record holds"), None, notes, stored
+    edits = _edits_of(conn, sector_id, audited)
+    if edits:
+        notes.append(f"{edits:,} admin edit(s) are NOT restored: the sector comes back as the seed draws it")
+    return None, texts, notes, stored
+
+
+def _same_draw(stored, drawn):
+    """Words for how a sector drawn again compares with the record it was drawn under, or `""` when it had none."""
+    if stored is None:
+        return ""
+    if drawn is None:
+        return "; its directive record was not written again"
+    if (stored["status"], stored["attempts"]) == (drawn["status"], drawn["attempts"]):
+        return f"; the directive came out the same ({drawn['status'].replace('_', ' ')} after {drawn['attempts']} draw(s))"
+    return (f"; the directive came out differently ({stored['status'].replace('_', ' ')} after {stored['attempts']} draw(s) before, "
+            f"{drawn['status'].replace('_', ' ')} after {drawn['attempts']} now)")
+
+
+def redraw_unrepairable(conn, report, config, control_conn, dry_run, say):
+    """
+    Draws again each sector of `report` that parity could not rebuild (`UNREPAIRABLE`), by `redraw_check`'s rules, and puts what became of it
+    in its place in `report.results` (`REDRAWN`, `WOULD_REDRAW` under `dry_run`, or `UNREPAIRABLE` with the reason it was not). A sector
+    drawn again is checked against nothing: the parity record that could not mend it is the one thing that would have told what it held.
+    """
+    from planetgen.db import query
+    from planetgen.galaxy import bring_to_epoch
+    from planetgen.queue import api_jobs
+    targets = [result for result in report.results if result.outcome == UNREPAIRABLE]
+    if not targets:
+        return
+    audited = bring_to_epoch.edited_sectors(conn, control_conn)
+    conn.commit()
+    if control_conn is None:
+        say("Repair: no control database was given, so the admin audit log is not read; only the journal of edits is checked.")
+    say(f"Repair: {len(targets):,} sector(s) parity cannot mend; looking at which the seed can draw again.")
+    done = 0
+    for result in list(targets):
+        refusal, texts, notes, stored = redraw_check(conn, result.sector_id, audited)
+        position = report.results.index(result)
+        if refusal is not None:
+            report.results[position] = Result(result.sector_id, UNREPAIRABLE, f"{result.reason}; not drawn again: {refusal}")
+            continue
+        extra = "; ".join(notes)
+        if dry_run:
+            report.results[position] = Result(result.sector_id, WOULD_REDRAW, extra)
+            continue
+        try:
+            made = api_jobs.regenerate_sector(result.sector_id, config, directive=texts)
+        except Exception as exc:  # noqa: BLE001 -- one sector failing must not stop the others
+            log.swallowed("db/repair", "redraw_unrepairable", exc)
+            report.results[position] = Result(result.sector_id, UNREPAIRABLE, f"{result.reason}; drawing it again failed: {exc} "
+                                              "(its cell may be empty now: `planetgen sectors` fills it)")
+            continue
+        done += 1
+        drawn = None if made["sector_id"] is None else query.sector_directive(conn, made["sector_id"])
+        conn.commit()
+        text = f"now sector id {made['sector_id']} {made['sector_name']}" + _same_draw(stored, drawn)
+        report.results[position] = Result(result.sector_id, REDRAWN, "; ".join([text] + notes))
+        say(f"Repair: {done:,} of {len(targets):,} drawn again.")
+
+
+def _redraw_without_parity(conn, scope, dry_run, say, config, control_conn, path):
+    """`repair` with `regenerate` when there is no parity file: every damaged sector is one parity cannot mend, so each goes to `redraw_unrepairable`."""
+    report = Report()
+    damaged, unreadable, report.unprotected = find_damaged(conn, scope, say)
+    report.results.extend(Result(sector_id, UNREADABLE, f"{why}; the table is rebuilt") for sector_id, why in unreadable)
+    report.results.extend(Result(sector_id, UNREPAIRABLE, f"there is no parity file at {path}") for sector_id in damaged)
+    say(f"Repair: no parity file at {path}; {len(damaged):,} damaged sector(s) go to the seed.")
+    redraw_unrepairable(conn, report, config, control_conn, dry_run, say)
+    for result in report.results:
+        say("Repair: " + result.line())
+    return report
+
+
+def repair(conn, scope=None, dry_run=False, say=log.normal, regenerate=False, config=None, control_conn=None):
     """
     Finds the damaged sectors in `scope` and repairs what the parity file allows (this module's docstring). With `dry_run`
-    nothing is written: each sector that could be rebuilt is `WOULD_REPAIR`.
+    nothing is written: each sector that could be rebuilt is `WOULD_REPAIR`. With `regenerate` the sectors parity could not
+    rebuild are drawn again from the seed (`redraw_unrepairable`; `config` is the database's connection settings, `control_conn`
+    the control database whose audit log names the edited sectors).
 
     Returns:
         Report: What became of each damaged sector and of the parity file.
@@ -345,7 +495,9 @@ def repair(conn, scope=None, dry_run=False, say=log.normal):
     """
     path = parity.parity_path()
     if not os.path.exists(path):
-        raise FileNotFoundError(f"no parity file at {path}; `planetgen refresh-parity` makes one (setting parity.enabled keeps it)")
+        if not regenerate:
+            raise FileNotFoundError(f"no parity file at {path}; `planetgen refresh-parity` makes one (setting parity.enabled keeps it)")
+        return _redraw_without_parity(conn, scope, dry_run, say, config, control_conn, path)
     parity_store = parity.store()
     report = Report()
     damaged, unreadable, report.unprotected = find_damaged(conn, scope, say)
@@ -381,6 +533,8 @@ def repair(conn, scope=None, dry_run=False, say=log.normal):
                                                                     "rows being damaged; regenerate it from its seed or restore a backup"))
     for group_id, ids in sorted(plan.items()):
         report.results.extend(_repair_group(conn, parity_store, group_id, ids, dry_run))
+    if regenerate:
+        redraw_unrepairable(conn, report, config, control_conn, dry_run, say)
     for result in report.results:
         say("Repair: " + result.line())
     bad, report.file_damaged_at = _damaged_records(parity_store)

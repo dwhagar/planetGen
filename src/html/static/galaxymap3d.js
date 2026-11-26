@@ -4153,6 +4153,8 @@ function initGalaxyMap3d(canvasEl, data) {
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
+    openWhole: !!data.openWhole,
+    openingRegion: data.openingRegion || null,        // MAP.189: the largest charted region, which the first frame frames
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
     // NAV.21: with a course, the view opens fitted round every point of it (the route, the direct line and the adjusted lines).
     courseFit: courseFitPoints.length >= 6 ? function () { return courseFitPoints; } : null,
