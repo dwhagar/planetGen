@@ -1290,10 +1290,8 @@ One row per generated system (single-star or binary).
 | `quadrant` | TEXT | nullable, CHECK IN ('I'..'VIII') | The sector octant label derived from the position above (see "Quadrant labeling" below). NULL iff position is NULL. |
 | `location` | TEXT | nullable | Human-readable "sector name + nearest neighbors" summary, e.g. `"Voranthis Kelmoor — nearest: Alpha Vesta (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)"` — up to 3 neighbors, nearest first, computed once at write time from `SpaceSector.nearest_neighbors` (see "v3" in "Schema history" above). NULL iff position is NULL. |
 | `is_binary` | INTEGER (0/1) | NOT NULL, default 0 | True for either binary configuration as of v15 (see `binary_configuration`) — before v15, true only ever meant a `'close'` pair. |
-| `binary_configuration` | TEXT | nullable, CHECK IN ('close','wide') | Added in v15. `'close'` (P-type/circumbinary, `doubleStar.BinaryStarProxy`) or `'wide'` (S-type, `wideBinary.WideBinaryPair`) — NULL for a single star. The authoritative discriminator going forward; see "Binary configuration" below for which other columns apply to which value. |
+| `binary_configuration` | TEXT | nullable, CHECK IN ('close','wide') | Added in v15. `'close'` (P-type/circumbinary, `generation.pair_host.PairHost`) or `'wide'` (S-type, its pair node in `orbit_nodes`) — NULL for a single star. The authoritative discriminator going forward; see "Binary configuration" below for which other columns apply to which value. |
 | `binary_separation_km` | DOUBLE | nullable | Orbital separation between the two stars. NULL for single-star systems. Reused unchanged for both binary configurations (see "Binary configuration" below). |
-| `binary_eccentricity` | DOUBLE | nullable | Added in v15. The pair's own orbital eccentricity — `0` for a `'close'` pair (tidal circularization is a legitimate simplification at its 0.05-0.25 AU separations), a real, generally non-zero value (sampled from a "thermal" distribution) for a `'wide'` pair, which never circularizes. |
-| `binary_periapsis_km`, `binary_apoapsis_km` | DOUBLE | nullable | Added in v15. Closest/farthest separation between the two stars — `binary_separation_km * (1 ∓ binary_eccentricity)`. Both equal `binary_separation_km` for a `'close'` pair (e=0). |
 | `binary_type` | TEXT | nullable | e.g. `"Binary (G/K)"`. **Not** the same thing as `binary_configuration` above — this pre-existing column holds a `'close'` pair's merged spectral-summary string; NULL for a `'wide'` pair (no merged effective star exists to summarize). |
 | `binary_temperature_k` | DOUBLE | nullable | Average of the two stars' temperatures. |
 | `binary_radius_km` | DOUBLE | nullable | The larger constituent star's radius (used as an approximation). |
@@ -1305,13 +1303,6 @@ One row per generated system (single-star or binary).
 | `binary_heliosphere_radius_km` | DOUBLE | nullable | |
 | `binary_galactic_orbital_period_gy` | DOUBLE | nullable | Added in v10. Circular orbital speed/period around the galactic center (see `stars.galactic_orbital_speed_kms` below) — independent of mass, so identical to the primary/secondary stars' own values, just mirrored here for the combined-pair row. Its speed column was dropped in v103 (GEN.336): the speed is the length of `velocity_x/y/z_kms` (a star and a close pair read their system's). |
 | `binary_galactic_orbital_phase_deg`, `binary_galactic_min_update_interval_years` | DOUBLE | nullable | Added in v13. Same pair as `stars.galactic_orbital_phase_deg`/`galactic_min_update_interval_years` below, mirrored here — always identical to both constituent stars' own values (see "Schema history" above for why). |
-| `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`orbits.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
-| `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `orbits.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
-| `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
-| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`orbits.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. **Unchanged in meaning by v20** — still the true separation, not a barycenter-reduced value. |
-| `binary_primary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. The primary star's own offset from the pair's barycenter — `-binary_secondary_mass_fraction * binary_mutual_position_*_km`. Reused unchanged for both binary configurations, like `binary_mutual_position_*_km` above. |
-| `binary_secondary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. The secondary star's own offset from the barycenter — always equal to `binary_primary_position_* + binary_mutual_position_*`, but stored explicitly rather than derived on read (same convention `binary_mutual_position_*_km` itself already set). |
-| `binary_secondary_mass_fraction` | DOUBLE | nullable | Added in v20. `secondary_mass / (primary_mass + secondary_mass)`, constant since masses don't change — stored so `_db.advance_orbital_phases` never needs to join back to `stars` for either mass. |
 | `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
@@ -1338,17 +1329,22 @@ system in Quadrant III" filters on directly, without a UDF or generated
 column.
 
 **Binary configuration.** `binary_configuration` (added v15) decides which
-other `binary_*` columns are populated: `binary_separation_km`,
-`binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, and
-every `binary_mutual_*`/`binary_mutual_position_*_km` column are reused
-UNCHANGED for both `'close'` and `'wide'` pairs (a `'wide'` pair's own
-mutual orbit fits the exact same shape a `'close'` pair's already
-occupies). Every other `binary_*` column (`binary_type`,
+other `binary_*` columns are populated. `binary_separation_km` is the pair's
+axis for both `'close'` and `'wide'` pairs (kept on the row for the lists and
+maps that read it without the tree). The rest of the pair's orbit has no
+column since v280 (GEN.640): its eccentricity, plane, phase, period and each
+star's place are its node in `orbit_nodes` (`orbit_trees.pair_places_km`;
+`store.advance_orbital_phases` turns the node), and the columns v13 to v20
+added for it (`binary_eccentricity`, `binary_periapsis_km`,
+`binary_apoapsis_km`, `binary_mutual_*`, `binary_primary_position_*`,
+`binary_secondary_position_*`, `binary_secondary_mass_fraction`,
+`binary_epoch_unix`, `binary_next_update_due`) are dropped. Every other
+`binary_*` column (`binary_type`,
 `binary_temperature_k`, `binary_radius_km`, `binary_effective_mass_kg`,
 `binary_effective_luminosity_w`, `binary_age_gy`, `binary_lifespan_gy`,
 `binary_habitable_zone_inner_km`/`_outer_km`, `binary_system_perimeter_km`,
-`binary_heliosphere_radius_km`, and the four `binary_galactic_orbital_*`
-columns) describes the `'close'` pair's *merged* `BinaryStarProxy` and is
+`binary_heliosphere_radius_km`, and the three `binary_galactic_orbital_*`
+columns) describes the `'close'` pair's *merged* `PairHost` and is
 NULL for a `'wide'` pair — a `'wide'` pair's two stars never merge, so
 there's no combined effective star for these to describe; each star's own
 equivalent data lives on its own `stars` row instead (including its own

@@ -119,7 +119,7 @@
 -- table_loc; planets/moons.table_class/table_distance/table_period/
 -- table_radius/table_gravity; star_systems.binary_table_*). These held a
 -- display string (e.g. "{{Exp|4.20|5}} kg (1.00% of Sol)") rendered once at
--- generation time from `Star`/`Planet`/`BinaryStarProxy.get_table_properties()`,
+-- generation time from `Star`/`Planet`/`PairHost.get_table_properties()`,
 -- baked in whichever of wikitext-template or HTML form `SystemConfig.MARKDOWN`
 -- happened to be at insert time -- wrong for any consumer wanting the other
 -- form (the interactive HTML viewer in particular, which was displaying raw
@@ -712,7 +712,7 @@
 --   `insert_star_system` used to render), and each orbit tick's current
 --   wobble and comet positions. Checked before the drop by rendering every
 --   system and comparing against the stored copy; the only fixes needed
---   were binary-pair orientation on load (`BinaryStarProxy.from_dict`/
+--   were binary-pair orientation on load (`PairHost.from_dict`/
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
 --   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
@@ -2129,24 +2129,19 @@ CREATE TABLE IF NOT EXISTS star_systems (
     -- below), not just a 'close' (P-type) pair.
     is_binary              TINYINT(1) NOT NULL DEFAULT 0 CHECK (is_binary IN (0, 1)),
 
-    -- v15: 'close' (P-type/circumbinary, doubleStar.BinaryStarProxy) |
+    -- v15: 'close' (P-type/circumbinary, doubleStar.PairHost) |
     -- 'wide' (S-type, doubleStar.WideBinaryPair) | NULL for a single star --
     -- see the header comment's "v15" note for why this is a distinct column
     -- from the pre-existing binary_type below, not a repurposing of it.
     binary_configuration   VARCHAR(8) CHECK (binary_configuration IN ('close', 'wide')),
 
-    -- BinaryStarProxy-derived fields (doubleStar.py) -- all NULL for a
+    -- PairHost-derived fields (doubleStar.py) -- all NULL for a
     -- single-star system or a 'wide' binary (see the header comment's "v15"
     -- note), stored rather than re-derived since _effective_mass/
     -- _effective_luminosity are computed once at generation time.
+    -- The pair's axis, kept on the row for the lists and maps that read it without the tree; the rest of the pair's orbit (its
+    -- eccentricity, plane, phase, period and each star's place) is its node in `orbit_nodes` (GEN.640), with no column here.
     binary_separation_km            DOUBLE,
-    -- v15: the pair's own orbital eccentricity and periapsis/apoapsis
-    -- separation -- 0/binary_separation_km for a 'close' pair, real
-    -- (generally non-zero) values for a 'wide' one. See the header
-    -- comment's "v15" note.
-    binary_eccentricity              DOUBLE,
-    binary_periapsis_km              DOUBLE,
-    binary_apoapsis_km               DOUBLE,
     binary_type                     VARCHAR(64),
     binary_temperature_k            DOUBLE,
     binary_radius_km                DOUBLE,
@@ -2162,36 +2157,6 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_galactic_orbital_phase_deg          DOUBLE,  -- v13, see header comment
     binary_galactic_min_update_interval_years  DOUBLE,  -- v13, see header comment
 
-    -- v13 (see header comment): the pair's own mutual orbit -- separate
-    -- from the galactic_* columns above.
-    binary_mutual_orbital_period_years         DOUBLE,
-    binary_mutual_orbital_speed_kms            DOUBLE,
-    binary_mutual_orbital_inclination_deg      DOUBLE,
-    binary_mutual_orbital_ascending_node_deg   DOUBLE,
-    binary_mutual_orbital_phase_deg            DOUBLE,
-    binary_epoch_unix                          DOUBLE,  -- v66 (GEN.106)
-    binary_next_update_due                     DOUBLE,
-    binary_mutual_min_update_interval_years    DOUBLE,
-    -- v14 (see header comment): the secondary's position relative to the
-    -- primary, kept in lockstep with binary_mutual_orbital_phase_deg --
-    -- same "position relative to whatever this orbit is around" convention
-    -- as planets/moons' own position_x/y/z_km.
-    binary_mutual_position_x_km   DOUBLE,
-    binary_mutual_position_y_km   DOUBLE,
-    binary_mutual_position_z_km   DOUBLE,
-    -- v20 (see header comment): each binary member's own offset from the
-    -- pair's barycenter -- secondary_position = primary_position +
-    -- binary_mutual_position above always holds, but both are stored
-    -- explicitly rather than derived on read.
-    binary_primary_position_x_km    DOUBLE,
-    binary_primary_position_y_km    DOUBLE,
-    binary_primary_position_z_km    DOUBLE,
-    binary_secondary_position_x_km  DOUBLE,
-    binary_secondary_position_y_km  DOUBLE,
-    binary_secondary_position_z_km  DOUBLE,
-    -- v20: secondary_mass / (primary_mass + secondary_mass), constant --
-    -- stored so advance_orbital_phases never needs to join back to `stars`.
-    binary_secondary_mass_fraction  DOUBLE,
     -- v20: additional pair-wide wobble from circumbinary (P-type) planets
     -- (star_id IS NULL) -- NULL unless binary_configuration = 'close'.
     binary_planetary_wobble_x_km    DOUBLE,
@@ -2232,7 +2197,6 @@ CREATE TABLE IF NOT EXISTS star_systems (
         FOREIGN KEY (system_config_id) REFERENCES system_configs(id),
     KEY idx_star_systems_sector_id (sector_id),
     KEY idx_star_systems_next_update_due (next_update_due),
-    KEY idx_star_systems_binary_next_update_due (binary_next_update_due),
     KEY idx_star_systems_system_config_id (system_config_id),
     KEY idx_star_systems_name (name),
     FULLTEXT KEY ft_star_systems_name (name),
@@ -2252,7 +2216,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
 
 -- ---------------------------------------------------------------------
 -- stars -- one row per single star, two rows (primary/secondary) per
--- binary. Never a row for the BinaryStarProxy itself (its snapshot lives
+-- binary. Never a row for the PairHost itself (its snapshot lives
 -- on star_systems above). Fields verified against starData.py:399-445 /
 -- Star.__init__.
 -- ---------------------------------------------------------------------
@@ -2370,7 +2334,7 @@ CREATE TABLE IF NOT EXISTS planets (
     -- every 'wide' binary's planets too (each orbits one specific
     -- constituent star). Still NULL for a 'close' (P-type) binary's
     -- planets: systemData.py generates those against the merged
-    -- `BinaryStarProxy`, never one individual constituent star, and the
+    -- `PairHost`, never one individual constituent star, and the
     -- proxy is deliberately not stored as its own `stars` row (see
     -- star_systems.binary_* above). `star_system_id` above is always the
     -- reliable owning link regardless of star_id.
@@ -2418,7 +2382,7 @@ CREATE TABLE IF NOT EXISTS planets (
     eccentricity                     DOUBLE NOT NULL DEFAULT 0,  -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this planet's orbital anchor (the star, or the
-    -- BinaryStarProxy's combined center for a binary system), made from
+    -- PairHost's combined center for a binary system), made from
     -- distance_km and the orbital-motion columns above and moved by
     -- planetgen.cli.orbits with kepler.universal_step, with the velocity
     -- below and epoch_unix as its state.
@@ -6870,3 +6834,7 @@ CREATE TABLE IF NOT EXISTS engine_piece_results (
 -- v279 (GEN.163): `phenomenon_scatter` gains `cluster_id`: the `galaxy_components.id` of the globular cluster a scattered object was drawn in (`component_pass.scatter_phenomena`), NULL for an object of the field,
 -- of a satellite, and for a row made before v279, nothing is backfilled. The built system reads it (`run_sector._build_scattered`): a pulsar of a cluster may hold a captured giant (`generation/pulsar_planets.py`).
 -- It is a plain column, not a foreign key: a cluster row may be replaced while its scattered objects stay.
+
+-- v280 (GEN.640 slices c and d): `star_systems` drops the 21 columns that copied the pair's orbit (`binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, the `binary_mutual_*` orbit, position and update-interval columns,
+-- `binary_primary_position_*`, `binary_secondary_position_*`, `binary_secondary_mass_fraction`, `binary_epoch_unix` and `binary_next_update_due`) with the index on the last. The pair of a system is its node in `orbit_nodes`
+-- (`generation/pair_orbit.PairOrbit`, `db/orbit_trees.pair_places_km`); `binary_separation_km` stays as the pair's axis for the lists and maps.

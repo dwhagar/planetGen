@@ -25,7 +25,7 @@ Rather than assembling a nested dict shaped like
 normalized across many flat tables) and routing through
 `StarSystem.from_dict`, each row is mapped directly to the flat dict shape
 each *leaf* class's own `from_dict` already accepts (`Star.from_dict`,
-`BinaryStarProxy.from_dict`, `Planet.from_dict`, `AsteroidBelt.from_dict`),
+`PairHost.from_dict`, `Planet.from_dict`, `AsteroidBelt.from_dict`),
 and `StarSystem` itself is assembled directly here the same way
 `StarSystem.from_dict` assembles it internally -- reusing the leaf
 allowlists/reconstruction logic from `planetgen/util/serialization.py`
@@ -95,7 +95,7 @@ from planetgen.generation.comet import Comet, comet_designation, rename_comet_de
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.hosts import MEMBER, NODE, PRIMARY, SECONDARY, Host
 from planetgen.generation.prevalence import FEATURES as PREVALENCE_FEATURES
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.galaxy.density import GalaxyShape, with_family_columns, with_system_richness
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
@@ -3002,7 +3002,7 @@ def _store_flavor_key(conn, table, row_id, body):
 def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0), slot=None, flags=0) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
-    `BinaryStarProxy` -- see `insert_star_system`).
+    `PairHost` -- see `insert_star_system`).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -4675,25 +4675,17 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
 
 _NULL_PROXY_ONLY_BINARY_FIELDS = (None,) * 14
 """Placeholder for the 14 `star_systems.binary_*` columns that only ever
-describe a merged `BinaryStarProxy` (a 'close'/P-type pair) -- always NULL
+describe a merged `PairHost` (a 'close'/P-type pair) -- always NULL
 for a 'wide'/S-type pair or a single star, since no merged effective star
 exists to describe in either of those cases. See `schema.sql`'s "v15"
-header note and `_proxy_only_binary_fields`."""
-
-_NULL_MUTUAL_ORBIT_FIELDS = (None,) * 16
-"""Placeholder for the 16 `star_systems.binary_mutual_*`/
-`binary_primary_position_*`/`binary_secondary_position_*`/
-`binary_secondary_mass_fraction` columns (excluding `binary_separation_km`,
-handled separately in `insert_star_system` since it sits earlier in column
-order, alongside the eccentricity/periapsis/apoapsis columns it's grouped
-with) -- NULL for a single (non-binary) star. See
-`_mutual_orbit_fields_from_proxy`/`_mutual_orbit_fields_from_wide_binary`."""
+header note and `_proxy_only_binary_fields`. The pair's own orbit has no
+column: it is the pair's node in `orbit_nodes` (GEN.640)."""
 
 
-def _proxy_only_binary_fields(proxy: BinaryStarProxy):
+def _proxy_only_binary_fields(proxy: PairHost):
     """
     Extracts the 14 `star_systems.binary_*` column values that only ever
-    apply to a merged `BinaryStarProxy` -- `binary_type` (the pair's
+    apply to a merged `PairHost` -- `binary_type` (the pair's
     combined spectral-summary string) through
     `binary_galactic_min_update_interval_years` -- in the exact order
     `insert_star_system`'s `INSERT` lists them. NOT used for a 'wide'
@@ -4702,7 +4694,7 @@ def _proxy_only_binary_fields(proxy: BinaryStarProxy):
     own `stars` rows instead.
 
     Args:
-        proxy (BinaryStarProxy): The system's combined-pair proxy.
+        proxy (PairHost): The system's combined-pair host.
 
     Returns:
         tuple: 15 values, ready to splice into the `INSERT` parameters.
@@ -4722,75 +4714,6 @@ def _proxy_only_binary_fields(proxy: BinaryStarProxy):
         proxy.galactic_orbital_period_gy,
         proxy.galactic_orbital_phase_deg,
         proxy.galactic_min_update_interval_years,
-    )
-
-
-def _mutual_orbit_fields_from_proxy(proxy: BinaryStarProxy):
-    """
-    Extracts the 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
-    `binary_secondary_position_*`/`binary_secondary_mass_fraction` column
-    values (period, speed, inclination, ascending node, phase,
-    update-guard interval, x/y/z position, each star's own barycenter
-    offset, and the mass fraction -- everything except
-    `binary_separation_km`, handled separately) from a 'close' pair's
-    `BinaryStarProxy`.
-
-    Returns:
-        tuple: 16 values, ready to splice into the `INSERT` parameters.
-    """
-    return (
-        proxy.binary_mutual_orbital_period_years,
-        proxy.binary_mutual_orbital_speed_kms,
-        proxy.binary_mutual_orbital_inclination_deg,
-        proxy.binary_mutual_orbital_ascending_node_deg,
-        proxy.binary_mutual_orbital_phase_deg,
-        proxy.binary_mutual_min_update_interval_years,
-        _au_to_km(proxy.binary_mutual_position_x),
-        _au_to_km(proxy.binary_mutual_position_y),
-        _au_to_km(proxy.binary_mutual_position_z),
-        _au_to_km(proxy.binary_primary_position_x),
-        _au_to_km(proxy.binary_primary_position_y),
-        _au_to_km(proxy.binary_primary_position_z),
-        _au_to_km(proxy.binary_secondary_position_x),
-        _au_to_km(proxy.binary_secondary_position_y),
-        _au_to_km(proxy.binary_secondary_position_z),
-        proxy.binary_secondary_mass_fraction,
-    )
-
-
-def _mutual_orbit_fields_from_wide_binary(pair):
-    """
-    The same 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
-    `binary_secondary_position_*`/`binary_secondary_mass_fraction` columns
-    as `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
-    `generation.pair_orbit.PairOrbit` instead -- these columns are reused
-    unchanged across both binary configurations (see `schema.sql`'s "v15"
-    header note): a wide pair's own (circular-approximation) mutual orbit
-    fits the exact same shape a close pair's already occupies.
-
-    Args:
-        pair (PairOrbit): The system's pair orbit.
-
-    Returns:
-        tuple: 16 values, ready to splice into the `INSERT` parameters.
-    """
-    return (
-        pair.period_years,
-        pair.speed_kms,
-        pair.inclination_deg,
-        pair.ascending_node_deg,
-        pair.phase_deg,
-        pair.min_update_interval_years,
-        _au_to_km(pair.position_x_au),
-        _au_to_km(pair.position_y_au),
-        _au_to_km(pair.position_z_au),
-        _au_to_km(pair.primary_position_x_au),
-        _au_to_km(pair.primary_position_y_au),
-        _au_to_km(pair.primary_position_z_au),
-        _au_to_km(pair.secondary_position_x_au),
-        _au_to_km(pair.secondary_position_y_au),
-        _au_to_km(pair.secondary_position_z_au),
-        pair.secondary_mass_fraction,
     )
 
 
@@ -5067,33 +4990,16 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     # binary_type (None | "close" | "wide") is the authoritative
     # discriminator (see system.StarSystem.__init__); is_binary means "this system
     # has two stars", true for either configuration. proxy_like gates
-    # exactly the columns that only ever describe a merged BinaryStarProxy
+    # exactly the columns that only ever describe a merged PairHost
     # -- see schema.sql's "v15" header note.
     binary_configuration = getattr(star_system, "binary_type", None)
     is_binary = binary_configuration is not None
-    proxy_like = isinstance(star_system.star, BinaryStarProxy)
+    proxy_like = isinstance(star_system.star, PairHost)
 
-    if proxy_like:
-        proxy_only_fields = _proxy_only_binary_fields(star_system.star)
-        mutual_orbit_fields = _mutual_orbit_fields_from_proxy(star_system.star)
-        separation_km = _au_to_km(star_system.star.binary_separation_au)
-        # A close pair's mutual orbit is treated as circular (tidal
-        # circularization is a legitimate simplification at its 0.05-0.25
-        # AU separations) -- periapsis == apoapsis == separation, eccentricity 0.
-        eccentricity = 0.0
-        periapsis_km = apoapsis_km = separation_km
-    elif binary_configuration == "wide":
-        proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
-        pair = star_system.pair_orbit
-        mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(pair)
-        separation_km = _au_to_km(pair.separation_au)
-        eccentricity = pair.eccentricity
-        periapsis_km = _au_to_km(pair.periapsis_au)
-        apoapsis_km = _au_to_km(pair.apoapsis_au)
-    else:
-        proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
-        mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
-        separation_km = eccentricity = periapsis_km = apoapsis_km = None
+    # The pair's orbit is its node's (GEN.640): the row keeps only the axis, which the sector lists, the maps and the facilities read without the tree.
+    pair = star_system.pair_orbit
+    separation_km = None if pair is None else _au_to_km(pair.separation_au)
+    proxy_only_fields = _proxy_only_binary_fields(star_system.star) if proxy_like else _NULL_PROXY_ONLY_BINARY_FIELDS
 
     # v20: circumbinary (P-type) planets' combined pull on the whole pair
     # -- only meaningful for a 'close' pair (see schema.sql's "v20" header
@@ -5136,32 +5042,24 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
             sector_id, system_config_id, name,
             position_x_mpc, position_y_mpc, position_z_mpc, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc, quadrant, location,
             is_binary, binary_configuration,
-            binary_separation_km, binary_eccentricity, binary_periapsis_km, binary_apoapsis_km,
+            binary_separation_km,
             binary_type, binary_temperature_k, binary_radius_km,
             binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy, binary_lifespan_gy,
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
             binary_galactic_orbital_period_gy,
             binary_galactic_orbital_phase_deg, binary_galactic_min_update_interval_years,
-            binary_mutual_orbital_period_years, binary_mutual_orbital_speed_kms,
-            binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg,
-            binary_mutual_orbital_phase_deg, binary_mutual_min_update_interval_years,
-            binary_mutual_position_x_km, binary_mutual_position_y_km, binary_mutual_position_z_km,
-            binary_primary_position_x_km, binary_primary_position_y_km, binary_primary_position_z_km,
-            binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km,
-            binary_secondary_mass_fraction,
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
             system_flavor_text, runaway_class, runaway_speed_kms,
             velocity_x_kms, velocity_y_kms, velocity_z_kms, schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.name,
             position_x_mpc, position_y_mpc, position_z_mpc, *galaxy_pc, quadrant, location,
             int(is_binary), binary_configuration,
-            separation_km, eccentricity, periapsis_km, apoapsis_km,
+            separation_km,
             *proxy_only_fields,
-            *mutual_orbit_fields,
             *planetary_wobble_fields,
             star_system.system_flavor_text,
             getattr(star_system, "runaway_class", None), getattr(star_system, "runaway_speed_kms", None),
@@ -8885,20 +8783,13 @@ def add_system_to_sector(conn, sector_id, star_system, system_config, position=N
 
 _SYSTEM_CONTENT_COLUMNS = (
     "system_config_id", "is_binary", "binary_configuration",
-    "binary_separation_km", "binary_eccentricity", "binary_periapsis_km", "binary_apoapsis_km",
+    "binary_separation_km",
     "binary_type", "binary_temperature_k", "binary_radius_km",
     "binary_effective_mass_kg", "binary_effective_luminosity_w", "binary_age_gy", "binary_lifespan_gy",
     "binary_habitable_zone_inner_km", "binary_habitable_zone_outer_km",
     "binary_system_perimeter_km", "binary_heliosphere_radius_km",
     "binary_galactic_orbital_period_gy",
     "binary_galactic_orbital_phase_deg", "binary_galactic_min_update_interval_years",
-    "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
-    "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
-    "binary_mutual_orbital_phase_deg", "binary_epoch_unix", "binary_next_update_due",
-    "binary_mutual_min_update_interval_years", "binary_mutual_position_x_km", "binary_mutual_position_y_km", "binary_mutual_position_z_km",
-    "binary_primary_position_x_km", "binary_primary_position_y_km", "binary_primary_position_z_km",
-    "binary_secondary_position_x_km", "binary_secondary_position_y_km", "binary_secondary_position_z_km",
-    "binary_secondary_mass_fraction",
     "binary_planetary_wobble_x_km", "binary_planetary_wobble_y_km", "binary_planetary_wobble_z_km",
     "system_flavor_text", "runaway_class", "runaway_speed_kms", "schema_version",
 )
@@ -10466,9 +10357,8 @@ def _load_single_star(conn, star_system_id, system_config, speed_kms):
 
 def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
     """Maps a `star_systems` row's `binary_*` columns to
-    `BinaryStarProxy.from_dict`'s expected dict shape, inverting every unit
-    conversion `_proxy_only_binary_fields`/`_mutual_orbit_fields_from_proxy`
-    apply."""
+    `PairHost.from_dict`'s expected dict shape, inverting every unit
+    conversion `_proxy_only_binary_fields` applies."""
     row = star_system_row
     return {
         "name": row["name"],
@@ -10487,23 +10377,6 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "galactic_orbital_period_gy": row["binary_galactic_orbital_period_gy"],
         "galactic_orbital_phase_deg": row["binary_galactic_orbital_phase_deg"],
         "galactic_min_update_interval_years": row["binary_galactic_min_update_interval_years"],
-        "binary_mutual_orbital_period_years": row["binary_mutual_orbital_period_years"],
-        "binary_mutual_orbital_speed_kms": row["binary_mutual_orbital_speed_kms"],
-        "binary_mutual_orbital_inclination_deg": row["binary_mutual_orbital_inclination_deg"],
-        "binary_mutual_orbital_ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
-        "binary_mutual_orbital_phase_deg": row["binary_mutual_orbital_phase_deg"],
-        "binary_mutual_min_update_interval_years": row["binary_mutual_min_update_interval_years"],
-        "binary_mutual_position_x": _km_to_au(row["binary_mutual_position_x_km"]),
-        "binary_mutual_position_y": _km_to_au(row["binary_mutual_position_y_km"]),
-        "binary_mutual_position_z": _km_to_au(row["binary_mutual_position_z_km"]),
-        "binary_primary_position_x": _km_to_au(row["binary_primary_position_x_km"]),
-        "binary_primary_position_y": _km_to_au(row["binary_primary_position_y_km"]),
-        "binary_primary_position_z": _km_to_au(row["binary_primary_position_z_km"]),
-        "binary_secondary_position_x": _km_to_au(row["binary_secondary_position_x_km"]),
-        "binary_secondary_position_y": _km_to_au(row["binary_secondary_position_y_km"]),
-        "binary_secondary_position_z": _km_to_au(row["binary_secondary_position_z_km"]),
-        "binary_secondary_mass_fraction": row["binary_secondary_mass_fraction"],
-        "_binary_separation_au": _km_to_au(row["binary_separation_km"]),
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
         "primary": primary_dict,
@@ -10674,6 +10547,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     binary_configuration = row["binary_configuration"]
 
     secondary_star = None
+    orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
 
     if binary_configuration == "close":
         primary_row = conn.execute(
@@ -10685,7 +10559,10 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         proxy_data = _binary_proxy_row_to_dict(
             row, _star_row_to_dict(primary_row, speed_kms), _star_row_to_dict(secondary_row, speed_kms)
         )
-        star = BinaryStarProxy.from_dict(proxy_data, system_config)
+        # the pair's orbit is its node's: the host holds the node, and whether the primary hangs under its slot 1 (`PairHost`)
+        pair_node_no = orbit_trees.pair_node_no(conn, star_system_id)
+        pair_node = next(node for node in orbit_nodes if node.node_no == pair_node_no)
+        star = PairHost.from_dict(proxy_data, system_config, pair_node, orbit_trees.slot_under(orbit_nodes, primary_row, pair_node_no) == 1)
     elif binary_configuration == "wide":
         primary_row = conn.execute(
             "SELECT * FROM stars WHERE star_system_id = ? AND role = 'primary'", (star_system_id,)
@@ -10713,7 +10590,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.system_config = system_config
     system.star = star
     system.binary_type = binary_configuration
-    system.orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
+    system.orbit_nodes = orbit_nodes
     system.dark_members = orbit_trees.read_dark_members(conn, star_system_id)    # GEN.1013
 
     # v20: only meaningful (non-NULL) for a 'close' pair -- see
@@ -10732,14 +10609,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     )
 
     if binary_configuration == "close":
-        # `primary_star`/`secondary_star` keep generation order (the
-        # `stars.role` rows), which can differ from the proxy's own
-        # heavier-first `_primary`/`_secondary` -- `StarSystem.__str__`
-        # renders the per-star sections in this order.
-        if secondary_row["mass_kg"] > primary_row["mass_kg"]:
-            system.primary_star, system.secondary_star = star._secondary, star._primary
-        else:
-            system.primary_star, system.secondary_star = star._primary, star._secondary
+        # `primary_star`/`secondary_star` are the `stars.role` rows, the heavier first as generated.
+        system.primary_star, system.secondary_star = star._primary, star._secondary
         system.primary_star.db_id = primary_row["id"]
         system.secondary_star.db_id = secondary_row["id"]
         system.stars = [system.primary_star, system.secondary_star]

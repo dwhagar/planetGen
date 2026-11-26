@@ -13,7 +13,7 @@ place of an ordinary `Star` -- e.g. a pulsar with a fallback-disk planet
 nothing left orbiting it at all.
 
 Both classes subclass `StellarObject` (`generation/stellar_object.py`), the
-family class `Star` and `binary.BinaryStarProxy` share, and this module fills
+family class `Star` and `pair_host.PairHost` share, and this module fills
 in the same attribute surface (`mass`, `radius`, `temperature`, `luminosity`, `age`,
 `lifespan`, `habitable_zone`, `system_perimeter`, `heliosphere_radius`,
 `galactic_orbital_*`) with values appropriate to a compact remnant instead.

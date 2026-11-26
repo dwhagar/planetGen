@@ -332,17 +332,18 @@ def _barycenter_offsets(*members):
 
 def _close_pair_section(pair):
     primary, secondary = pair._primary, pair._secondary
+    orbit = pair.pair_orbit
     offsets = _barycenter_offsets(
-        (primary, (pair.binary_primary_position_x, pair.binary_primary_position_y, pair.binary_primary_position_z)),
-        (secondary, (pair.binary_secondary_position_x, pair.binary_secondary_position_y, pair.binary_secondary_position_z)))
+        (primary, (orbit.primary_position_x_au, orbit.primary_position_y_au, orbit.primary_position_z_au)),
+        (secondary, (orbit.secondary_position_x_au, orbit.secondary_position_y_au, orbit.secondary_position_z_au)))
     rows = [
         fact("type", "Type", pair.type),
         fact("mass", "Mass", _mass(pair.mass)),
         fact("lum", "Luminosity", _luminosity(pair.luminosity)),
         fact("hab", "Habitable zone", "Between ", _au(pair.habitable_zone[0]), " and ", _au(pair.habitable_zone[1])),
-        fact("separation", "Stellar separation", _au(pair.binary_separation_au)),
-        fact("mutual_orbit", "Mutual orbit", _kms(pair.binary_mutual_orbital_speed_kms), " (",
-             _years(pair.binary_mutual_orbital_period_years), " per orbit)"),
+        fact("separation", "Stellar separation", _au(orbit.separation_au)),
+        fact("mutual_orbit", "Mutual orbit", _kms(orbit.speed_kms), " (",
+             _years(orbit.period_years), " per orbit)"),
         fact("wobble", "Barycenter offset", offsets[0], ", ", offsets[1], " from the barycenter"),
         fact("orbit", "Galactic orbit", _galactic_orbit(pair.galactic_orbital_speed_kms, pair.galactic_orbital_period_gy)),
         fact("loc", "Location", f"{close_pair_label(primary.name, secondary.name)} Binary System"),

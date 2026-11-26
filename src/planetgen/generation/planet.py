@@ -67,7 +67,7 @@ class Planet(PlanetaryObject):
     discriminator shared with `AsteroidBelt` (whose `body_type` is always
     `'a'`): `StarSystem` holds `Planet` and `AsteroidBelt` instances
     together in one `planets` list and switches on `.body_type` to tell
-    them apart. `Star.type`/`BinaryStarProxy.type` is an unrelated,
+    them apart. `Star.type`/`PairHost.type` is an unrelated,
     differently-shaped attribute (a full descriptive string like
     `"G2V Yellow Main Sequence Star"`, not a single-character code) that
     happens to share the same name on a different class.
@@ -161,7 +161,7 @@ class Planet(PlanetaryObject):
         position_x, position_y, position_z (float): This body's current
                                    Cartesian position, in AU, relative to
                                    its orbital anchor -- the star (or, for
-                                   a binary system, the `BinaryStarProxy`
+                                   a binary system, the `PairHost`
                                    standing in for the system's combined
                                    center) for a planet, the parent planet
                                    for a moon. Made from `distance` and
@@ -682,7 +682,7 @@ class Planet(PlanetaryObject):
 
         Args:
             data (dict): A dict in the shape `to_dict()` produces.
-            star (Star or BinaryStarProxy): The system's star, threaded in
+            star (Star or PairHost): The system's star, threaded in
                                             rather than stored per-planet
                                             (see `StarSystem.from_dict`).
             system_config (SystemConfig): The system's shared config.

@@ -273,7 +273,7 @@ def test_to_dict_and_from_dict_round_trip_positions_and_names():
     # BINARY_SYSTEM pinned False: this test is about name/position
     # round-tripping, not binary-star naming (a real binary rolled here
     # would append " Binary System" to the configured name -- see
-    # BinaryStarProxy -- unrelated to what's under test).
+    # PairHost -- unrelated to what's under test).
     system, cfg = make_system(star_type="M5V", NAME="Trantor", BINARY_SYSTEM=False)
     sector.add_system(system, position=(1.5, -2.5, 0.0), system_config=cfg)
 
@@ -355,7 +355,7 @@ def test_save_and_load_round_trip_via_file(tmp_path):
     # BINARY_SYSTEM pinned False: this test is about name/position
     # round-tripping through a file, not binary-star naming (a real binary
     # rolled here would append " Binary System" to the configured name --
-    # see BinaryStarProxy -- unrelated to what's under test).
+    # see PairHost -- unrelated to what's under test).
     system, cfg = make_system(star_type="K3V", NAME="Vulcan", BINARY_SYSTEM=False)
     sector.add_system(system, position=(4.0, 4.0, 4.0), system_config=cfg)
 

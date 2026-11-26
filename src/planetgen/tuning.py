@@ -503,7 +503,7 @@ COMPANIONS_PER_DECADE_BY_PRIMARY_MASS = (
 )
 
 # S-type binary separation is drawn from the companions-per-decade lines above (GEN.448), from this lower bound,
-# the top of the close/P-type BinaryStarProxy separation range (0.05-0.25 AU), so the two configurations'
+# the top of the close/P-type PairHost separation range (0.05-0.25 AU), so the two configurations'
 # separations never overlap.
 # The upper bound is not a constant: a pair survives only inside the
 # widest axis its place allows (GEN.103, `generation.place_terms.

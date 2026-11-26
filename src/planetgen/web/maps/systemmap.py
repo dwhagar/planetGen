@@ -18,7 +18,7 @@ minimal-displacement fix, not a wholesale relayout) -- true position
 first, decluttering only where it's actually needed.
 
 A single-star or 'close' (P-type) binary system's planets all orbit a
-shared origin (the barycenter -- see `binary.BinaryStarProxy`'s
+shared origin (the barycenter -- see `pair_host.PairHost`'s
 docstring: a 'close' pair's own two stars are placed around that same
 origin too, split by their real mass ratio from
 `star_systems.binary_mutual_position_x/y/z_km`, the secondary's position
@@ -1076,7 +1076,7 @@ def _binary_star_positions_km(system, stars):
     rather than treating the primary as a fixed, unmoving anchor. Used both
     to actually place each star's own marker and, for a 'close' (P-type)
     pair, as the shared origin every planet/belt in the system also orbits
-    (`binary.BinaryStarProxy` merges the pair into one *effective*
+    (`pair_host.PairHost` merges the pair into one *effective*
     star sitting at that same barycenter -- see its own docstring).
 
     Args:

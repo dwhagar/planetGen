@@ -2,7 +2,7 @@
 
 """
 Computes the same "Star Data"/"Planet Data" display strings
-`Star`/`Planet`/`BinaryStarProxy.get_table_properties()` used to bake into
+`Star`/`Planet`/`PairHost.get_table_properties()` used to bake into
 the database's now-removed `table_*`/`binary_table_*` columns (see
 `schema.sql`'s "v5" header note) -- but on demand, from the raw numeric
 columns (`mass_kg`, `radius_km`, `luminosity_w`, `distance_km`, ...) that
