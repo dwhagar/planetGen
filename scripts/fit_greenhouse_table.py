@@ -17,6 +17,7 @@ seconds to minutes an air. Four steps, each resumable, each writing into the wor
     python3 scripts/fit_greenhouse_table.py cold WORK --name cold --count 800         the cold dense airs of the far edge of a system (GEN.1780)
     python3 scripts/fit_greenhouse_table.py cold WORK --name coldcia --cia --count 1500   cold dense nitrogen airs of light worlds with a few percent of infrared gases (GEN.1796)
     python3 scripts/fit_greenhouse_table.py cold WORK --name coldgen --gen --count 2000   cold dense nitrogen airs with the minor gases the generator's own airs carry (GEN.1796)
+    python3 scripts/fit_greenhouse_table.py slope WORK --name slope --count 400          carbon dioxide airs with minor infrared gases, each with twins that double the gases, so the fit holds the slope (GEN.1854)
     python3 scripts/fit_greenhouse_table.py traces WORK --name traces --count 3000     temperate, cold and carbon dioxide airs with one to three minor gases from 1e-9 to 3e-3 of the air (GEN.1621)
     python3 scripts/fit_greenhouse_table.py earthtraces WORK --name earthtraces --count 800   Earth-like airs with methane, nitrous oxide, ozone and the like at their small shares (GEN.1621)
     python3 scripts/fit_greenhouse_table.py census WORK --name census --census A.jsonl.gz --count 2500   the census airs with their minor gases, and each base with one of them (GEN.1621)
@@ -583,6 +584,91 @@ def cold(args):
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
 
 
+SLOPE_FAMILIES = (
+    ("slope-dense-carbon-dioxide", {"CO2": (0.85, 0.999), "N2": (0.0, 0.1), "Ar": (0.0, 0.01), "H2O": (1.0e-6, 1.0e-2)}, (2.0e5, 2.0e7), (8.0, 400.0)),
+    ("slope-nitrogen-carbon-dioxide", {"N2": (0.5, 0.95), "CO2": (0.01, 0.5), "Ar": (0.0, 0.01), "H2O": (1.0e-6, 1.0e-2)}, (1.0e5, 1.0e7), (5.0, 300.0)),
+    ("slope-thin-carbon-dioxide", {"CO2": (0.6, 1.0), "N2": (0.0, 0.3), "Ar": (0.0, 0.02), "H2O": (1.0e-6, 1.0e-2)}, (2.0e3, 3.0e5), (10.0, 600.0)),
+)
+"""tuple: GEN.1854: the families of `slope` (name, base gases, surface pressure range in Pa, absorbed flux range in W/m2): carbon dioxide airs from a thin one to 200 bar, under the light of a cold
+world (8 W/m2) to a hot one, where the table's slope in a minor infrared gas had the wrong sign (Oobala Tadras III, 4.3 MPa, 30 W/m2 absorbed: the table cooled the ground 18 K for twice the carbonyl sulfide where
+the model warms it 6 K). `SLOPE_GASES` is added to each at log-uniform shares."""
+SLOPE_GASES = ("SO2", "H2S", "OCS", "CO", "SO", "CS2", "SO3", "CH4", "HCl", "NH3", "HCN", "N2O", "C2H6")
+SLOPE_SHARE = (1.0e-9, 1.0e-2)
+
+
+def slope_airs(count, rng):
+    """GEN.1854: `count` airs drawn from `SLOPE_FAMILIES` with two to six minor gases (`SLOPE_GASES`) at log-uniform shares of `SLOPE_SHARE`, each followed by two twins, one with every infrared-active gas
+    doubled (what `tests/test_radiation_sweep.py` doubles) and one with a single minor gas doubled. Returns `(airs, pairs)`: the airs in the order base, all doubled, one doubled, and the pairs `(base, twin)` as
+    indices into `airs`, which `fit` holds to a twin the model puts no lower (the model does not cool the ground for more of a greenhouse gas; a table that does is wrong, not the physics)."""
+    from planetgen.physics import gases
+
+    families = [(family[0], family[1], family[2], family[3], 0.0, (2.0, 25.0)) for family in SLOPE_FAMILIES]
+    bases = designed_airs(count, rng, families)
+    airs, pairs = [], []
+    for partials, gravity, flux, share, aloft in bases:
+        total = sum(partials.values())
+        added = dict(partials)
+        chosen = rng.sample(SLOPE_GASES, rng.randint(2, 6))
+        for formula in chosen:
+            added[formula] = math.exp(rng.uniform(math.log(SLOPE_SHARE[0]), math.log(SLOPE_SHARE[1]))) * total
+        active = [formula for formula in added if gases.gas(formula).is_infrared_active]
+        one = rng.choice([formula for formula in chosen if formula in active] or active)
+        base = len(airs)
+        airs.append((added, gravity, flux, share, aloft))
+        for doubled in (active, [one]):
+            airs.append(({formula: (2.0 * amount if formula in doubled else amount) for formula, amount in added.items()}, gravity, flux, share, aloft))
+            pairs.append((base, len(airs) - 1))
+    return airs, pairs
+
+
+NEAR_AIR = ({"H2O": 4971.489333229643, "SO2": 61.464628203349136, "H2S": 0.042213771276067014, "CO2": 3994466.8988359803, "N2": 282237.3393873816, "OCS": 3867.935853628947,
+             "CO": 51.136772597710014, "Ar": 23.511097033566948, "SO": 8.197397496010979, "CS2": 4.751633621916947, "SO3": 0.003420698392165744, "CH4": 158.24547258773455},
+            1.1485906127299683 * 9.80665, 29.87652659125291)
+"""tuple: GEN.1854: the air `slope --near` draws around (partial pressures in Pa, gravity in m/s2, absorbed flux in W/m2): the air of a body of the radiation sweep (class G, 4.3 MPa, 30 W/m2 absorbed) at which
+the table cooled the ground for twice the infrared-active gases and stood 50 K under the model. The generator's own airs of this kind carry these gases at these shares, which the broad families (`SLOPE_FAMILIES`) draw less often."""
+
+
+def near_airs(count, rng):
+    """GEN.1854: `count` bases around `NEAR_AIR` (each gas times a log-normal factor of a spread of 1.2 in the logarithm, the gravity by up to 1.4, the flux from a third to three times) and the twins of `slope_airs`."""
+    from planetgen.physics import gases
+
+    partials, gravity, flux = NEAR_AIR
+    airs, pairs = [], []
+    for _ in range(count):
+        added = {formula: amount * math.exp(rng.gauss(0.0, 1.2)) for formula, amount in partials.items()}
+        added["CO2"] = partials["CO2"] * math.exp(rng.uniform(-1.2, 1.2))
+        added["N2"] = partials["N2"] * math.exp(rng.uniform(-1.5, 1.5))
+        active = [formula for formula in added if gases.gas(formula).is_infrared_active]
+        one = rng.choice([formula for formula in active if formula != "CO2"])
+        base = len(airs)
+        airs.append((added, gravity * math.exp(rng.uniform(-0.33, 0.33)), flux * math.exp(rng.uniform(-1.1, 1.1)), 0.0, None))
+        for doubled in (active, [one]):
+            airs.append(({formula: (2.0 * amount if formula in doubled else amount) for formula, amount in added.items()}, *airs[base][1:]))
+            pairs.append((base, len(airs) - 1))
+    return airs, pairs
+
+
+def slope(args):
+    """GEN.1854: add `--count` carbon dioxide airs with minor infrared gases and their doubled twins (`slope_airs`, with `--near` `near_airs`) to the samples of `--name` and the pairs to `<name>.pairs.json`."""
+    path = os.path.join(args.work, args.name + ".pkl")
+    pair_path = os.path.join(args.work, args.name + ".pairs.json")
+    samples, pairs = [], []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    if os.path.exists(pair_path):
+        with open(pair_path, encoding="utf-8") as handle:
+            pairs = json.load(handle)
+    airs, new_pairs = (near_airs if args.near else slope_airs)(args.count, random.Random(PERTURB_SEED + 13 + len(samples) + 1000 * args.rng_offset))
+    pairs.extend([len(samples) + a, len(samples) + b] for a, b in new_pairs)
+    samples.extend(airs)
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    with open(pair_path, "w", encoding="utf-8") as handle:
+        json.dump(pairs, handle)
+    print(f"{args.count} slope airs added with {len(new_pairs)} pairs, {len(samples)} samples in {path}")
+
+
 TRACE_POOL = ("N2O", "O3", "HCN", "NH3", "SO2", "H2S", "CO", "H2", "He", "HCl", "HF", "NO", "PH3", "OCS", "C2H6", "C2H2", "C2H4", "SO3", "CS2", "NO2", "HNO3", "H2O2", "Ne")
 """tuple: GEN.1621: the minor gases `traces` adds (the gases the table has no input of its own for or reads at every share, with the infrared, collision-induced and no-flag classes all present)."""
 TRACE_SHARE = (1.0e-9, 3.0e-3)
@@ -813,7 +899,7 @@ def runtime_ratio(sample):
     return greenhouse_table.log_ratio(greenhouse_table.features(partials, gravity, flux, share, pressure_aloft))
 
 
-def load(work, name, distill=None, distill_from_k=340.0, hold=False, runtime=False):
+def load(work, name, distill=None, distill_from_k=340.0, hold=False, runtime=False, pairs=None):
     """The feature matrix and the target `ln(T_s / T_e)` of the converged samples of `name`. With `distill` (a network), every sample the model was not asked about
     (not in the jsonl) that the starting file puts at `distill_from_k` or hotter (the airs `solve --cool-below` leaves out, which cost minutes each) takes that network's own
     answer as its target (GEN.1304); the cool ones it was not asked about are a random part of the set (`solve` takes them in a random order) and are left out."""
@@ -823,6 +909,7 @@ def load(work, name, distill=None, distill_from_k=340.0, hold=False, runtime=Fal
         samples = pickle.load(handle)
     rows, targets = [], []
     asked = set()
+    row_of = {}
     solved = os.path.join(work, name + ".jsonl")
     with open(solved, encoding="utf-8") if os.path.exists(solved) else open(os.devnull, encoding="utf-8") as handle:
         for line in handle:
@@ -834,8 +921,13 @@ def load(work, name, distill=None, distill_from_k=340.0, hold=False, runtime=Fal
             effective = (flux / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
             if surface < UNPHYSICAL_BELOW * effective:
                 continue                                    # the model "converged" on a surface colder than the sunlight alone gives: a fault of its own
+            row_of[index] = len(rows)
             rows.append(greenhouse_table.features(partials, gravity, flux, share, aloft))
             targets.append(math.log(max(surface, effective) / effective))
+    pair_file = os.path.join(work, name + ".pairs.json")
+    if pairs is not None and os.path.exists(pair_file):
+        with open(pair_file, encoding="utf-8") as handle:
+            pairs.extend((row_of[a], row_of[b]) for a, b in json.load(handle) if a in row_of and b in row_of)      # GEN.1854: the twin that doubles the infrared gases
     if distill is not None:
         cache = os.path.join(work, name + ".held.json")
         if runtime and os.path.exists(cache):
@@ -904,12 +996,24 @@ def error_weights(targets):
     return weights / weights.mean()
 
 
-def loss_and_gradient(vector, sizes, inputs, targets, weights, penalty):
+PAIR_SLACK = 5.0e-4
+"""float: GEN.1854: how far under its base air a doubled twin may read before the fit counts it (`ln(T_s / T_e)`, a fifth of a kelvin at 360 K)."""
+
+
+def loss_and_gradient(vector, sizes, inputs, targets, weights, penalty, pairs=None):
+    """The weighted squared error, and with `pairs` (`(base, twin, weight)`, GEN.1854) also the squared amount by which the twin of a pair reads under its base air less `PAIR_SLACK`, which no air of the model does."""
     layers = unpack(vector, sizes)
     out, activations = forward(layers, inputs, True)
     residual = out - targets
     loss = 0.5 * np.mean(weights * residual ** 2) + 0.5 * penalty * np.sum(vector ** 2)
-    delta = (weights * residual / len(targets))[:, None]
+    push = (weights * residual / len(targets))
+    if pairs is not None:
+        base, twin, pair_weight = pairs
+        violation = np.maximum(0.0, out[base] - out[twin] - PAIR_SLACK)
+        loss += 0.5 * np.sum(pair_weight * violation ** 2) / len(targets)
+        np.add.at(push, base, pair_weight * violation / len(targets))
+        np.add.at(push, twin, -pair_weight * violation / len(targets))
+    delta = push[:, None]
     gradients = [None] * len(layers)
     gradients[-2] = activations[-1].T @ delta
     gradients[-1] = delta.sum(0)
@@ -922,8 +1026,8 @@ def loss_and_gradient(vector, sizes, inputs, targets, weights, penalty):
     return loss, pack(gradients) + penalty * vector
 
 
-def fit_network(features, targets, hidden, seed, iterations, penalty, start=None, extra_weight=None):
-    """The fitted network. With `start` (a network as `read_file` gives it) the fit begins from its weights and keeps its standardisation and its feature range; `extra_weight` (an array like `targets`) multiplies each sample's weight."""
+def fit_network(features, targets, hidden, seed, iterations, penalty, start=None, extra_weight=None, pairs=None, pair_boost=10.0):
+    """The fitted network. With `start` (a network as `read_file` gives it) the fit begins from its weights and keeps its standardisation and its feature range; `extra_weight` (an array like `targets`) multiplies each sample's weight. `pairs` (GEN.1854, `(base, twin)` row indices) holds each twin to read no lower than its base air, `pair_boost` times the base air's weight."""
     from scipy.optimize import minimize
 
     if start is None:
@@ -941,7 +1045,11 @@ def fit_network(features, targets, hidden, seed, iterations, penalty, start=None
     if extra_weight is not None:
         weights = weights * extra_weight
         weights = weights / weights.mean()
-    result = minimize(loss_and_gradient, x0, args=(sizes, (np.clip(features, low, high) - mean) / scale, targets, weights, penalty), jac=True,
+    held = None
+    if pairs:
+        base, twin = np.array([a for a, _ in pairs]), np.array([b for _, b in pairs])
+        held = (base, twin, pair_boost * weights[base])
+    result = minimize(loss_and_gradient, x0, args=(sizes, (np.clip(features, low, high) - mean) / scale, targets, weights, penalty, held), jac=True,
                       method="L-BFGS-B", options={"maxiter": iterations, "maxfun": 2 * iterations, "ftol": 1.0e-12, "gtol": 1.0e-9})
     layers = unpack(result.x, sizes)
     return {"mean": mean, "scale": scale, "low": low, "high": high,
@@ -1094,11 +1202,16 @@ def fit(args):
     from planetgen.physics import greenhouse_table
 
     start = read_file(args.out) if args.start else None
-    loaded = [load(args.work, name, start if args.distill else None, hold=name in args.hold, runtime=args.runtime_hold) for name in args.train]
+    pairs, loaded, offset = [], [], 0
+    for name in args.train:
+        local = []
+        loaded.append(load(args.work, name, start if args.distill else None, hold=name in args.hold, runtime=args.runtime_hold, pairs=local))
+        pairs.extend((a + offset, b + offset) for a, b in local)
+        offset += len(loaded[-1][1])
     features, targets = np.concatenate([f for f, _ in loaded]), np.concatenate([t for _, t in loaded])
     boost = dict((item.split("=")[0], float(item.split("=")[1])) for item in args.boost)
     extra = np.concatenate([np.full(len(t), boost.get(name, 1.0)) for name, (_, t) in zip(args.train, loaded)]) if boost else None
-    network, result = fit_network(features, targets, tuple(args.hidden), args.seed, args.iterations, args.penalty, start, extra)
+    network, result = fit_network(features, targets, tuple(args.hidden), args.seed, args.iterations, args.penalty, start, extra, pairs, args.pair_boost)
     hidden = [layer.shape[1] for layer in network["weights"][:-1]]
     summary = {"hidden": hidden, "seed": args.seed, "iterations": int(result.nit), "penalty": args.penalty,
                "training": temperature_error(network, features, targets), "pressure_max_pa": greenhouse_table.PRESSURE_MAX_PA}
@@ -1120,7 +1233,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "twin", "anchors", "envelope", "hot", "hazy", "cold", "traces", "earthtraces", "census", "nullgas", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "twin", "slope", "anchors", "envelope", "hot", "hazy", "cold", "traces", "earthtraces", "census", "nullgas", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -1150,10 +1263,12 @@ def main():
     parser.add_argument("--start", action="store_true", help="fit: begin from the weights and standardisation of the file --out")
     parser.add_argument("--hold", nargs="*", default=[], help="fit with --start --distill: sample sets whose every air (solved or not) is held at the starting file's answer")
     parser.add_argument("--runtime-hold", action="store_true", help="fit with --distill: a held air is held at the repository table's answer (and the cache `<name>.held.json` of it if one was written), not at the starting file's network read on the new inputs (GEN.1621)")
+    parser.add_argument("--near", action="store_true", help="slope: the airs around the air of the radiation sweep that cooled for twice the infrared gases (`NEAR_AIR`, GEN.1854)")
+    parser.add_argument("--pair-boost", type=float, default=10.0, help="fit: how much more a doubled twin reading under its base air counts than the base air's own error (GEN.1854)")
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "twin": twin, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "earthtraces": earthtraces, "census": census_airs, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "twin": twin, "slope": slope, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "earthtraces": earthtraces, "census": census_airs, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":
