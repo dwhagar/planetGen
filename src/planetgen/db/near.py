@@ -295,9 +295,10 @@ def _bodies_of(conn, system_id, system_name, wanted, ranges=None):
                              {"ref": _ref("planet", row["planet_id"]), "kind": "planet",
                               "name": planet_names.get(row["planet_id"])}))
     if "belt" in wanted:
-        numbers = belt_names.numbers_for_systems(conn, [system_id])
-        for row in conn.execute("SELECT id FROM asteroid_belts WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall():
-            rows.append(("belt", row["id"], belt_names.label(numbers[row["id"]]), parent))
+        belt_ids = [row["id"] for row in conn.execute("SELECT id FROM asteroid_belts WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+        names = belt_names.names_for_belts(conn, belt_ids)      # a trojan region takes no number, its name is its host's (NAV.79)
+        for belt_id in belt_ids:
+            rows.append(("belt", belt_id, names[belt_id], parent))
     if "comet" in wanted:
         for row in conn.execute("SELECT id, name FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall():
             rows.append(("comet", row["id"], row["name"], parent))
