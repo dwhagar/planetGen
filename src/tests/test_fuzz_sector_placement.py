@@ -31,6 +31,7 @@ round trip is lossless; `nearest_neighbors` agrees with brute force.
 """
 
 import contextlib
+from types import SimpleNamespace
 import json
 import math
 import random
@@ -107,7 +108,14 @@ class _StubSystem:
     def __init__(self, hill_ly, name="stub"):
         self.star = _StubStar(hill_ly, name)
         self.primary_star = self.star
+        self.primary = SimpleNamespace(orbiters=[])      # the placement reads the host and its orbiters (GEN.1664), none in a stub
+        self.secondary = None
+        self.hosts = []
+        self.all_planets = []
         self.system_config = SystemConfig()
+
+    def hosts_of(self, role):
+        return []
 
 
 class _StubRemnant(_StubStar):

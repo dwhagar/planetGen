@@ -26,7 +26,7 @@ import pytest
 
 from planetgen.util import detmath
 
-from planetgen.db import store
+from planetgen.db import orbit_trees, store
 from planetgen.galaxy import containment
 from planetgen import tuning
 from planetgen.physics import body_state, constants as pc, kepler
@@ -721,71 +721,52 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
     assert epoch == pytest.approx(clock.end_unix, abs=1.0)
 
 
-def test_advance_orbital_phases_advances_binary_mutual_orbit_position_in_lockstep(mysql_config):
+def _close_pair_id(conn, binary_system, binary_cfg):
+    with conn:
+        return store.insert_star_system(conn, binary_system, binary_cfg)
+
+
+def test_advance_orbital_phases_advances_the_pair_node_and_the_position_read_from_it(mysql_config):
     """
-    Regression test for the v14 addition: `advance_orbital_phases` must
-    move `binary_mutual_orbital_phase_deg` *and* recompute
-    `binary_mutual_position_x/y/z_km` from that new phase in the same
-    pass -- the same "position has no independent update of its own"
-    treatment `test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_fields_untouched`
-    already verifies for planets/moons.
+    GEN.640 slice a (was the v14 lockstep test): `advance_orbital_phases` turns the pair's `orbit_nodes` row by the elapsed time over its
+    period, and the mutual position `orbit_trees.pair_places_km` reads follows it, on the circle the orbit is; no `binary_mutual_*` column is
+    written (the columns keep their generation values until they are dropped).
     """
     binary_cfg = SystemConfig()
     binary_cfg.STAR_TYPE = "G2V"
     binary_cfg.BINARY_SYSTEM = True
-    binary_cfg.WIDE_BINARY = False  # pin to close/P-type -- these assertions are BinaryStarProxy-specific
+    binary_cfg.WIDE_BINARY = False  # pin to close/P-type
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
     conn = store.get_connection(mysql_config)
     try:
-        with conn:
-            binary_id = store.insert_star_system(conn, binary_system, binary_cfg)
+        binary_id = _close_pair_id(conn, binary_system, binary_cfg)
+        columns = dict(conn.execute("SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km FROM star_systems WHERE id = ?", (binary_id,)).fetchone())
+        before = orbit_trees.pair_places_km(conn, binary_id)
+        node = before["node"]
 
-        before = conn.execute(
-            "SELECT binary_separation_km, binary_mutual_orbital_period_years, "
-            "binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg, "
-            "binary_mutual_orbital_phase_deg "
-            "FROM star_systems WHERE id = ?", (binary_id,)
-        ).fetchone()
-
-        # Big enough elapsed time to clearly move the (fast) mutual orbit,
-        # regardless of its randomly generated period.
-        elapsed_years = before["binary_mutual_orbital_period_years"] * 137.25
-        store.advance_orbital_phases(conn, store.orbit_clock(conn, elapsed_years))
-
-        after = conn.execute(
-            "SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km, "
-            "binary_mutual_position_y_km, binary_mutual_position_z_km "
-            "FROM star_systems WHERE id = ?", (binary_id,)
-        ).fetchone()
+        # Big enough elapsed time to clearly move the (fast) mutual orbit, regardless of its randomly generated period.
+        clock = store.orbit_clock(conn, node.period_years * 137.25)
+        store.advance_orbital_phases(conn, clock)
+        after = orbit_trees.pair_places_km(conn, binary_id)
+        assert dict(conn.execute("SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km FROM star_systems WHERE id = ?", (binary_id,)).fetchone()) == columns
     finally:
         conn.close()
 
-    expected_phase = (
-        before["binary_mutual_orbital_phase_deg"]
-        + (elapsed_years / before["binary_mutual_orbital_period_years"]) * 360
-    ) % 360
-    assert after["binary_mutual_orbital_phase_deg"] == pytest.approx(expected_phase, abs=1e-6)
-    assert after["binary_mutual_orbital_phase_deg"] != pytest.approx(before["binary_mutual_orbital_phase_deg"])
+    elapsed_years = (clock.end_unix - node.epoch_unix) / pc.SECONDS_PER_YEAR      # from the node's own epoch (the instant it was saved) to the update's end
+    expected_phase = (node.mean_anomaly_deg + (elapsed_years / node.period_years) * 360) % 360
+    assert after["node"].mean_anomaly_deg == pytest.approx(expected_phase, abs=1e-6)
+    assert after["node"].mean_anomaly_deg != pytest.approx(node.mean_anomaly_deg)
 
-    expected_x_au, expected_y_au, expected_z_au = orbital_position_au(
-        before["binary_separation_km"] / pc.AU_TO_KM, before["binary_mutual_orbital_inclination_deg"],
-        before["binary_mutual_orbital_ascending_node_deg"], expected_phase,
-    )
-    assert after["binary_mutual_position_x_km"] == pytest.approx(expected_x_au * pc.AU_TO_KM, abs=1e-3)
-    assert after["binary_mutual_position_y_km"] == pytest.approx(expected_y_au * pc.AU_TO_KM, abs=1e-3)
-    assert after["binary_mutual_position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=1e-3)
+    expected_au = orbital_position_au(node.separation_km / pc.AU_TO_KM, node.inclination_deg, node.ascending_node_deg, expected_phase)
+    assert after["mutual_km"] == pytest.approx([value * pc.AU_TO_KM for value in expected_au], abs=1e-3 + 1e-9 * node.separation_km)
 
 
-def test_advance_orbital_phases_advances_both_binary_members_barycenter_offsets(mysql_config):
+def test_the_pairs_stars_sit_either_side_of_its_center_of_mass_after_an_advance(mysql_config):
     """
-    Regression test for the v18 addition: both `binary_primary_position_*`
-    and `binary_secondary_position_*` must move together with the freshly-
-    advanced `binary_mutual_position_*` -- not just one star sitting fixed
-    while the other orbits it -- and `secondary_position == primary_position
-    + mutual_position` must keep holding after every advance, not just at
-    generation time.
+    GEN.640 slice a (was the v18 test): after every advance both stars of the pair move together about the center of mass, in proportion
+    to the other's mass: `secondary == primary + mutual` and the primary is `-mu * mutual`.
     """
     binary_cfg = SystemConfig()
     binary_cfg.STAR_TYPE = "G2V"
@@ -796,45 +777,20 @@ def test_advance_orbital_phases_advances_both_binary_members_barycenter_offsets(
 
     conn = store.get_connection(mysql_config)
     try:
-        with conn:
-            binary_id = store.insert_star_system(conn, binary_system, binary_cfg)
-
-        before = conn.execute(
-            "SELECT binary_mutual_orbital_period_years, binary_primary_position_x_km, "
-            "binary_secondary_position_x_km, binary_secondary_mass_fraction "
-            "FROM star_systems WHERE id = ?", (binary_id,)
-        ).fetchone()
-
-        elapsed_years = before["binary_mutual_orbital_period_years"] * 137.25
-        counts = store.advance_orbital_phases(conn, store.orbit_clock(conn, elapsed_years))
-        assert counts["binary_mutual_orbits"] > 0
-
-        after = conn.execute(
-            "SELECT binary_mutual_position_x_km, binary_mutual_position_y_km, binary_mutual_position_z_km, "
-            "binary_primary_position_x_km, binary_primary_position_y_km, binary_primary_position_z_km, "
-            "binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km "
-            "FROM star_systems WHERE id = ?", (binary_id,)
-        ).fetchone()
+        binary_id = _close_pair_id(conn, binary_system, binary_cfg)
+        before = orbit_trees.pair_places_km(conn, binary_id)
+        store.advance_orbital_phases(conn, store.orbit_clock(conn, before["node"].period_years * 137.25))
+        after = orbit_trees.pair_places_km(conn, binary_id)
     finally:
         conn.close()
 
     # Both members actually moved -- neither is the trivial "stayed put" case.
-    assert after["binary_primary_position_x_km"] != pytest.approx(before["binary_primary_position_x_km"])
-    assert after["binary_secondary_position_x_km"] != pytest.approx(before["binary_secondary_position_x_km"])
-
-    mu = before["binary_secondary_mass_fraction"]
-    assert after["binary_primary_position_x_km"] == pytest.approx(-mu * after["binary_mutual_position_x_km"], abs=1e-3)
-    assert after["binary_primary_position_y_km"] == pytest.approx(-mu * after["binary_mutual_position_y_km"], abs=1e-3)
-    assert after["binary_primary_position_z_km"] == pytest.approx(-mu * after["binary_mutual_position_z_km"], abs=1e-3)
-    assert after["binary_secondary_position_x_km"] == pytest.approx(
-        after["binary_primary_position_x_km"] + after["binary_mutual_position_x_km"], abs=1e-3
-    )
-    assert after["binary_secondary_position_y_km"] == pytest.approx(
-        after["binary_primary_position_y_km"] + after["binary_mutual_position_y_km"], abs=1e-3
-    )
-    assert after["binary_secondary_position_z_km"] == pytest.approx(
-        after["binary_primary_position_z_km"] + after["binary_mutual_position_z_km"], abs=1e-3
-    )
+    assert after["primary_km"][0] != pytest.approx(before["primary_km"][0])
+    assert after["secondary_km"][0] != pytest.approx(before["secondary_km"][0])
+    mu = after["secondary_mass_fraction"]
+    tolerance = 1e-3 + 1e-9 * before["node"].separation_km
+    assert after["primary_km"] == pytest.approx([-mu * value for value in after["mutual_km"]], abs=tolerance)
+    assert after["secondary_km"] == pytest.approx([a + b for a, b in zip(after["primary_km"], after["mutual_km"])], abs=tolerance)
 
 
 def test_advance_orbital_phases_recomputes_star_and_planet_reflex_offsets(mysql_config):
@@ -1102,7 +1058,7 @@ def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
 
         clock = store.orbit_clock(conn, 1e5)
         counts = store.advance_orbital_phases(conn, clock)
-        assert counts["binary_mutual_orbits"] > 0
+        assert counts["orbit_nodes"] > 0
         motion = store.advance_galactic_positions(conn, clock)
         assert motion["counts"]["star_systems"] > 0
         assert motion["counts"]["black_holes"] > 0

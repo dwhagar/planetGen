@@ -67,6 +67,8 @@ SOLVED_AIR_ONLY = (
 less. The other rogue planets hold the placeholder 100 kPa and are not scored (Train 21: main's galaxy holds 2 such of 29 rocky ones, the moved sample none)."""
 
 NULL_IN_THIS_GALAXY = {
+    # GEN.640 slice a: the pair is read from its orbit node and its clock is the node's `epoch_unix`; nothing writes these two now, and slice d drops them.
+    **{("star_systems", column): "no longer written (GEN.640 slice a); dropped by slice d" for column in ("binary_epoch_unix", "binary_next_update_due")},
     # GEN.1047: the ids of the oddities a body was given; a rare outcome of a rate on a gated population, so a small galaxy may hold none.
     **{(table, "oddities"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # GEN.1458: the other suns in a planet's sky, kept for a planet of a system with a second sun; a moon is read on its planet's sky (not stored) and a rogue planet has no star
@@ -312,16 +314,17 @@ NEVER_READ = {
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
-        "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum")},
+        "interstellar_comet_composition", "comet_coma", "interstellar_comet_coma", "planet_reflection_spectrum", "moon_reflection_spectrum")},
     # GEN.1809: the adaptations of a body are read ORDER BY entry_number, which the SELECT does not list.
     **{(table, "entry_number"): "sort key" for table in ("planet_adaptations", "moon_adaptations")},
     # Child tables' own ids and parent keys: matched in the WHERE clause.
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
-        "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
+        "interstellar_comet_composition", "comet_coma", "interstellar_comet_coma", "planet_reflection_spectrum", "moon_reflection_spectrum",
         "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
+        ("comet_coma", "comet_id"), ("interstellar_comet_coma", "comet_id"),
         ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
@@ -366,6 +369,9 @@ NEVER_READ = {
     ("facilities", "cell_key"): "an index column MySQL fills; the region query reads it (NAV.43)",
     **{("star_systems", column): "the point a system sits at in the galaxy frame; the region query and the orbit update read it"
        for column in ("cell_key", "galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc")},
+    # GEN.640 slice a: the pair is read from its orbit node (`orbit_trees.pair_places_km`), so nothing reads its old columns; slice d drops them.
+    **{("star_systems", column): "no reader since the pair is read from its node (GEN.640 slice a); dropped by slice d"
+       for column in ("binary_apoapsis_km", "binary_eccentricity", "binary_periapsis_km")},
     # GEN.106: the orbit update's own clock, read only by planetgen.cli.orbits.
     **{(table, column): "the orbit update's clock" for table, column in (
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),

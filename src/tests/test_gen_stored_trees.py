@@ -201,7 +201,7 @@ def test_a_pair_is_the_stored_stars_on_the_stored_orbit(kind):
         **({"eccentricity": 0.0, "arg_periapsis_deg": 0.0,
             "mean_anomaly_deg": (first.mean_anomaly_deg + first.arg_periapsis_deg) % 360.0} if kind == "close" else
            {"eccentricity": min(first.eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9))}))
-    pair = system.star if kind == "close" else system.wide_binary
+    pair = system.star if kind == "close" else system.pair_orbit
     if kind == "close":
         assert pair.binary_separation_au * constants.AU_TO_KM == pytest.approx(node.separation_km)
         assert (pair.binary_mutual_orbital_inclination_deg, pair.binary_mutual_orbital_ascending_node_deg,
@@ -221,7 +221,7 @@ def test_a_pair_built_later_holds_the_same_orbit_at_the_later_time():
     system = _build(seed, tree, age_yr, plan=stored_trees.plan(stored, later))
     (node,) = system.orbit_nodes
     assert node.epoch_unix == later and node.separation_km == stored.nodes[0].separation_km
-    assert system.wide_binary.phase_deg == node.mean_anomaly_deg
+    assert system.pair_orbit.phase_deg == node.mean_anomaly_deg
 
 
 @pytest.mark.parametrize("kind", ["close", "wide"])

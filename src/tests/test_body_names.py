@@ -10,7 +10,8 @@ Run with: pytest tests/test_body_names.py
 
 import pytest
 
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman, wide_pair_star_words
+from planetgen.names import tree_names
+from planetgen.names.bodies import close_pair_label, moon_letters, rename_prefix, to_roman
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests import render_support
@@ -105,13 +106,18 @@ def test_wide_binary_planets_are_numbered_after_their_own_star():
 
 
 def test_a_wide_pairs_star_words_are_read_back_from_its_star_names():
-    """DB.125: the two words follow the system name's first word in the two star names; names of another shape give `None`."""
-    assert wide_pair_star_words("Voranthis Prime", "Voranthis Green", "Voranthis Little") == ("Green", "Little")
-    assert wide_pair_star_words("Voranthis Prime", "Voranthis A", "Voranthis B") == ("A", "B")
-    assert wide_pair_star_words("Voranthis", "Voranthis", "Voranthis Red") is None
-    assert wide_pair_star_words("Voranthis", "Other Green", "Voranthis Red") is None
-    assert wide_pair_star_words("Voranthis", "Voranthis Green Giant", "Voranthis Red") is None
-    assert wide_pair_star_words("Voranthis", None, "Voranthis Red") is None
+    """DB.125, GEN.312: the two words follow the system name's first word in the two star names; names of another shape give `None`."""
+    nodes = [{"node_no": 0, "parent_node_no": None, "slot": 0, "kind": "wide"}]
+    members = [(0, 0), (0, 1)]
+
+    def read(system_name, first, second):
+        return tree_names.words_from_names(system_name, nodes, members, [first, second])
+
+    assert read("Voranthis Prime", "Voranthis Green", "Voranthis Little") == ("Green", "Little")
+    assert read("Voranthis", "Voranthis", "Voranthis Red") is None
+    assert read("Voranthis", "Other Green", "Voranthis Red") is None
+    assert read("Voranthis", "Voranthis Green Giant", "Voranthis Red") is None
+    assert read("Voranthis", None, "Voranthis Red") is None
 
 
 @pytest.mark.parametrize("binary,wide", [(False, None), (True, False), (True, True)])
@@ -156,13 +162,14 @@ def test_new_binary_star_names_are_two_words(wide):
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = wide
+        cfg.STARS = 2
         system = StarSystem(system_config=cfg)
         for system_name in (system.name, "Xy Zz"):
             system.assign_names(system_name)
             names = [star.name.split() for star in system.stars]
             if system.binary_type == "close":
                 assert [" ".join(n[:-1]) for n in names] == [system_name, system_name]
-                assert [n[-1] for n in names] == list(CLOSE_PAIR_LETTERS)
+                assert [n[-1] for n in names] == ["A", "B"]
             else:
                 assert all(len(n) == 2 for n in names)
                 assert names[0][0] == names[1][0] == system_name.split()[0]
@@ -172,6 +179,7 @@ def test_new_binary_star_names_are_two_words(wide):
 def test_close_pair_label():
     assert close_pair_label("Rigel A", "Rigel B") == "Rigel A / B"
     assert close_pair_label("Rigel Kelmoor", "Rigel Ostra") == "Rigel Kelmoor & Rigel Ostra"
+    assert close_pair_label("Rigel Aa", "Rigel Ab") == "Rigel Aa / Ab"      # GEN.312: the pair of a deeper tree
 
 
 def test_companion_star_words_are_single_words():

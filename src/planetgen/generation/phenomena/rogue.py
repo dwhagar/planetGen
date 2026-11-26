@@ -21,7 +21,7 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import body_strength, brown_dwarf as brownDwarf, constants, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import body_strength, brown_dwarf as brownDwarf, comet_coma, constants, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -226,7 +226,7 @@ class InterstellarComet(SmallBody):
     FIELD_UNITS = {
         "name": "text", "flavor_key": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
         "density_g_cm3": "g_cm3", "ice_mass_fraction": "frac", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
-        **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
+        **comet_coma.UNITS, "carbon_chain_depleted": "flag", **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -242,6 +242,9 @@ class InterstellarComet(SmallBody):
 
     flavor_key = None
     """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
+
+    carbon_chain_depleted = None
+    """bool or None: Whether the nucleus was drawn with little CN and C2, so a coma with no green (GEN.1227; the flag of its volatiles, `comet_population`); `None` for a comet read back from a record made before it was kept."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -266,6 +269,8 @@ class InterstellarComet(SmallBody):
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
         body_strength.generate_comet(self)    # GEN.1162: its density, ice share, roundness ratio, strength and binding energy
+        comet_coma.generate(self)    # GEN.455: the coma of an active comet, on a stream of its own (an interstellar comet has no host: the Sun's far ultraviolet)
+        self.carbon_chain_depleted = bool(self.makeup.detail["carbon_chain_depleted"])    # GEN.1227: the flag the nucleus was drawn with (no draw), which the coma rows do not hold
 
         self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.

@@ -119,8 +119,8 @@ def _variation(system, binary, planet, host, other):
         return min(circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass,
                                       proxy.binary_separation_au, planet.distance)
                    + orbit_elements.flux_swing(planet.eccentricity), 1.0)
-    if binary == "wide" and other is not None and system.wide_binary is not None:
-        pair = system.wide_binary
+    if binary == "wide" and other is not None:
+        pair = system.pair_orbit
         return companion_swing(host.luminosity, planet.distance, other.luminosity, pair.periapsis_au, pair.apoapsis_au,
                                planet.eccentricity)
     return orbit_elements.flux_swing(planet.eccentricity)

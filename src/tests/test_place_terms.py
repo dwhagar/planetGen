@@ -103,8 +103,10 @@ def test_the_black_holes_carry_the_share_of_the_second_moment_the_design_note_re
     disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
     stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
     everything = place_terms.mass_weighted_perturber_mass_solar(disk)
-    assert stars == pytest.approx(0.57, abs=0.06)
-    assert everything == pytest.approx(1.19, abs=0.06)
+    # Derived, not nudged: the mass function's center at 0.092 (GEN.922) gives 0.584 and 1.320 (0.568 and 1.189 at the center of 0.079); the black holes' share of the
+    # second moment rises with the massive stars' share of the mass function (0.713% to 0.772% of the stars born).
+    assert stars == pytest.approx(0.58, abs=0.06)
+    assert everything == pytest.approx(1.32, abs=0.06)
 
 
 def test_a_young_population_has_the_heavier_perturbers():
@@ -134,8 +136,9 @@ def test_the_limits_scale_the_way_the_formulas_do():
 def test_the_design_notes_table_follows():
     # docs/design/generation/placement-by-population.md 3.3, 2 solar masses, 10 Gyr, the default perturber mass (<M^2> / <M> of the
     # whole disk with remnants).
-    for density, sigma, encounter, tide in ((0.048, 30, 13_900, 496_000), (6.9, 120, 387, 94_600),
-                                            (77, 120, 35, 42_400), (660, 120, 4.0, 20_700)):
+    # Recomputed for the perturber mass of 1.32 (GEN.922); the encounter limits were 13,900, 387, 35 and 4.0 at 1.19.
+    for density, sigma, encounter, tide in ((0.048, 30, 12_600, 496_000), (6.9, 120, 350, 94_600),
+                                            (77, 120, 31.3, 42_400), (660, 120, 3.65, 20_700)):
         terms = place_terms.PlaceTerms(density, float(sigma))
         assert place_terms.encounter_limit_au(terms, 2.0, 10.0) == pytest.approx(encounter, rel=0.1)
         assert place_terms.tidal_limit_au(terms, 2.0) == pytest.approx(tide, rel=0.1)
@@ -238,11 +241,11 @@ def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
     assert here.close == pytest.approx(companion_classes.odds(1.0, 0.44, 0.0, 11_400.0).close)
     # The tree of stars keeps no axis the place cannot (GEN.631): a dense place has a pair or none, and no wide one beyond.
     pairs = [system for system in _systems(terms=dense, count=400) if system.binary_type == "wide"]
-    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system) for system in pairs)
+    assert all(system.pair_orbit.separation_au <= _widest_limit(dense, system) for system in pairs)
     # A forced companion in a place that keeps little still keeps the place's limit.
     crowded = place_terms.PlaceTerms(60_000.0, 150.0)
     forced = [system for system in _systems(terms=crowded, BINARY_SYSTEM=True, count=60) if system.binary_type == "wide"]
-    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system) for system in forced)
+    assert all(system.pair_orbit.separation_au <= _widest_limit(crowded, system) for system in forced)
 
 
 def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_lines():

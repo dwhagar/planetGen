@@ -1,6 +1,6 @@
 """The directive a sector was drawn under and how the draw came out (GEN.179).
 
-Schema v275 (a placeholder: the train that merges this renumbers it to the next free revision, 0280 at the time of writing). `sector_directives` and `sector_directive_minimums` are new: a run given `--directive`
+Schema v277 (a placeholder: the train that merges this renumbers it to the next free revision, 0280 at the time of writing). `sector_directives` and `sector_directive_minimums` are new: a run given `--directive`
 minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and keeps what the draw came out as. `sector_directives` has one row for each such sector: the digest of the directive, the status
 (`met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`) and the attempts made; `sector_directive_minimums` one row for each minimum asked: its key, what was wanted and what the kept sector got. A sector
 drawn with no directive has no rows, and nothing is backfilled (a migration does not draw). A table already there is skipped, so a stopped run can be started again.
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0275"
-down_revision = "0274"
+revision = "0277"
+down_revision = "0276"
 branch_labels = None
 depends_on = None
 

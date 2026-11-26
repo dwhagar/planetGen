@@ -132,12 +132,12 @@ def test_lighter_galaxies_have_more_recent_stars():
 
 def test_a_flat_inflow_settles_a_ring_toward_a_constant_rate():
     """Gas continuity checked on its own: a constant inflow fills a ring and its rate climbs, ever more slowly, toward
-    the rate that uses the inflow up (the second half of ten Gy changes by under 15 percent)."""
+    the rate that uses the inflow up (the second half of ten Gy changes by under 20 percent: 15 before GEN.1202, 14.9 then, 16.1 with the disk's 0.95 share of the coefficient, a ring settles in a time that goes as the inverse of the coefficient)."""
     flat = np.ones((801, 1))
     rate, gas = disk_history._solve_rings(np.array([40.0]), flat, 10.0)
     late = rate[0, 400:]
     assert np.all(np.diff(rate[0]) >= 0.0)
-    assert late.max() / late.min() < 1.15
+    assert late.max() / late.min() < 1.2
 
 
 def _observed_present_over_mean():
@@ -174,6 +174,17 @@ def test_a_milky_way_mass_disk_keeps_its_gas_for_the_measured_depletion_time_and
     assert 2.5 <= _depletion_time_gy(found) <= 4.2
     solar = int(np.argmin(np.abs(found.radius_scale_lengths * 2600.0 - 8000.0)))
     assert 0.5 * 11.9 <= found.gas_now[solar] <= 1.5 * 11.9
+
+
+def test_the_disk_law_coefficient_share_puts_the_local_gas_inside_the_measured_range():
+    """GEN.1202: the disk's rings use `tuning.DISK_LAW_COEFFICIENT_SHARE` of the law's coefficient (a tweak inside the coefficient's own 28%): the gas at 8 kpc is
+    the measured 11.9 +- 1.6 solar masses per pc2 [R3002: Table 2] (it was 10.3), with the depletion time and the present rate still inside theirs."""
+    assert 0.72 <= tuning.DISK_LAW_COEFFICIENT_SHARE <= 1.0
+    found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, disk_history.disk_speed_kms(MILKY_WAY_MASS))
+    solar = int(np.argmin(np.abs(found.radius_scale_lengths * 2600.0 - 8000.0)))
+    assert 11.9 - 1.6 <= found.gas_now[solar] <= 11.9 + 1.6
+    assert 1.0 <= _depletion_time_gy(found) <= 4.2
+    assert found.present_over_mean() <= 2.5 * _observed_present_over_mean()
 
 
 def test_the_steepening_leaves_a_thin_ring_more_gas_than_the_plain_law(monkeypatch):
