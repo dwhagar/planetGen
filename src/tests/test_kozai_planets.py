@@ -124,13 +124,44 @@ def test_a_planet_a_companion_pumps_keeps_the_cycle_and_the_eccentricity_it_left
     from planetgen.util import draw
     cfg = SystemConfig()
     cfg.STARS = 2
-    with draw.bound(26):
-        system = StarSystem(system_config=cfg)
+    for seed in range(26, 70):      # the first seed whose two-star system has a planet a companion pumps (the draws move with every change to the generator, so no seed is fixed)
+        with draw.bound(seed):
+            system = StarSystem(system_config=cfg)
+        pumped = [p for p in system.all_planets if p.body_type != "a" and p.build.kozai is not None]
+        if pumped:
+            break
     assert system.kozai_planet_outcomes["screened"] > 0
-    pumped = [p for p in system.all_planets if p.body_type != "a" and p.build.kozai is not None]
     assert pumped and system.kozai_planet_outcomes["cycling"] >= len(pumped)
     for body in pumped:
         outcome = body.build.kozai
         assert outcome.cycles and not outcome.lost
         assert body.build.orbit_birth == pytest.approx(outcome.eccentricity_now)
         assert body.eccentricity <= outcome.eccentricity_now + 1.0e-9      # the tide only wears it down
+
+
+def test_a_planet_the_pump_leaves_on_a_very_eccentric_orbit_is_held_to_the_bound_of_every_orbit(monkeypatch):
+    """A cycle that carries a planet past `orbit_elements.MAX_ECCENTRICITY` (a class C planet at 1.06 AU left at 0.96 by the pump) was left there; every orbit of a planet is held to the bound the checks hold it to."""
+    import dataclasses
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics import kozai_planets, orbit_elements, planets
+    from planetgen.util import draw
+    cfg = SystemConfig()
+    cfg.STARS = 2
+    with draw.bound(26):
+        system = StarSystem(system_config=cfg)
+    star = system.star
+    bodies = [p for p in system.primary.orbiters if p.body_type in ("t", "g") and p.mass and p.distance and p.radius and p.period]
+    real = kozai_planets.screen_planets
+
+    def forced(*args, **kwargs):
+        results = real(*args, **kwargs)
+        return [dataclasses.replace(r, outcome=dataclasses.replace(r.outcome, cycles=True, lost=False, eccentricity_now=0.97)) if r.outcome is not None and r.perturber is not None else r for r in results]
+    monkeypatch.setattr(kozai_planets, "screen_planets", forced)
+    planets.kozai_pump_planets(star, bodies)
+    pumped = [p for p in bodies if p.build.kozai is not None and p.build.kozai.eccentricity_now is not None and p.build.orbit_birth is not None]
+    assert pumped
+    for body in pumped:
+        cap = orbit_elements.max_planet_eccentricity(body.distance, star, body)
+        assert body.eccentricity <= cap + 1.0e-12 and body.eccentricity <= orbit_elements.MAX_ECCENTRICITY
+        assert body.build.orbit_birth <= cap + 1.0e-12 and body.build.kozai.eccentricity_now <= cap + 1.0e-12
