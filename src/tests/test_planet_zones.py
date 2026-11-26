@@ -97,7 +97,7 @@ def test_a_node_missing_a_child_is_refused():
 TABLE_S_TYPE = {2: 0.72, 3: 0.40, 4: 0.28, 5: 0.20, 6: 0.15, 7: 0.13}
 """dict: Stars with an S-type window above 0.3 AU, by number of stars, as the design page prints them. Two stars was 0.77 (the design page's first estimate, 3,000 draws of an older generator); re-measured
 on 12,000 seeded pairs it is 0.727 on main before Train 63 and 0.719 on the Train 63 head, a difference inside the sampling error (the 300-draw test read 0.703 and then 0.688 and passed only by a hair), so the
-tolerance of 0.07 stays and the centre is the measure."""
+tolerance of 0.07 stays and the center is the measure."""
 
 DRAWS = 300
 """int: Trees drawn for each number of stars."""
