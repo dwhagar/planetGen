@@ -2,6 +2,102 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4784+db275.gen150.api14] - 2026-11-25
+
+**Headline:** The sector placement tests' stand-in systems carry the host surface the placement now reads
+
+### Fixed
+
+- TEST.833: `test_gen_sector_exhaustion.py` and `test_fuzz_sector_placement.py` were red on main since Train 60: the placement reads a system's hosts (`primary.orbiters`, `secondary`, `hosts_of`, `all_planets`, GEN.1664 renamed them from the primary and secondary star's lists) and their stand-in `_StubSystem` had none of them. No product change: the stub now has an empty host surface (111 tests pass).
+
+## [8.0.4783+db275.gen150.api14] - 2026-11-25
+
+**Headline:** The one-off system page and the system API take the star count and the cap and refuse what the command line refuses, in its words.
+
+### Added
+- ADM.128: `POST /api/systems` and a regeneration recipe take `stars` (exactly this many stars) and `max_stars` (the cap on the count drawn), as `planetgen system --stars --max-stars` does. A count under 1, a count over the cap or over 64, a cap outside 1 to 64, one star with a binary feature and two or more stars with `binary_system` off are a 400 with the command line's message. The one-off system page already had both fields; it now says the command line's words for a count under 1, over 64 and a cap outside 1 to 64 instead of its own range wording. Tests cover each refusal on all three surfaces and show that the three messages agree.
+
+generation-output: unchanged
+
+## [8.0.4782+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The 15 galaxy research requests are answered or kept as labelled placeholders, each with the item it feeds.
+
+### Changed
+- GEN.531: every request of the galaxy laws research notes now carries a status (answered, checked against a read source, or placeholder with its registered fill). The thick disc ages of two lenticular galaxies [R3531] (about 12 to 13 Gyr, thin discs 4 to 5 Gyr), the Local Group stellar-to-halo fit [R0545] (inside the 0.19 to 0.5 dex draw of GR11 at 1e10 and 3e10 solar masses of halo) and the six-halo infall times [R0876] were read against the registry rows GR6, GR10 and GR11; the E-MOSAICS papers [R3508, R5366] print no cluster age against host mass (GR9b). No fill changes and no generated galaxy changes.
+
+generation-output: unchanged
+
+## [8.0.4781+db275.gen150.api14] - 2026-11-24
+
+**Headline:** One read now lists every kind of nebula in a box of the galaxy (stored nebulae and remnants, the seed's field clouds, the scattered planetary nebulae and remnants) with no object twice.
+
+### Added
+- GEN.202: `db.nebula_index.nebulae_in_box` reads the stored nebulae and supernova remnants of a box, the field clouds no sector has stored and the scattered planetary nebulae and remnants no sector has built, and lists each object once by its Object ID (the stored one first, then the field cloud, then the scattered mark), each entry naming its `source`. The three readers already left out what is stored by their own flags; the index also drops a row that holds the Object ID of a stored one whatever its flag says. A test plants all three kinds with a repeat and shows each object once. Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4780+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The stellar-to-halo relation of the galaxy chain was checked against measured spirals and kept.
+
+### Changed
+- GEN.1167: the four published stellar-to-halo fits [R0319, R1578, R2598, R3181] were set against the halos fitted to the rotation curves of 110 spirals [R5352]. Below 1e11 solar masses of stars the relation of the chain, [R3181], sits 0.09 dex from the measured median halo; the offsets are 0.09 for [R2598], 0.11 for [R0319] and 0.17 for [R1578] (0.1 to 0.24 dex too light in every bin), so the relation stays and its row (HF3) keeps tier T1. The design note and the registry row carry the check table; the spiral bend of GEN.618 covers the largest spirals, where every fit gives a group's halo. No generated galaxy changes.
+
+generation-output: unchanged
+
+## [8.0.4779+db275.gen150.api14] - 2026-11-24
+
+**Headline:** A moon that a Kozai pump, a resonance or the replay of the moons' history left outside its planet's stable range is now lost, so a generated system no longer fails its own lunar check.
+
+### Fixed
+
+- The settle pass of a system drops the moons whose orbit lies outside the stable range of the eccentricities the pumps gave (`planets.drop_unstable_moons`, after the tide has worn them as far as it will). Nothing checked them before: the planet's pump and the moons' pump raise the eccentricity of a planet and its moons, the Domingos limit falls with both and can reach 0, and the moon stayed (found on the Train 61 gate as `test_wide_binaries_never_overlap`: a moon at 1.3e4 km in a stable range of 6765 to 0 km).
+- The replay of the moons' history (`moon_history._settle`) holds each moon to the same limit as the lunar check, the semi-major axis the fit allows for the moon's own eccentricity, so a moon the drop took cannot come back when a planet's end stages are made again (`refinish_rocky`).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4778+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The biggest spiral galaxies now sit in halos like the biggest spirals really do, ten times lighter than before.
+
+### Changed
+- GEN.618: a spiral of 1.5 to 2e11 solar masses of stars drew a halo of 1.4e13 to 2.8e13 (and up to 6e13 at the high end of the scatter), because the stellar-to-halo relation of Moster and others is fitted to all galaxies and at that mass its halos are a group's. The rotation curves of 110 spirals put the largest ones, 1 to 3e11 solar masses of stars, in halos of 2 to 5e12 ([R5352], read), and "virtually none" of the late types sit above 5e12 ([R5353], read); Andromeda's is 0.6 to 2.8e12. `mass_chain` now bends the spiral's median halo onto 2.5e12 (`SPIRAL_HALO_CEILING_SOLAR`, row HF5 of 6.131, tier T3, tweak L1) with a sharpness of 4 (HF6, tier T9, tweak L3) and squeezes the scatter above the median so no halo passes 5e12. Measured on this change, halo mass at the median (16th to 84th percentile): 5e10 solar masses of stars 1.57e12 to 1.51e12 (0.9 to 2.75e12), 1e11 5.7e12 to 2.5e12 (1.2 to 4.4e12), 2e11 2.8e13 to 2.5e12 (1.1 to 4.5e12). Lighter galaxies change by under 4 percent. Spiral is the only family built; a later family reads its own relation.
+- The references list gains [R5352, R5353] (the two papers the ceiling rests on).
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4777+db275.gen150.api14] - 2026-11-24
+
+**Headline:** An active comet now has a coma: the water its light sublimates, the gas of every ice its nucleus holds, and how far each gas travels before the light breaks it, for the comets of a system and the interstellar ones alike
+
+### Added
+
+- GEN.455 part A: `physics/comet_coma` computes the water production at 1 AU lit distance from the light the nucleus absorbs over the latent heat of water ice (the table of materials), over a drawn active share of the surface, with the nucleus albedo drawn too. Each other species is the water rate times the nucleus ratio the comet already stored (`comet_population`, `comet_species`), so a gas the nucleus lacks is never in the coma. The parent scale length of each gas is the outflow speed times its photolysis lifetime (`photolysis`) at the comet's lit distance (`comet_activity`), so a cool or hot host changes which gases survive. Water and the gases that ride on it stop beyond 3 AU lit distance; CO2 and CO (the colder ice lines) go on.
+- Stored on `comets` and `interstellar_comets`: `water_production_1au_per_s`, `coma_active_area_fraction`, `coma_outflow_1au_kms`, `nucleus_albedo`, and the child tables `comet_coma` and `interstellar_comet_coma` (species, production at 1 AU, scale length at 1 AU). The rate and length at any other distance are computed from them by `production_at` and `scale_length_at`. An inactive comet, and a comet made before this change, has none.
+- Stand-ins CZ1 (active share, log-uniform 0.003 to 1), CZ2 (outflow speed, log-uniform 0.4 to 1 km/s at 1 AU) and CZ3 (nucleus Bond albedo, 0.02 to 0.10) in section 6.327.
+- The draws are on their own keyed stream, so no other number of a run moves; no epoch bump (a lock item of a generator train).
+
+## [8.0.4776+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The test that saves a rogue planet and a moon no longer depends on seed 3's system having a moon.
+
+### Fixed
+- `test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_to_share_an_orbit_with` drew a G2V system at seed 3 and took its first moon; the ring coefficient of GEN.1202 moved that system's draws and it has no moon any more. The test now tries seeds 3 up to 14 and takes the first system that has a moon. No generator change.
+
+## [8.0.4775+db275.gen150.api14] - 2026-11-24
+
+**Headline:** The Galaxy's disc keeps the gas the Milky Way is measured to have at the Sun's radius, so the heaviest cluster it can form is a little higher.
+
+### Changed
+- GEN.1202: the item's 4.3 solar masses of gas per pc2 at 8 kpc was out of date (GEN.999 and GEN.1230 had taken it to 10.3), but 10.3 still sat under the measured 11.9 +- 1.6 ([R3002: Table 2]). The thin disk's rings now use `tuning.DISK_LAW_COEFFICIENT_SHARE` 0.95 of the Schmidt-Kennicutt coefficient of [R2321] ((2.5 +- 0.7)e-4, so 28% either way; the Milky Way sits below the plain law at the Sun's radius), a registered tweak (row GI4 of 6.124a, tier T2, tweak L1). Milky Way shape, measured on this change: gas at 8 kpc 10.26 to 10.7, depletion time 3.36 to 3.43 Gy (measured 1.0 to 4.2), present rate over the mean 0.453 to 0.461 (the test bound is 0.49), and the cluster cap of `_disk_maximum_masses` at 8 kpc 3.5e3 to 3.7e3 (7.3e3 to 7.8e3 over the whole disc). The central ring's inflow is the same gas, so its heaviest cluster rises from 8.2e4 to 9.7e4, under the 1e5 ceiling; a lower share (0.9) would reach the ceiling, so 0.95 is as far as the nudge goes. The cap is still under the observed 1e4 to 4e4 of the heaviest disc clusters: row CMX8 now says so with the new numbers. The satellites keep the plain coefficient.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4774+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The moon tests build their systems without the record of the air history, which was most of a system's cost.
