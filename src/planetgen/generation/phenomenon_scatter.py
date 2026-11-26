@@ -47,6 +47,7 @@ from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars, multistar
+from planetgen.generation.phenomenon_cuts import as_cuts
 from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen.generation.phenomena import registry
 from planetgen.physics import remnant_mass
@@ -92,6 +93,7 @@ PHENOMENON_SCATTER_COLUMNS = (
     "shell_index", "band_index", "wedge_index", "kind", "subtype",
     "position_x_mpc", "position_y_mpc", "position_z_mpc",
     "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
+    "cluster_id",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 every row below carries them."""
@@ -110,7 +112,7 @@ def _row(shell_index, band_index, wedge, kind, point, rng, subtype=None, velocit
          mass_solar=None):
     """One object in `PHENOMENON_SCATTER_COLUMNS` order."""
     return (shell_index, band_index, wedge, kind, subtype, point[0], point[1], point[2],
-            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar, map_luminosity(mass_solar))
+            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar, map_luminosity(mass_solar), None)
 
 
 def map_luminosity(mass_solar):
@@ -222,6 +224,18 @@ def row_density_divisor(kind, subtype):
     return 1.0 + multistar.same_class_companions(placed, NEUTRON_STAR_RECYCLED_SHARE if placed == "neutron-star" else 0.0)
 
 
+def tier_shares(kind, subtype, cuts):
+    """
+    `[core, baseline, halo]`: each tier's share of the class a scatter drawn at the lowest cut (`cuts.lowest`) keeps at the tier's own
+    cut (GEN.377): `share_above` at the tier's cut over `share_above` at the lowest, 1 for a tier at the lowest. A class with nothing above the lowest cut has no
+    tier that keeps any (0).
+    """
+    top = share_above(kind, subtype, cuts.lowest)
+    if top <= 0.0:
+        return [0.0, 0.0, 0.0]
+    return [min(1.0, share_above(kind, subtype, cut) / top) for cut in cuts.tiers]
+
+
 def _scattered_rates(min_mass_solar):
     """`(kind, subtype, rate per star above the cut)` for each class with
     anything above it, in `SCATTER_CLASSES` order. The rate is of rows, that is of systems keyed by their
@@ -236,6 +250,18 @@ def _scattered_rates(min_mass_solar):
 
 
 def cut_summary(min_mass_solar):
+    """
+    `_cut_summary` for one cut, and for cuts that differ by tier (`phenomenon_cuts.Cuts`, GEN.377) the baseline's followed by the tiers that take
+    another (the core's and the halo's).
+    """
+    cuts = as_cuts(min_mass_solar)
+    text = _cut_summary(cuts.baseline)
+    others = [f"the {name}'s is {cuts.tiers[tier]:g} solar masses" for tier, name in ((0, "core"), (2, "halo"))
+              if cuts.tiers[tier] != cuts.baseline]
+    return text if not others else f"{text}; {' and '.join(others)} (each band takes the cut of its place)"
+
+
+def _cut_summary(min_mass_solar):
     """
     What the scatter places and what it leaves to the sectors at this cut, as the phrase the stage's log line gives
     (GEN.677). A class is scattered only above the cut (`share_above`), the sectors draw the rest when they are filled
@@ -266,7 +292,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                   min_mass_solar=None):
     """
     One shell of the scatter: every black hole and neutron star at or
-    above `min_mass_solar` (default `tuning.PHENOMENON_MIN_MASS_SOLAR`),
+    above `min_mass_solar` (default `tuning.PHENOMENON_MIN_MASS_SOLAR`; a number, or `phenomenon_cuts.Cuts`, the cut of each band's tier, GEN.377),
     and every planetary nebula and supernova remnant, in the bands
     `-high_band .. high_band` of shell `shell_index`. Each shell draws from its
     own stream (the seed and the shell index), so shells can be drawn in any
@@ -279,14 +305,13 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
     Yields:
         tuple: One row per object, in `PHENOMENON_SCATTER_COLUMNS` order.
     """
-    if min_mass_solar is None:
-        min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
-    rates = _scattered_rates(min_mass_solar)
+    cuts = as_cuts(min_mass_solar)
+    rates = _scattered_rates(cuts.lowest)
     if not rates or high_band < 0:
         return
     yield from _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                           lambda kind, subtype: class_stream(f"{seed}:phenomena:shell:{shell_index}", kind, subtype), rates,
-                          skip_addresses or set(), min_mass_solar)
+                          skip_addresses or set(), cuts)
 
 
 GAS_WEIGHTED_KINDS = ("supernova-remnant",)
@@ -328,7 +353,12 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
     objects then get a longitude bin in proportion to the band's weights (one `searchsorted` over the bands'
     cumulative sums), a wedge under the bin's angle, a uniform point in the wedge's cell, and a mass; a point
     that rounding carried out of its cell is dropped. `streams(kind, subtype)` gives the random stream of a class.
+
+    `min_mass_solar` is the cut, a number or `phenomenon_cuts.Cuts` (GEN.377): with a cut that differs by tier, each band takes the share of
+    each class above its own tier's cut (`tier_shares` times `rates`, which are at the lowest cut) and its objects' masses are drawn above it.
     """
+    cuts = as_cuts(min_mass_solar)
+    tier_of_band = None if cuts.is_uniform else cuts.tiers_in(shell_index, high_band)
     bins = bright_stars.ANGLE_BINS
     bands = np.arange(-high_band, high_band + 1)
     band_count = len(bands)
@@ -371,7 +401,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
             shares = cumulative / np.where(top > 0.0, top, 1.0)[:, None] + 2.0 * row_of_band[:, None]
             tables[table] = (top, shares.ravel())
         top, shares = tables[table]
-        means = rate * expected_at_density_1 * (wedges * volume / bins) * top
+        band_rate = rate if tier_of_band is None else rate * np.array(tier_shares(kind, subtype, cuts))[tier_of_band]
+        means = band_rate * expected_at_density_1 * (wedges * volume / bins) * top
         counts = np.array([poisson_count(float(mean), rng) if mean > 0.0 else 0 for mean in means], dtype=np.int64)
         total = int(counts.sum())
         if not total:
@@ -391,19 +422,22 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
         mpc = points_mpc(radius, cos_colat, lon)
         band_index = bands[band_row]
         kept = _stored_in_cells(mpc, shell_index, band_index, wedge, wedge_count, edge_pc)
-        masses = _masses(kind, subtype, min_mass_solar, uniform[5])
+        masses = _masses(kind, subtype, cuts.tiers[0] if tier_of_band is None else np.array(cuts.tiers)[tier_of_band][band_row], uniform[5])
         seeds = rng.randbits_list(63, total)
         columns = [band_index.tolist(), wedge.tolist(), kept.tolist(), seeds, *mpc.tolist(),
                    masses.tolist() if masses is not None else [None] * total]
         for band, wedge_here, in_cell, seed, x, y, z, mass in zip(*columns):
             if in_cell and (shell_index, band, wedge_here) not in skip_addresses:
                 yield (shell_index, band, wedge_here, kind, subtype, x, y, z, None, None, None, seed, mass,
-                       map_luminosity(mass))
+                       map_luminosity(mass), None)
 
 
 def _masses(kind, subtype, min_mass_solar, uniform):
     """The solar masses the uniform draws `uniform` (one per object) give, log-uniform or uniform by the class's `mass_law`
-    between the scatter's cut and the class's top; `None` for a kind not drawn by mass."""
+    between the scatter's cut and the class's top; `None` for a kind not drawn by mass. `min_mass_solar` is a number, or an array with
+    the cut of each object (GEN.377: its band's tier's)."""
+    if np.ndim(min_mass_solar):
+        return _masses_at(kind, subtype, np.asarray(min_mass_solar, dtype=float), uniform)
     bounds = mass_range(kind, subtype, min_mass_solar, True)
     if bounds is None:
         return None
@@ -413,6 +447,22 @@ def _masses(kind, subtype, min_mass_solar, uniform):
     if mass_law(kind, subtype)[1]:
         return np.exp(math.log(low) + uniform * (math.log(high) - math.log(low)))
     return low + uniform * (high - low)
+
+
+def _masses_at(kind, subtype, cuts, uniform):
+    """`_masses` for objects that each have their own cut (`cuts`, an array the length of `uniform`): the same law between each object's cut and the class's top."""
+    law = mass_law(kind, subtype)
+    if law is None:
+        return None
+    (low, high), logarithmic = law
+    lows = np.full(len(uniform), float(low)) if subtype == MAGNETAR_SUBTYPE else np.maximum(cuts, low)
+    highs = np.full(len(uniform), float(high))
+    span = np.maximum(highs - lows, 0.0)
+    if logarithmic:
+        grown = np.where(lows < highs, np.exp(np.log(lows) + uniform * (np.log(highs) - np.log(lows))), lows)
+    else:
+        grown = np.where(lows < highs, lows + uniform * span, lows)
+    return grown
 
 
 def _stored_in_cells(mpc, shell_index, band_index, wedge, wedge_count, edge_pc):
@@ -513,23 +563,23 @@ def shell_expected(shape, shell_index, high_band, edge_pc, expected_at_density_1
     """About how many objects `scatter_shell` places in one shell (the
     progress bar's weight): the same per-band means on evenly spaced
     sample bands, as `bright_stars.shell_expected_stars` does for stars."""
-    if min_mass_solar is None:
-        min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
     return sum(shell_expected_by_class(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                                        min_mass_solar).values())
 
 
 def shell_expected_by_class(shape, shell_index, high_band, edge_pc, expected_at_density_1, min_mass_solar=None):
     """`shell_expected` per class: `{(kind, subtype): about how many}` for each class with anything above the cut."""
-    if min_mass_solar is None:
-        min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
+    cuts = as_cuts(min_mass_solar)
     fractions = {population: 1.0 for population in bright_stars.POPULATIONS}
-    rates = _scattered_rates(min_mass_solar)
+    rates = _scattered_rates(cuts.lowest)
     totals = {(kind, subtype): 0.0 for kind, subtype, _rate in rates}
-    for _band, plane, z, stars in bright_stars.sampled_band_expectations(
+    shares = {} if cuts.is_uniform else {(kind, subtype): tier_shares(kind, subtype, cuts) for kind, subtype, _rate in rates}
+    for band, plane, z, stars in bright_stars.sampled_band_expectations(
             shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
+        tier = None if cuts.is_uniform else cuts.limits.tier_at(shell_index, band)      # GEN.377: a band keeps its tier's share
         for kind, subtype, rate in rates:
-            totals[(kind, subtype)] += stars * rate * _expectation_factor(shape, kind, subtype, plane, z)
+            share = 1.0 if tier is None else shares[(kind, subtype)][tier]
+            totals[(kind, subtype)] += stars * rate * share * _expectation_factor(shape, kind, subtype, plane, z)
     return totals
 
 

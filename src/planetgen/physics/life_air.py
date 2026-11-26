@@ -35,12 +35,11 @@ moves across the freezing point keeps its stored state of water, as it does afte
 tweak level in the ledger file.
 """
 
-import copy
 import json
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import biogenic_oxygen, constants, elements, habitability_world, life_supply
+from planetgen.physics import biogenic_oxygen, constants, elements, habitability_world, life_supply, trial_copy
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_ledger.json")
 TMOL = 1.0e12
@@ -309,8 +308,8 @@ SETTLE_TOLERANCE = 1.0e-9
 
 
 def _settled_water_mol(body, moles):
-    """The water vapor, mol, the air `moles` holds once it is stored on `body`: stored on a copy, whose new temperature freezes out what stands above saturation (`biogenic_oxygen.store_air`)."""
-    trial = copy.deepcopy(body)
+    """The water vapor, mol, the air `moles` holds once it is stored on `body`: stored on a trial copy (`trial_copy`, which shares the bodies a planet holds), whose new temperature freezes out what stands above saturation (`biogenic_oxygen.store_air`)."""
+    trial = trial_copy.trial_copy(body)
     air = biogenic_oxygen.partials_pa(trial, moles)
     if not air:
         return 0.0

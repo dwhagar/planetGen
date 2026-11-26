@@ -1002,6 +1002,42 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
 
 
+def test_a_double_click_on_a_body_of_the_system_view_flies_to_it_and_opens_its_information(page, base_url, site_app):
+    """MAP.140: a double click on a body of the System Map's 3D view goes there (the camera comes close to it) and its
+    information is open in the panel, named as the body is."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_timeout(1500)
+    spots = page.evaluate("""() => {
+        const view = document.getElementById('sysview3d-canvas').systemView;
+        const rect = document.getElementById('sysview3d-canvas').getBoundingClientRect();
+        const names = new Map(view.list().map((e) => [e.ref, e.name]));
+        view.camera.updateMatrixWorld();
+        return view.placed().filter((e) => e.kind === 'planet').map((e) => {
+            const at = new view.camera.position.constructor(e.x, e.y, e.z).project(view.camera);
+            return { ref: e.ref, name: names.get(e.ref), x: (at.x + 1) / 2 * rect.width, y: (1 - at.y) / 2 * rect.height, z: at.z,
+                     away: view.camera.position.distanceTo(new view.camera.position.constructor(e.x, e.y, e.z)), radius: e.radius };
+        });
+    }""")
+    spot = next((s for s in spots if s["z"] < 1 and 20 < s["x"] < 700 and 20 < s["y"] < 400), None)
+    if spot is None:
+        return
+    box = page.locator("#sysview3d-canvas").bounding_box()
+    page.mouse.dblclick(box["x"] + spot["x"], box["y"] + spot["y"])
+    page.wait_for_selector("#sysmap-info h3", timeout=10000)
+    page.wait_for_timeout(1500)    # the flight takes 0.7 s
+    assert page.locator("#sysmap-info h3").inner_text() == spot["name"]
+    now = page.evaluate("""(ref) => {
+        const view = document.getElementById('sysview3d-canvas').systemView;
+        const e = view.placed().find((p) => p.ref === ref);
+        return view.camera.position.distanceTo(new view.camera.position.constructor(e.x, e.y, e.z));
+    }""", spot["ref"])
+    assert now < spot["away"], (spot["away"], now)
+
+
 def test_system_page_3d_view_keeps_a_picked_body_when_the_diagram_script_is_slow(page, base_url, site_app):
     """UX.290: the diagram and the 3D view share the info panel (#sysmap-info). The diagram sets itself up after the page script, so on an
     address with `?object=` a slow diagram script used to reset the panel to its hint after the 3D view had shown the body. The diagram

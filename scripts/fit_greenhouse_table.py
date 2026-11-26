@@ -1148,6 +1148,35 @@ def solved_airs(work, name):
     return airs, np.array(kelvin)
 
 
+def fixture(args):
+    """GEN.1854: writes the validation airs the table file states its accuracy on (`--name`, and `--envelope-name`) with the model's surface temperature and the class each cool air counts in
+    (`clear`, `other_infrared_gases`, `haze`, as `validate_set` takes them) to `--out` (a gzip JSON file kept in the repository, `tests/fixtures/greenhouse_validation.json.gz`), so that
+    `tests/test_greenhouse_validation.py` measures the table on them live and the table cannot drift off today's airs unseen."""
+    import gzip
+
+    from planetgen.physics import greenhouse_table
+
+    def rows(name):
+        airs, model = solved_airs(args.work, name)
+        features = np.array([greenhouse_table.features(*air) for air in airs])
+        names = list(greenhouse_table_features())
+        haze = features[:, names.index("aloft_share")] > 0.0
+        infrared = features[:, names.index("ln_fraction_ir")] > math.log(CLASS_IR_SHARE)
+        out = []
+        for air, kelvin, hazy, ir in zip(airs, model, haze, infrared):
+            label = "haze" if hazy else ("other_infrared_gases" if ir else "clear")
+            partials, gravity, flux, share, aloft = air
+            out.append({"partials": {gas: float(f"{value:.6g}") for gas, value in partials.items()}, "gravity": float(f"{gravity:.6g}"), "flux": float(f"{flux:.6g}"), "aloft_share": float(f"{share:.6g}"),
+                        "aloft_pressure_pa": None if aloft is None else float(f"{aloft:.6g}"), "model_k": float(f"{kelvin:.6g}"), "class": label})
+        return out
+
+    data = {"what": "airs of the generator of 11-26 (seeds 5000 to 5060) the radiative-convective model solved, and the hydrogen envelope and giant airs of the envelope set; the table file states its accuracy on them (GEN.1854)",
+            "validation": rows(args.name), "envelope": rows(args.envelope_name) if args.envelope_name else []}
+    with gzip.open(args.out, "wt", encoding="utf-8", compresslevel=9) as handle:
+        json.dump(data, handle, separators=(",", ":"))
+    print(f"{len(data['validation'])} validation airs and {len(data['envelope'])} envelope airs written to {args.out}")
+
+
 def read_through_warming(path, airs):
     """What the generator reads from the table file `path` for each air: `greenhouse_table.warming` itself (minor gases counted by their share, the haze guard, the thin-air
     and the deep-air rules), so the accuracy the file states is the accuracy the product has (GEN.1717 measured it so; GEN.1796 restores it)."""
@@ -1233,7 +1262,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "twin", "slope", "anchors", "envelope", "hot", "hazy", "cold", "traces", "earthtraces", "census", "nullgas", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "twin", "slope", "anchors", "envelope", "hot", "hazy", "cold", "traces", "earthtraces", "census", "nullgas", "solve", "fit", "validate", "fixture"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -1268,7 +1297,7 @@ def main():
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "twin": twin, "slope": slope, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "earthtraces": earthtraces, "census": census_airs, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "twin": twin, "slope": slope, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "earthtraces": earthtraces, "census": census_airs, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate, "fixture": fixture}[args.step](args)
 
 
 if __name__ == "__main__":

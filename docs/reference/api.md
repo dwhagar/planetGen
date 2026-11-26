@@ -146,7 +146,10 @@ connectivity to that specific schema rather than the default one.
   with `role` (`single`, `primary`, `secondary`, or `member` for a star beyond the pair)/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`),
   `star_count`, `interstellar_debris_count` (an estimate of the
   interstellar comets and planetesimals drifting through it, far too many
-  to store as rows), `neighbors` (every grid cell sharing a face with a
+  to store as rows), `directive` (the minimums a run asked of the sector with `--directive` and how the draw came out
+  (GEN.179): `digest`, `status` (`met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`), `attempts` and
+  `minimums`, each `{key, wanted, got}` (`systems`, `habitable`, `type:G` ...); `null` for a sector drawn with no
+  directive), `neighbors` (every grid cell sharing a face with a
   placed sector: its address, `designation`, `direction_pc`, `exists`
   and `sector_id`/`sector_name`, empty for an unplaced sector), and
   `phenomena` (every placed standalone phenomenon generated as part of
@@ -378,6 +381,17 @@ connectivity to that specific schema rather than the default one.
   `404` with `status` `unknown` for one nobody had, `400` for no text. An ID is 24 hex digits written `XXXXXXXXXXXXXX-XXXXXXX-XXX`; any other text
   is a name (an exact match on the name now, else on a name an object gave up; a name is not unique, so the first holder wins, sectors and
   systems first). The Search page uses it to say where a typed ID or past name went.
+  `near=<sector>` (API.38; the 14 hex digits of the sector the person is in) is where a bare local name's search starts. A **bare local name** (`Zaidonr Jaisonn`, GEN.1255, no
+  sector) that no object has as its stored name stands for one Object ID in every sector, so it is searched sector by sector, the sectors nearest `near` first (`db/local_name_search.py`;
+  the sectors are every sector row, every cell of the scatter tables and every birth sector of the standalone phenomena; systems, stars, planets, moons and belts are not named by
+  their ID, so a local name never finds them). A search that ends inside the request answers `200` `current` for one match (with its `sector`, the 14 hex digits of its birth sector), `200`
+  `matches` for several (`matches`, each `{kind, ref, id, name, former_designations, sector}`) or `404` `unknown` that says how many sectors were searched; every answer of a name search
+  carries `searched`, `of` and `complete`. A search that outlasts the request answers `202` `searching` with the matches of the nearest sectors so far, `searched` of `of`, a `line`
+  (`Searched 1,200 of 480,000 sectors in 1s`), `job_id` and `status_url`.
+- `GET /api/lookup/jobs/<id>` (API.38) — where the search for a bare local name stands: `state` (`queued`, `running`, `succeeded`, `failed`), `searched` of `of` sectors, the `line` with the real
+  counts and a clock time, `eta_seconds` and `eta` (`1h 23m 45s`), and the finished answer as `result` (the body the request would have given, with `http_status`). Public; it names only
+  name searches. `404` for an id that is not a name search or has expired (kept an hour), `503` without Redis. The search runs as a light job on the queue (`planetgen.api.lookup:name_search_job`)
+  and never stops short: every sector is searched, or the answer says how many were not.
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet`, `facility` (UX.183: its parents run down to the body it is built on, or to its

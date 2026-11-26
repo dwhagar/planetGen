@@ -71,26 +71,24 @@ def test_the_file_states_an_accuracy_the_fit_reached():
     weaker there (the file states it by class, `cool_by_class`); they are held to what the fit reached and the gap is an open item, not to the clear-sky figures. GEN.1717:
     the set is measured again on the airs of today's generator (which now deposits a giant's own absorbed starlight aloft), where the old file reads the same as the new
     one (median error 1.5 against 1.6 percent, 99th percentile 36 percent against 36 on the cool airs, read through `warming`): the figures below are what both reach on that set.
-    GEN.1854: the set is drawn again on the generator of today (seeds 5000 to 5060, 1,822 airs the model solved under 500 K), which makes airs with sulfur and carbonyl sulfide at shares the earlier
-    sets held little of. The file before the refit reads on it: 2.5 percent median on all of them, 1.75 on the clear cool ones (90th percentile 6.8, 99th 33 K), 12.5 percent on the other infrared gases
-    and 54 percent on the hazy airs at the 90th percentile, 3.3 percent median on the envelope airs. The refit, which fixes the slope of the table in the minor infrared gases of a dense carbon dioxide air (the
-    doubling test of the sweep) and holds the airs the climate tests and the Venus twins read, reads 3.05 percent (all), 2.10 (clear, 90th percentile 8.2, 99th 46 K), 19 and 40 percent at the 90th percentile of the other
-    infrared gases and the hazy airs, 4.3 percent median on the envelope airs: the median is worse by half a point and the tails of the unusual airs wider, which is an open item (a refit on the airs the
-    generator reads, GEN.1854's note); the bounds below are what the file reaches on that set, not a claim that it is as good as before."""
+    GEN.1854: the set is drawn again on the generator of today (seeds 5000 to 5060, 1,822 airs the model solved, hydrogen-rich ones apart) and kept in the repository (`tests/fixtures/greenhouse_validation.json.gz`, read live by
+    `test_greenhouse_validation.py`), since the table of GEN.1796 had drifted off the airs of today's generator: it read 1.75 percent on the clear cool airs and 2.49 on all of them where the bounds below, set on an
+    earlier set of seeds, say 1 and 2. The refit, which holds each infrared gas monotone in a dense carbon dioxide air (the doubling test of the sweep) and adds the model's answers for airs of the generator of seeds 6000 to 6100,
+    reads 1.72 percent on all, 1.03 on the clear cool airs (90th percentile 5.9, 99th 40 K), 1.6 and 1.7 on the other infrared gases and the hazy airs: better than the file before on every row, and at the old bounds but
+    for the clear cool airs' median, whose bound is 1.05 percent here (the old one was 1)."""
     check = gt.table().summary["validation"]
     cool = check["by_surface_temperature_k"]["0 to 300"]
     assert cool["samples"] >= 500
-    assert cool["relative_percentiles"]["50"] < 0.03
+    assert cool["relative_percentiles"]["50"] < 0.02
     clear = check["cool_by_class"]["clear"]
     assert clear["samples"] >= 200
-    assert clear["relative_percentiles"]["50"] < 0.025
+    assert clear["relative_percentiles"]["50"] < 0.0105
     assert clear["relative_percentiles"]["90"] < 0.10
-    assert clear["kelvin_percentiles"]["99"] < 80.0
+    assert clear["kelvin_percentiles"]["99"] < 50.0
     for name in ("haze", "other_infrared_gases"):
         assert check["cool_by_class"][name]["relative_percentiles"]["50"] < 0.06, name
-    assert check["cool_by_class"]["other_infrared_gases"]["relative_percentiles"]["90"] < 0.30
-    assert check["cool_by_class"]["haze"]["relative_percentiles"]["90"] < 0.90
-    assert check["relative_percentiles"]["50"] < 0.035
+        assert check["cool_by_class"][name]["relative_percentiles"]["90"] < 0.30, name
+    assert check["relative_percentiles"]["50"] < 0.02
 
 
 def test_the_file_states_the_accuracy_it_reached_on_hydrogen_envelopes_and_giants():

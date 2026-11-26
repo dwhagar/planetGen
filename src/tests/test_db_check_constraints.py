@@ -45,6 +45,10 @@ _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 _EMPTY_TABLE_ROWS = {
     # GEN.764: the seeded galaxy runs no scatter, so no kind has recorded its epoch.
     "scatter_epochs": "INSERT INTO scatter_epochs (kind, generator_epoch) VALUES ('mass', 1)",
+    # GEN.179: a sector keeps a directive record only when it was drawn under a --directive; the seeded galaxy is drawn with none.
+    "sector_directives": (
+        "INSERT INTO sector_directives (sector_id, directive_digest, status, attempts)"
+        " VALUES ((SELECT MIN(id) FROM sectors), '0123456789abcdef', 'met_naturally', 1)"),
     # Only a planet with life gets these, and whether the seeded galaxy has one depends on its draws (TEST.263).
     "planet_reflection_spectrum": (
         "INSERT INTO planet_reflection_spectrum (planet_id, spectrum_type, position, value)"
@@ -154,20 +158,24 @@ _ALWAYS_ADDED_ROWS = {
 }
 
 
+def _outside_the_list(conn, table, column):
+    """A value of the column's own type that no IN list names: 7 for an integer column (a flag's list is 0, 1), "zz" for text. GEN.1227: the carbon-chain flag is a nullable TINYINT with such a list, which text cannot test (MySQL refuses the type first)."""
+    kind = conn.execute(
+        "SELECT DATA_TYPE AS k FROM information_schema.COLUMNS"
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
+    ).fetchone()["k"]
+    return 7 if "int" in kind else "zz"
+
+
 def _breaking_value(conn, table, clause, row):
     """`(column, value)` that the clause refuses for `row`."""
     clause = " ".join(clause.strip().strip("()").split())
     match = _NULL_OR_IN.match(clause)
     if match:
-        return match[1], "zz"
+        return match[1], _outside_the_list(conn, table, match[1])
     match = _IN_LIST.match(clause)
     if match:
-        column = match[1]
-        kind = conn.execute(
-            "SELECT DATA_TYPE AS k FROM information_schema.COLUMNS"
-            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
-        ).fetchone()["k"]
-        return column, (7 if "int" in kind else "zz")
+        return match[1], _outside_the_list(conn, table, match[1])
     match = _BETWEEN.match(clause)
     if match:
         return match[1], int(match[3]) + 1

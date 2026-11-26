@@ -703,6 +703,7 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
         neutron_star = NeutronStar(config, galactic_center_dist_ly=dist_ly, mass_solar=row["mass_solar"],
                                    mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True),
                                    magnetar=row["subtype"] == phenomenon_scatter.MAGNETAR_SUBTYPE)
+        neutron_star.cluster_id = row.get("cluster_id")
         return sector.add_phenomenon(neutron_star, "neutron-star", position=position)
     if kind == "supernova-remnant":
         return sector.add_phenomenon(SupernovaRemnant(config), "supernova-remnant", position=position)
@@ -1263,6 +1264,7 @@ def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
         build_forced=lambda count: generate_sector(_forced_args(args, count), **kwargs)[1])
     where = f" {galaxySeed.address_text(address)}" if address is not None else ""
     log.normal(f"Sector{where}: {outcome.describe()}.")
+    sector.directive_record = directives.record_of(directive, outcome, sector)    # GEN.179: stored with the sector
     return sector.name, sector
 
 

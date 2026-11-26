@@ -24,7 +24,7 @@ def _dist(page):
 
 def test_leaving_an_opened_sector_carries_the_zoom_on_by_the_wheels_own_step(page, map_site):
     center = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
-    _open(page, f"{map_site}/galaxy", GALAXY_CANVAS)
+    _open(page, f"{map_site}/galaxy?whole=1", GALAXY_CANVAS)
     page.wait_for_function("() => { const c = document.querySelector('#galaxymap3d-canvas'); return !c.galaxyReady || c.galaxyReady(); }", timeout=60000)
     page.wait_for_timeout(1500)
     box = page.locator(GALAXY_CANVAS).bounding_box()

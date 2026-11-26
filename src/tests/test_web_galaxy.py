@@ -68,8 +68,8 @@ class FakeData:
         self.stage_sectors = []
         self.polity_total = 2
         self.regions = [
-            {"key": "9.5.1.7", "name": "Vang Zarh Region", "parent": "Vang Reach", "sector_count": 3, "capacity": 12, "share": 0.25},
-            {"key": "9.5.1.8", "name": "Kell Oon Region", "parent": "Vang Reach", "sector_count": 1, "capacity": 12, "share": 1 / 12},
+            {"key": "9.5.1.7", "m": 9, "shell": 5, "band": 1, "wedge": 7, "center": [10.0, 20.0, 1.0], "radius": 6.0, "name": "Vang Zarh Region", "parent": "Vang Reach", "sector_count": 3, "capacity": 12, "share": 0.25},
+            {"key": "9.5.1.8", "m": 9, "shell": 5, "band": 1, "wedge": 8, "center": [14.0, 22.0, 1.0], "radius": 6.0, "name": "Kell Oon Region", "parent": "Vang Reach", "sector_count": 1, "capacity": 12, "share": 1 / 12},
         ]
 
     def get_polities(self, db, limit=None, offset=None):

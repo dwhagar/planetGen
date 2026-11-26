@@ -371,7 +371,12 @@ class NeutronStar(CompactRemnant):
             `"non-pulsing"` (GEN.153).
         surface_temperature_k (float): Surface temperature in Kelvin --
             also `self.temperature`.
+        cluster_id (int or None): The `galaxy_components.id` of the globular cluster the scatter drew it in (`phenomenon_scatter.cluster_id`,
+            GEN.163); `None` for a neutron star of the field. Set by whoever builds it from a scatter row; a pulsar that has one may hold a
+            captured giant (`pulsar_planets`). Not a stored field: the row has it.
     """
+
+    cluster_id = None
 
     FIELD_UNITS = {
         **StellarObject.FIELD_UNITS, "mass_solar": "Msun", "spin_period_ms": "ms", "magnetic_field_gauss": "G",

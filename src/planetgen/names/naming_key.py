@@ -113,21 +113,40 @@ def local_domain(key):
     return f"{parse_key(key)}:{LOCAL_DOMAIN}"
 
 
-@functools.lru_cache(maxsize=4096)
-def _scramble_params(key, sector):
+_SPREAD_STEPS = None
+"""numpy.ndarray or None: The serials 1 to `SPREAD_SERIALS` as the unsigned 64-bit integers `_spread_ok` multiplies, built once."""
+
+
+def _spread_ok(a):
+    """Whether the multiplier `a` keeps the first `SPREAD_SERIALS` serials `SPREAD_GAP` apart after the scramble (the first word drops the low 8 bits).
+    The products of `a` and 1 to 4096 fit 64 bits (`a` has 26 bits), so numpy gives the exact answer the plain loop gives, about forty times faster (API.38)."""
+    global _SPREAD_STEPS
+    import numpy
+    if _SPREAD_STEPS is None:
+        _SPREAD_STEPS = numpy.arange(1, SPREAD_SERIALS + 1, dtype=numpy.uint64)
+    values = (numpy.uint64(a) * _SPREAD_STEPS) & numpy.uint64(_SCRAMBLE_MASK)
+    return int(numpy.minimum(values, numpy.uint64(1 << _SCRAMBLE_BITS) - values).min()) >= SPREAD_GAP
+
+
+def scramble_params(key, sector):
     """The multiplier `a` (odd) and offset `b` of the scramble for `sector` (its 56-bit address as an integer) under `key`: the first
-    multiplier drawn from SHA-256(key, sector, attempt) that keeps the first `SPREAD_SERIALS` serials `SPREAD_GAP` apart."""
+    multiplier drawn from SHA-256(key, sector, attempt) that keeps the first `SPREAD_SERIALS` serials `SPREAD_GAP` apart. Not cached:
+    the search of a bare name (`db/local_name_search.py`) asks for every sector once and would only push the useful rows out of `_scramble_params`."""
     sector_text = _sector_hex(sector)
     attempt = 0
     while True:
         digest = hashlib.sha256(f"local-name:{parse_key(key)}:{sector_text}:{attempt}".encode()).digest()
         a = int.from_bytes(digest[:8], "big") & _SCRAMBLE_MASK | 1
         b = int.from_bytes(digest[8:16], "big") & _SCRAMBLE_MASK
-        spread = min(min(value, (1 << _SCRAMBLE_BITS) - value)
-                     for value in ((a * step) & _SCRAMBLE_MASK for step in range(1, SPREAD_SERIALS + 1)))
-        if spread >= SPREAD_GAP:
+        if _spread_ok(a):
             return a, b
         attempt += 1
+
+
+@functools.lru_cache(maxsize=4096)
+def _scramble_params(key, sector):
+    """`scramble_params`, kept for the sectors a request names again."""
+    return scramble_params(key, sector)
 
 
 def scramble(count, sector, key):
@@ -216,6 +235,36 @@ def scatter_identity(raw_uid):
     return found
 
 
+def local_parts(name, key):
+    """
+    What a local name spells, with no sector: `(kind, scrambled count, body number)`, the serial kind, the 26 count bits as the scramble left
+    them and the 12 body bits. The count is only a count once a sector's scramble is undone (`uid_in_sector`), so a bare name stands for
+    one Object ID in every sector.
+
+    Raises:
+        ValueError: A name the codec cannot read as a local name.
+    """
+    layout = object_uid.LAYOUT
+    spelled = int(_CODEC.decode(" ".join(name.lower().split()), local_domain(key), length=LOCAL_DIGITS), 16)
+    number = spelled >> layout.body_bits
+    return number >> layout.serial_count_bits, number & _SCRAMBLE_MASK, spelled & ((1 << layout.body_bits) - 1)
+
+
+def uid_in_sector(parts, sector, key, cached=True):
+    """
+    The Object ID (an integer) that `parts` (`local_parts`) stand for in `sector` (its 56-bit address as an integer), under `key`.
+
+    Args:
+        cached (bool): Take the sector's scramble from the cache (`False` for a pass over a great many sectors).
+    """
+    layout = object_uid.LAYOUT
+    kind, scrambled, body = parts
+    a, b = (_scramble_params if cached else scramble_params)(parse_key(key), sector)
+    count = (pow(a, -1, 1 << _SCRAMBLE_BITS) * (scrambled - b)) & _SCRAMBLE_MASK
+    serial = (kind << layout.serial_count_bits) | count
+    return (((sector << layout.serial_bits) | serial) << layout.body_bits) | body
+
+
 def uid_of_local_name(name, sector, key):
     """
     The Object ID (an integer) a local name stands for in `sector`, under `key` (the inverse of `local_name`). `sector` is the birth
@@ -232,13 +281,7 @@ def uid_of_local_name(name, sector, key):
         sector = int(digits, 16)
     if not isinstance(sector, int) or not 0 <= sector < (1 << layout.sector_bits):
         raise ValueError(f"a sector address is {layout.sector_bits} bits, not {sector!r}")
-    spelled = int(_CODEC.decode(" ".join(name.lower().split()), local_domain(key), length=LOCAL_DIGITS), 16)
-    body = spelled & ((1 << layout.body_bits) - 1)
-    number = spelled >> layout.body_bits
-    kind = number >> layout.serial_count_bits
-    count = unscramble(number & _SCRAMBLE_MASK, sector, key)
-    serial = (kind << layout.serial_count_bits) | count
-    return (((sector << layout.serial_bits) | serial) << layout.body_bits) | body
+    return uid_in_sector(local_parts(name, key), sector, key)
 
 
 # ---------------------------------------------------------------------

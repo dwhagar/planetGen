@@ -267,7 +267,7 @@ def empty_sector(sector_id, config):
     return {"address": address, "around": around, "deleted": counts}
 
 
-def fill_emptied_sector(emptied, config):
+def fill_emptied_sector(emptied, config, directive=None):
     """The second half of `regenerate_sector` (GEN.845): generates the cell `empty_sector` emptied again, as runs through the
     wrapper (PERF.119: the sector and its backfill, then the settle of the new sector and the old neighbours that still
     exist).
@@ -278,7 +278,7 @@ def fill_emptied_sector(emptied, config):
     from planetgen.db import store
     from planetgen.generation import run_galaxy
     config = config or store.DEFAULT_MYSQL_CONFIG
-    result = run_galaxy.regenerate_sector_cell(emptied["address"], config)
+    result = run_galaxy.regenerate_sector_cell(emptied["address"], config, directive=directive)
     # GEN.126: the new sector's masses and the old neighbours' paths, now the neighbour set is final.
     wanted = set(emptied["around"])
     if result["sector_id"] is not None:
@@ -294,17 +294,18 @@ def fill_emptied_sector(emptied, config):
     return result
 
 
-def regenerate_sector(sector_id, config):
+def regenerate_sector(sector_id, config, directive=None):
     """The queued body of `POST /api/sectors/<id>/regenerate`: deletes the
     galaxy-placed sector with everything in it (`empty_sector`), then generates its cell
-    again (`fill_emptied_sector`), the job waiting in line for the machine (PERF.153).
+    again (`fill_emptied_sector`), the job waiting in line for the machine (PERF.153). `directive` (`--directive` texts) draws the new
+    sector under that directive (DB.17: `repair-db --regenerate` gives the one the sector's stored record names).
 
     Returns:
         dict: `deleted` (the row counts), `sector_id` and `sector_name` of
             the new sector (`None` only when the cell is beyond the grid's reach).
     """
     emptied = empty_sector(sector_id, config)
-    result = fill_emptied_sector(emptied, config)
+    result = fill_emptied_sector(emptied, config, directive=directive)
     return {"deleted": emptied["deleted"], "sector_id": result["sector_id"], "sector_name": result["sector_name"]}
 
 

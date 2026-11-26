@@ -219,13 +219,13 @@ PLANET_SPAN = ["--shells", "1:1", "--bands", "0", "--wedges", "0:1"]
 
 
 def _planets(config):
-    """What the planets of each sector are, by address: the planets' orbit, type, mass, temperature, pressure and recorded air history, sorted (ids and names are of the database)."""
+    """What the planets of each sector are, by address: the planets' orbit, type, mass, temperature, pressure and recorded air history, sorted (ids and names are of the database). The two lists of a wide pair both count their planets from 0, so the mass breaks the tie: without it the rows of one orbit index come in the order the server finds them, which differs between two runs of one sector."""
     conn = store.get_connection(config)
     try:
         rows = conn.execute(
             "SELECT s.shell_index, s.band_index, s.wedge_index, p.orbital_index, p.body_type, p.mass_kg, p.surface_temperature_k, p.atmospheric_pressure_pa, p.air_history"
             " FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id JOIN sectors s ON s.id = ss.sector_id"
-            " ORDER BY s.shell_index, s.band_index, s.wedge_index, ss.id, p.orbital_index").fetchall()
+            " ORDER BY s.shell_index, s.band_index, s.wedge_index, ss.id, p.orbital_index, p.mass_kg").fetchall()
     finally:
         conn.close()
     return [tuple(row.values()) for row in rows]

@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The temperature-pressure profile of a hot giant (GEN.1577) - planetGen docs</title>
-<meta name="description" content="Status: built (new module, nothing calls it yet).">
+<meta name="description" content="Status: built and read (GEN.1577: hotclouddeck.giantprofile calls it, floors it with a dry adiabat, and hotclouddeck.generate stores each giant&#x27;s cloud decks in planets.clouddecks).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
 @media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
@@ -44,7 +44,7 @@ main{padding:16px 16px 60px}}
 <nav id="nav" data-root="../../" data-here="design/composition/hot-giant-profile.html"><a href="../../index.html">Site index</a></nav>
 <main>
 <h1 id="the-temperature-pressure-profile-of-a-hot-giant-gen1577">The temperature-pressure profile of a hot giant (GEN.1577)</h1><p class="meta">docs/design/composition/hot-giant-profile.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-is-for">What it is for</a></li><li style="margin-left:0px"><a href="#the-form">The form</a></li><li style="margin-left:0px"><a href="#checked-against">Checked against</a></li><li style="margin-left:0px"><a href="#stand-ins-registry-6288">Stand-ins (registry 6.288)</a></li><li style="margin-left:0px"><a href="#what-a-later-part-adds">What a later part adds</a></li></ul></details>
-<p>Status: built (new module, nothing calls it yet). Module <code>src/planetgen/physics/hot_giant_profile.py</code>, tests <code>src/tests/test_hot_giant_profile.py</code>. Built ahead by Lane 07 for Lane 14, who reviews it and wires it behind the cloud deck (<code>physics/hot_cloud_deck.py</code>, GEN.994).</p>
+<p>Status: built and read (GEN.1577: <code>hot_cloud_deck.giant_profile</code> calls it, floors it with a dry adiabat, and <code>hot_cloud_deck.generate</code> stores each giant's cloud decks in <code>planets.cloud_decks</code>). Module <code>src/planetgen/physics/hot_giant_profile.py</code>, tests <code>src/tests/test_hot_giant_profile.py</code>. Built by Lane 07 and wired behind the cloud deck (<code>physics/hot_cloud_deck.py</code>, GEN.994 and GEN.1577).</p>
 <h2 id="what-it-is-for">What it is for</h2>
 <p>The cloud deck of a hot giant (Cr, MnS, Na<sub>2</sub>S, ZnS, KCl) is where the planet's temperature profile meets each species' condensation curve (<code>hot_condensates.cloud_temperature_k</code>). The deck needs a profile <code>T(P)</code> over the pressures it searches, 1e-6 to 1e3 bar. The generator has no such profile above the 1 bar reference level of a giant (<code>surface_air</code> solves one temperature there), so this module gives one.</p>
 <h2 id="the-form">The form</h2>
