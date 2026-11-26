@@ -281,6 +281,10 @@ connectivity to that specific schema rather than the default one.
   shape, not the generation object graph" relationship to
   `planetgen.db.store.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.
+- `GET /api/moons/<id>/description` — the description of a moon of a free planet (UX.138): a moon that circles a wanderer belongs to no
+  system, so it has no system description to read its words from. The same Document shape as above, one `moon` section holding the
+  moon's own facts, ratings, composition and prose (no sky: a free planet has no star). 404 for an id that is no moon and for a moon of a
+  planet in a system, whose words are in the system's description.
 - `GET /api/systems/<id>/description` — the system's description (API.25,
   `planetgen/describe/`, `docs/design/architecture/system-description.md`): `{"kind":
   "system", "ref", "title", "sections": [...]}`. A section has a `kind`

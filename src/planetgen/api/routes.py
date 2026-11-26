@@ -135,7 +135,7 @@ from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
-from planetgen.db.render import describe_system, render_system_text
+from planetgen.db.render import describe_free_moon, describe_system, render_system_text
 from planetgen.physics import cluster_unbinding, oddities
 from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
@@ -806,6 +806,20 @@ def system_description(system_id):
     """
     try:
         return jsonify(describe_system(get_db(), system_id))
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=404) from exc
+
+
+@bp.route("/moons/<uid:moon_id>/description")
+def free_moon_description(moon_id):
+    """
+    `GET /api/moons/<id>/description` -- the Document of a moon of a free planet (UX.138, `planetgen/describe/`): a moon of a wanderer
+    belongs to no system, so it has no system description to read its words from. Its own section, as a moon of a system has: the
+    fact and rating tables, the composition and the prose, every number a typed quantity, built now from its database row. 404 for a
+    moon that circles a planet of a system (its words are in the system's description) and for an id that is no moon.
+    """
+    try:
+        return jsonify(describe_free_moon(get_db(), moon_id))
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404) from exc
 

@@ -855,3 +855,17 @@ def describe(system):
 
     return model.document("system", _ref("system", system), system.name,
                           [section("system", _ref("system", system), system.name, blocks, children)])
+
+
+def describe_free_moon(moon):
+    """
+    The Document of a moon of a free planet (UX.138): the moon's own section, as a moon of a system has in `describe`, but with no
+    system around it. It circles a wanderer, which has no star, so it has no sky and no light of a star in its facts (`_sky_block`
+    finds no star); a moon's section holds nothing of the planet it circles beyond that.
+
+    Args:
+        moon (Planet): A moon loaded from its row (`db.store.load_free_moon`), its `db_id` set.
+    """
+    piece = _planet_section(moon, None)
+    return model.document("moon", _ref("moon", moon), moon.name, [piece])
+
