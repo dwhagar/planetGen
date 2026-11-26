@@ -319,11 +319,3 @@ def place_stretch(position_pc, shape):
     x, y, z = (np.asarray([float(c)]) for c in position_pc)
     return float(stretch_array(x, y, z, shape)[0])
 
-
-def stretch_from_peaks(populations):
-    """The stretch at the sector profile's `populations` (name -> `PopulationProfile`): the shares and the [Fe/H] peaks of the
-    place itself (1 when there are no stars)."""
-    total = sum(pop.share for pop in populations.values())
-    if total <= 0.0:
-        return 1.0
-    return sum(pop.share * float(_stretch_of_peaks(pop.fe_h)) for pop in populations.values() if pop.share > 0.0) / total
