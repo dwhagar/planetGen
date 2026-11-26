@@ -33,7 +33,7 @@ registered law as the anchor.
   1 for that disk, 0.73 at and above the sun's metals, 1.75 at -0.2 dex, 3.2 at -0.5 and 6.0 with no metals.
 * `remnant_mass.black_hole_stretch(fe_h)` multiplies the span above the 5 solar mass edge by the trend, held so that the top of the
   span is at most `tuning.BLACK_HOLE_MASS_TOP_SOLAR` = 50 solar masses. The top is inside the lower edge of the pair-instability
-  mass gap, 45 solar masses, 40 to 56 for the carbon-oxygen reaction rate's one-sigma range ([R5365]): the pulsations that gap comes
+  mass gap, 45 solar masses, 40 to 56 for the carbon-oxygen reaction rate's one-sigma range [R5365]: the pulsations that gap comes
   from strip the heavier stars before they collapse. The hole's mass is `5 + (anchor mass - 5) x stretch`: the same rank in the law
   at every place, and a flat law up to the top, no pile at the top.
 * A star of the member tree and a remnant's composition take the stretch of their own [Fe/H]. The scatter's rows (the disk, bulge and halo scatter, the reach groups and the rows of a component's own pass), the rows of a ring

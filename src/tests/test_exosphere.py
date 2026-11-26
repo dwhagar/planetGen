@@ -57,11 +57,11 @@ def test_the_atoms_share_of_an_element_is_its_moles_over_the_atoms_of_the_rock()
 
 def test_sodium_follows_the_rate_the_star_ionises_it_at():
     for temperature, rate in exosphere.NA_IONISATION_RATE_1AU:
-        assert exosphere.na_ionisation_rate_1au(temperature) == pytest.approx(rate)
-    assert exosphere.na_ionisation_rate_1au(5000.0) < exosphere.na_ionisation_rate_1au(6000.0)
+        assert exosphere.na_ionization_rate_1au(temperature) == pytest.approx(rate)
+    assert exosphere.na_ionization_rate_1au(5000.0) < exosphere.na_ionization_rate_1au(6000.0)
     # the lifetime is 1 / rate and scales as the inverse of the light: halving the light doubles it
-    near = exosphere._ionisation_lifetime_s("Na", _inputs(1.62, 1737.0, 250.0, MOON_ROCK, 1.0))
-    far = exosphere._ionisation_lifetime_s("Na", _inputs(1.62, 1737.0, 250.0, MOON_ROCK, math.sqrt(2.0)))
+    near = exosphere._ionization_lifetime_s("Na", _inputs(1.62, 1737.0, 250.0, MOON_ROCK, 1.0))
+    far = exosphere._ionization_lifetime_s("Na", _inputs(1.62, 1737.0, 250.0, MOON_ROCK, math.sqrt(2.0)))
     assert far == pytest.approx(2.0 * near)
 
 

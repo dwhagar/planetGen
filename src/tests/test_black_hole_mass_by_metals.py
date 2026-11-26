@@ -2,7 +2,7 @@
 
 """GEN.554: a stellar-mass black hole's mass follows the metals (stand-in BHM1, L2). The registered law (uniform over 5 to 20 solar
 masses) is the anchor, the holes of the disk around the sun; [R1466]'s delayed engine over the stars that fail sets how much the span
-grows as the metals fall, held at 50 solar masses ([R5365]). Counts, the scatter's cut and the neutron stars do not move."""
+grows as the metals fall, held at 50 solar masses [R5365]. Counts, the scatter's cut and the neutron stars do not move."""
 
 import math
 

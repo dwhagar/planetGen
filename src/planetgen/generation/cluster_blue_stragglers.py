@@ -6,7 +6,7 @@ The blue stragglers of the globular clusters (GEN.326)
 
 A blue straggler is a main-sequence star brighter and bluer than its cluster's turn-off: the product of a merger or a mass transfer, a
 star of 1 to 1.7 solar masses in a cluster whose stars are 0.85 solar masses and under. The number in a cluster's core goes as the mass in
-the core to the 0.38 power ([R2397]; [R5367] has 0.40), almost independent of how often the stars meet at a fixed core mass, so the count
+the core to the 0.38 power [R2397] (0.40 in [R5367]), almost independent of how often the stars meet at a fixed core mass, so the count
 here is `N = N_1e4 (M_core / 1e4 solar masses)^0.38` with the normalization `tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS`, a stand-in (the
 sources give the slope only). The core mass is the King model's mass inside its scale radius (`physics/king.py`), the cluster's own mass and
 half-mass radius being the component's.

@@ -18,8 +18,8 @@ for a body with any). The species are not a list by class: a species is in the e
    * *Photon-stimulated desorption* of Na and K held in the regolith: `Q N_S x_i F / 4`, the cross section `Q` (3 and 2 times 1e-20 cm2 for 250 to 400 nm light, the
      first drawn within its 1e-20 spread), `N_S` the 7.5e14 atoms per cm2 of the layer the photons reach, `x_i` the atom share of the element in the rock, and
      `F` the near-ultraviolet photon flux the star puts on the body (the reference flux at the Moon scaled by the star's light and its share in 250 to 400 nm). A quarter,
-     because only the lit half is hit and a sphere is four times its disc.
-   * *Micrometeoroid impact vaporisation*: the dust rains at `MIV_FLUX_1AU_G_CM2_S` at 1 AU and falls off as `d^-1.5`, each gram vapourises `VAPOUR_PER_IMPACTOR` grams
+     because only the lit half is hit and a sphere is four times its disk.
+   * *Micrometeoroid impact vaporisation*: the dust rains at `MIV_FLUX_1AU_G_CM2_S` at 1 AU and falls off as `d^-1.5`, each gram vaporises `VAPOR_PER_IMPACTOR` grams
      of the rock, and every element leaves in the rock's own proportions, at the plume's 3,500 K.
    * *Ion sputtering*: the wind's ions at the body's distance, `F_wind Y x_i / 4`, the yield `Y` being the H+ and He+ yields in the wind's 4 percent helium, cut to
      the share of a field's cusps for a body whose own field holds the wind off.
@@ -27,8 +27,8 @@ for a body with any). The species are not a list by class: a species is in the e
    The three sources of the rock work on the ground the ice does not cover (a body wholly under ice shows none of them).
 
 2. **The loss.** Only the atoms that stay count: a share `f_esc` of each source leaves at once (the Weibull tail of the desorbed, the effusing tail of a Maxwell
-   gas, the Thompson tail of the sputtered). The rest fly a ballistic arc of `2 v / g`; during it an atom is ionised by the star's light after `tau` (the Na
-   photoionisation rate by host temperature, the photolysis table's lifetime for a molecule; none read for the others, which are then lost to the ground only), so its mean time
+   gas, the Thompson tail of the sputtered). The rest fly a ballistic arc of `2 v / g`; during it an atom is ionized by the star's light after `tau` (the Na
+   photoionization rate by host temperature, the photolysis table's lifetime for a molecule; none read for the others, which are then lost to the ground only), so its mean time
    up is `tau (1 - exp(-t/tau))`. A returning atom sticks. The column, atoms per cm2, is the flux times that time: `N = Phi (1 - f_esc) tau (1 - exp(-t/tau))`.
 
 3. **The stored record.** A list of `{"species", "column_cm2", "source", "scale_height_km"}`, the largest column first, at most `MAX_SPECIES`, none under `COLUMN_FLOOR_CM2`;
@@ -85,7 +85,7 @@ PSD_LAUNCH_K = 1200.0
 """float: The effective temperature, K, of a desorbed atom for the scale height (the Na of Mercury is 1,100 to 1,400 K) [R2683]."""
 
 IMPACT_PLUME_K = 3500.0
-"""float: The temperature of the vapour a micrometeoroid makes, K (2,500 to 5,000 K; part 04 uses 3,000 to 4,000 K) [R4783]."""
+"""float: The temperature of the vapor a micrometeoroid makes, K (2,500 to 5,000 K; part 04 uses 3,000 to 4,000 K) [R4783]."""
 
 MIV_FLUX_1AU_RANGE_G_CM2_S = (5.1e-17, 8.4e-17)
 """tuple: The mass of micrometeoroids that hits a square centimetre a second at 1 AU, g, by the Moon's measured range [R4783]; drawn uniform."""
@@ -93,8 +93,8 @@ MIV_FLUX_1AU_RANGE_G_CM2_S = (5.1e-17, 8.4e-17)
 MIV_DISTANCE_EXPONENT = 1.5
 """float: The flux falls as `d^-exponent` from the star [Stand-in 6.328 EX2, tier T7, tweak L1.]: it takes Mercury's range (1.66 to 3.56)e-16 from the Moon's."""
 
-VAPOUR_PER_IMPACTOR_RANGE = (1.0, 4.0)
-"""tuple: The grams of rock vapourised per gram of micrometeoroid at the speeds of the inner Solar System (14 to 20 km/s), drawn log-uniform [Stand-in 6.328 EX3, tier T6, tweak L1.]"""
+VAPOR_PER_IMPACTOR_RANGE = (1.0, 4.0)
+"""tuple: The grams of rock vaporised per gram of micrometeoroid at the speeds of the inner Solar System (14 to 20 km/s), drawn log-uniform [Stand-in 6.328 EX3, tier T6, tweak L1.]"""
 
 SPUTTER_YIELD_H_RANGE = (0.01, 0.1)
 """tuple: The atoms a solar wind proton sputters, drawn log-uniform [R4783]."""
@@ -118,7 +118,7 @@ RETAINED_SPEED_SHARE = 0.5
 """float: The speed, as a share of the escape speed, a sputtered atom that stays flies its arc at (the ones above leave) [Stand-in 6.328 EX5, tier T7, tweak L1.]"""
 
 NA_IONISATION_RATE_1AU = ((4500.0, 9.5e-7), (5772.0, 5.92e-6), (6800.0, 1.3e-5))
-"""tuple: `(host temperature K, photoionisation rate of Na at 1 AU, 1/s)` for a K, a G and an F star [R3392]; the rate in between is read linearly in the logarithm of both, outside from the end pair
+"""tuple: `(host temperature K, photoionization rate of Na at 1 AU, 1/s)` for a K, a G and an F star [R3392]; the rate in between is read linearly in the logarithm of both, outside from the end pair
 [Stand-in 6.328 EX7, tier T6, tweak L0.]"""
 
 ICE_FORMULAS = {"water_ice": "H2O", "co2_ice": "CO2", "ch4_ice": "CH4", "nh3_ice": "NH3", "n2_ice": "N2", "so2_ice": "SO2", "co_ice": "CO", "hcn_ice": "HCN"}
@@ -140,8 +140,8 @@ def _log_uniform(rng, bounds):
     return math.exp(rng.uniform(math.log(bounds[0]), math.log(bounds[1])))
 
 
-def na_ionisation_rate_1au(teff_k):
-    """The photoionisation rate of sodium at 1 AU from a star of `teff_k`, 1/s (linear in the logarithm of the rate and of the temperature through the three of `NA_IONISATION_RATE_1AU`)."""
+def na_ionization_rate_1au(teff_k):
+    """The photoionization rate of sodium at 1 AU from a star of `teff_k`, 1/s (linear in the logarithm of the rate and of the temperature through the three of `NA_IONISATION_RATE_1AU`)."""
     points = NA_IONISATION_RATE_1AU
     if teff_k <= points[1][0]:
         (t0, r0), (t1, r1) = points[0], points[1]
@@ -194,7 +194,7 @@ def sputter_escape_share(mass_kg, binding_ev, escape_m_s):
 
 
 def time_up_s(flight_s, lifetime_s):
-    """The mean time an atom stays above the ground in one arc of `flight_s`, with a photoionisation lifetime `lifetime_s` (`None` for none read): `tau (1 - exp(-t / tau))`, or `t`."""
+    """The mean time an atom stays above the ground in one arc of `flight_s`, with a photoionization lifetime `lifetime_s` (`None` for none read): `tau (1 - exp(-t / tau))`, or `t`."""
     if lifetime_s is None or not math.isfinite(lifetime_s) or lifetime_s <= 0.0:
         return flight_s
     return lifetime_s * -math.expm1(-flight_s / lifetime_s)
@@ -244,10 +244,10 @@ def _entry(species, source, flux_cm2_s, stay, flight, lifetime, temperature_k, g
     return {"species": species, "source": source, "column_cm2": column, "scale_height_km": height}
 
 
-def _ionisation_lifetime_s(species, inputs):
-    """The photoionisation or photolysis lifetime of `species`, s, at the body's light; `None` for a species no rate is read for."""
+def _ionization_lifetime_s(species, inputs):
+    """The photoionization or photolysis lifetime of `species`, s, at the body's light; `None` for a species no rate is read for."""
     if species == "Na":
-        return 1.0 / (na_ionisation_rate_1au(inputs.teff_k) * inputs.flux_ratio)
+        return 1.0 / (na_ionization_rate_1au(inputs.teff_k) * inputs.flux_ratio)
     if species in photolysis.formulas():
         return photolysis.lifetime_s(species, inputs.flux_ratio, inputs.teff_k)
     return None
@@ -268,10 +268,10 @@ def columns(inputs, rng):
     v_esc = escape_speed_m_s(g, inputs.radius_km)
     shares = atom_shares(inputs.oxides_percent)
     parts = []
-    # draws, in a fixed order: the cross section scale, the MIV flux, the vapour per impactor, the yields, the binding energy
+    # draws, in a fixed order: the cross section scale, the MIV flux, the vapor per impactor, the yields, the binding energy
     cross_scale = rng.uniform(-1.0, 1.0)
     miv_flux = rng.uniform(*MIV_FLUX_1AU_RANGE_G_CM2_S)
-    vapour = _log_uniform(rng, VAPOUR_PER_IMPACTOR_RANGE)
+    vapor = _log_uniform(rng, VAPOR_PER_IMPACTOR_RANGE)
     yield_h = _log_uniform(rng, SPUTTER_YIELD_H_RANGE)
     yield_he = _log_uniform(rng, SPUTTER_YIELD_HE_RANGE)
     binding = _log_uniform(rng, SPUTTER_BINDING_EV_RANGE)
@@ -287,7 +287,7 @@ def columns(inputs, rng):
             flux_m2 = inputs.ice_cover * share * pressure / math.sqrt(2.0 * math.pi * mass * BOLTZMANN * temperature)
             speed = min(math.sqrt(8.0 * BOLTZMANN * temperature / (math.pi * mass)), 0.7 * v_esc)
             stay = 1.0 - maxwell_escape_share(mass, temperature, v_esc)
-            parts.append(_entry(formula, SOURCES[0], flux_m2 / 1.0e4, stay, flight_s(speed, g), _ionisation_lifetime_s(formula, inputs), temperature, g))
+            parts.append(_entry(formula, SOURCES[0], flux_m2 / 1.0e4, stay, flight_s(speed, g), _ionization_lifetime_s(formula, inputs), temperature, g))
 
     bare = 1.0 - min(max(inputs.ice_cover, 0.0), 1.0)          # the rock sources work on the ground the ice does not cover
     # photon-stimulated desorption of the alkali
@@ -302,10 +302,10 @@ def columns(inputs, rng):
             continue
         cross_cm2 = cross * (1.0 + cross_scale * PSD_CROSS_SECTION_SPREAD / PSD_CROSS_SECTION_CM2["Na"])
         flux = bare * cross_cm2 * PSD_SITE_DENSITY_CM2 * shares[species] * photons / 4.0
-        parts.append(_entry(species, SOURCES[1], flux, stay_psd, flight_s(speed_psd, g), _ionisation_lifetime_s(species, inputs), PSD_LAUNCH_K, g))
+        parts.append(_entry(species, SOURCES[1], flux, stay_psd, flight_s(speed_psd, g), _ionization_lifetime_s(species, inputs), PSD_LAUNCH_K, g))
 
     # micrometeoroid impact vaporisation of the refractories
-    mass_flux = miv_flux * inputs.distance_au ** -MIV_DISTANCE_EXPONENT * vapour       # g of rock vapour per cm2 per s
+    mass_flux = miv_flux * inputs.distance_au ** -MIV_DISTANCE_EXPONENT * vapor       # g of rock vapor per cm2 per s
     grams_oxides = {oxide: percent for oxide, percent in inputs.oxides_percent.items() if oxide in OXIDE_G_MOL and percent > 0.0}
     total_percent = math.fsum(grams_oxides.values())
     for species, (oxide, count) in ELEMENTS.items():
@@ -315,7 +315,7 @@ def columns(inputs, rng):
         mass = mass_per_atom_kg(species)
         speed = min(math.sqrt(8.0 * BOLTZMANN * IMPACT_PLUME_K / (math.pi * mass)), RETAINED_SPEED_SHARE * v_esc)
         stay = 1.0 - maxwell_escape_share(mass, IMPACT_PLUME_K, v_esc)
-        parts.append(_entry(species, SOURCES[2], bare * mass_flux * atoms_per_g, stay, flight_s(speed, g), _ionisation_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
+        parts.append(_entry(species, SOURCES[2], bare * mass_flux * atoms_per_g, stay, flight_s(speed, g), _ionization_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
 
     # ion sputtering of the refractories
     if inputs.wind_ratio > 0.0:
@@ -325,7 +325,7 @@ def columns(inputs, rng):
             mass = mass_per_atom_kg(species)
             stay = 1.0 - sputter_escape_share(mass, binding, v_esc)
             speed = RETAINED_SPEED_SHARE * v_esc
-            parts.append(_entry(species, SOURCES[3], bare * wind * yield_ion * share / 4.0, stay, flight_s(speed, g), _ionisation_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
+            parts.append(_entry(species, SOURCES[3], bare * wind * yield_ion * share / 4.0, stay, flight_s(speed, g), _ionization_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
 
     found = {}
     for entry in parts:
