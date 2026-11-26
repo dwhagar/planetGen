@@ -53,7 +53,7 @@ NOT_AUDITED = {
     "admin": "administration pages carry no object", "update": "the state of the site update, no linked object", "auth": "accounts carry no object", "backups": "files, no object",
     "images": "files, no object", "settings": "settings, no object", "workqueue": "work runs, no object",
     "api.databases": "database names", "api.health": "a status", "api.job_status_route": "a job number",
-    "api.page_job_status_route": "a job number", "facility_types.facility_type": "a facility type table",
+    "api.page_job_status_route": "a job number", "api.lookup_job_route": "a job number and the lookup answer it ends with (the objects named by their references)", "facility_types.facility_type": "a facility type table",
     "facility_types.list_facility_types": "a facility type table",
     "api.facility": "no facility in the fixture; its `id` has an `ID_PATHS` rule",
     "api.nav_chart": "a drawing of `api.nav`, which is audited",
