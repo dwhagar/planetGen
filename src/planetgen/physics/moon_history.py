@@ -120,11 +120,12 @@ def _settle(planet, survivors):
     """
     The moons that stay, in order of distance, held to the rules a generated lunar system keeps (`validation.check_lunar_system`): a moon below the
     innermost orbit (inside the planet's air and the room the largest moon needs) is lost to drag and its mass is ring material, a moon is pushed out
-    (never in) to clear the one inside it by that one's `min_orbit_distance`, and one whose apoapsis then lies beyond the stable range is lost (TM4: moons
+    (never in) to clear the one inside it by that one's `min_orbit_distance`, and one whose apoapsis then lies beyond the stable range, or that is too big for its planet (`planets.moon_size_limits`), is lost (TM4: moons
     do not meet, so the tide's drift is the only thing that moves them, and this keeps them apart). Returns `(moons, masses)`, the masses (kg) of the moons lost to drag.
     """
     from planetgen.physics import planets
     low_km, high_km = planets.moon_orbit_bounds_km(planet)
+    max_moon_radius, max_moon_mass = planets.moon_size_limits(planet)
     kept, dragged = [], []
     for moon in survivors:
         if moon.distance * constants.AU_TO_M / 1000.0 < low_km:
@@ -137,6 +138,8 @@ def _settle(planet, survivors):
             continue
         if moon.distance * constants.AU_TO_M / 1000.0 > planets.moon_stable_limit_km(planet, moon.eccentricity) * (1.0 + 1.0e-9):
             continue      # the semi-major axis the fit of [R1138] allows for the eccentricity this moon has (a pump or a resonance raised it): the same bound `validation.check_lunar_system` holds a moon to
+        if moon.radius > max_moon_radius or moon.mass > max_moon_mass:
+            continue      # a moon `planets.drop_unstable_moons` took out for its size (the planet's class was made again smaller): the born list the history is run from still holds it, and it must not come back (GEN.1856, a bare one with no spin)
         kept.append(moon)
     return kept, dragged
 

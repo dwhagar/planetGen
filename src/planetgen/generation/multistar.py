@@ -22,7 +22,9 @@ and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
    GEN.899: the table counts stars) and take their present state from the
    system's age (main sequence, giant, white dwarf, pre-main-sequence,
    protostar). A brown dwarf is one more member, in `tuning.BROWN_DWARF_COMPANION_CHANCE`
-   of the trees a directive does not count. A compact companion (white dwarf, neutron star, black hole)
+   of the trees a directive does not count (a pair of two brown dwarfs in `tuning.BROWN_DWARF_PAIR_SHARE` of them, GEN.331), and a
+   planetary-mass companion another, at `tuning.PLANETARY_MASS_COMPANION_CHANCE`; the orbit of each about the rest of its tree
+   is the flat law with a desert (`period_days`, law `brown-companion`), and a brown-dwarf pair's own the log-normal (`brown-pair`). A compact companion (white dwarf, neutron star, black hole)
    is added at the odds of `MEMBER_STATE_BY_PLACED`, one uniform draw per
    placed object, so the scatter's bulk pass can screen with it
    (`companion_state`) and call the tree only for the hits.
@@ -61,6 +63,7 @@ from planetgen.physics import (
     pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import white_dwarf_merger
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -201,9 +204,10 @@ COMPACT_TERTIARY_SHARE = 0.10
 """float: A compact binary has a third member in the share of the `compact-triple` row (30%, GEN.272; before it, black holes
 only), which is a compact object in 10% of those (a design default)."""
 
-BROWN_DWARF_DESERT_AU = 5.0
-BROWN_DWARF_DESERT_KEEP = 0.01
-"""A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
+BROWN_LAWS = ("brown-companion", "brown-pair")
+"""tuple: The laws of the pairs of substellar members (GEN.331): a brown dwarf or a planetary-mass companion (or a pair of brown dwarfs) about the rest of its
+tree (`brown-companion`, the flat law of `tuning.BROWN_DWARF_AXIS_RANGE_AU` with its desert), and the two brown dwarfs of a pair (`brown-pair`, the log-normal of
+`tuning.BROWN_DWARF_PAIR_AXIS_LOG10_AU`)."""
 
 REMNANT_WINDOW_FRACTION = 1.0 / 3.0
 """float: A remnant companion of a living star exists only in the last third of the star's
@@ -890,6 +894,40 @@ def classify_pair(a, b, axis_au, e):
     return _detached_or_post_common_envelope(a, b, axis_au, e)
 
 
+def rng_keeps_desert(rng):
+    """Whether a substellar member whose whole room is inside the desert (GEN.331) is kept: `tuning.BROWN_DWARF_DESERT_KEEP` of them are."""
+    return rng.random() < tuning.BROWN_DWARF_DESERT_KEEP
+
+
+def _brown_companion_period_days(mass, lo, hi, u):
+    """
+    The period, days, of a substellar member about the rest of its tree (GEN.331), drawn from the unit `u`: the density per decade is flat from the desert's
+    inner edge (`tuning.BROWN_DWARF_AXIS_RANGE_AU[0]`) outward, and `tuning.BROWN_DWARF_DESERT_KEEP` of it inside the edge, over the periods `lo` to `hi`
+    (days). A period is log-uniform in axis too (the periods go as the axis to 3/2), so the law is the same in either.
+    """
+    edge = period_d_of_axis(tuning.BROWN_DWARF_AXIS_RANGE_AU[0], mass)
+    log_lo, log_hi, log_edge = math.log10(lo), math.log10(hi), min(max(math.log10(edge), math.log10(lo)), math.log10(hi))
+    inside, outside = (log_edge - log_lo) * tuning.BROWN_DWARF_DESERT_KEEP, log_hi - log_edge
+    target = u * (inside + outside)
+    if target < inside:
+        return 10.0 ** (log_lo + target / tuning.BROWN_DWARF_DESERT_KEEP)
+    return 10.0 ** (log_edge + (target - inside))
+
+
+def _brown_pair_period_days(mass, a_lo, a_hi, u):
+    """The period, days, of the two brown dwarfs of a pair (GEN.331): the axis is log-normal (`tuning.BROWN_DWARF_PAIR_AXIS_LOG10_AU`) cut to `a_lo` to `a_hi`
+    AU, from the unit `u`; None when the cut leaves no axis."""
+    high = a_hi if math.isfinite(a_hi) else tuning.BROWN_DWARF_AXIS_RANGE_AU[1]
+    if not a_lo < high:
+        return None
+    dist = NormalDist(*tuning.BROWN_DWARF_PAIR_AXIS_LOG10_AU)
+    p_lo, p_hi = dist.cdf(math.log10(a_lo)), dist.cdf(math.log10(high))
+    if p_hi - p_lo < 1.0e-12:
+        return period_d_of_axis(10.0 ** (math.log10(a_lo) + u * (math.log10(high) - math.log10(a_lo))), mass)
+    point = min(max(p_lo + u * (p_hi - p_lo), 1.0e-15), 1.0 - 1.0e-15)
+    return period_d_of_axis(10.0 ** dist.inv_cdf(point), mass)
+
+
 def period_days(law, mass, a_lo, a_hi, massive, inside_weight=1.0, u=0.5):
     """The period, days, of a pair of total mass `mass` (solar masses) from its law cut to the axes `a_lo` to `a_hi` (AU), drawn from
     the unit `u`; None when the cut leaves no period. `massive` and `inside_weight` are the primary's (the law of a massive primary;
@@ -903,8 +941,14 @@ def period_days(law, mass, a_lo, a_hi, massive, inside_weight=1.0, u=0.5):
         lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
     elif law == "stripped":
         lo, hi = max(lo, tuning.STRIPPED_PAIR_PERIOD_DAYS[0]), min(hi, tuning.STRIPPED_PAIR_PERIOD_DAYS[1])
+    elif law == "brown-companion":
+        hi = min(hi, period_d_of_axis(tuning.BROWN_DWARF_AXIS_RANGE_AU[1], mass))
+    elif law == "brown-pair":
+        return _brown_pair_period_days(mass, a_lo, a_hi, u)
     if not lo < hi:
         return None
+    if law == "brown-companion":
+        return _brown_companion_period_days(mass, lo, hi, u)
     log_lo, log_hi = math.log10(lo), math.log10(hi) if math.isfinite(hi) else 12.0
     if law != "star":
         return 10.0 ** (log_lo + u * (log_hi - log_lo))
@@ -971,7 +1015,14 @@ class _Builder:
                 return "interacted"
             if "stripped-helium" in (a.kind, b.kind):
                 return "stripped"
-        return "star"
+        brown_left, brown_right = self.all_brown(left), self.all_brown(right)
+        if brown_left and brown_right:
+            return "brown-pair"
+        return "brown-companion" if brown_left or brown_right else "star"
+
+    def all_brown(self, sub):
+        """Whether every member of `sub` is substellar (GEN.331): a brown dwarf or a planetary-mass companion, or a pair of them."""
+        return all(self.leaves[i].kind == "brown-dwarf" for i in self.leaves_of(sub))
 
     def pair_leaves(self, left, right):
         """The two leaves of a pair of single members, else None."""
@@ -1102,6 +1153,9 @@ class _Builder:
         fixed = self.fixed.get(id(sub))
         span = self.orbit_span(left, right)
         double_dwarf = self.double_white_dwarf(left, right)
+        # GEN.331: a brown dwarf's law is flat outside the desert and thin inside it, but a pair whose room is all inside the desert (a brown dwarf round a
+        # star that has a close partner) has no draw of its own to thin: it is kept in `BROWN_DWARF_DESERT_KEEP` of the trees, decided once here.
+        desert_kept = law != "brown-companion" or rng_keeps_desert(self.rng)
         for _ in range(PAIR_RETRIES):
             left, right, m_left, m_right, total = drawn
             core = None
@@ -1126,6 +1180,9 @@ class _Builder:
                     return stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
                                                       safety=STABILITY_MARGIN)
             a_hi = min(a_hi, cap)
+            if not desert_kept and a_hi <= tuning.BROWN_DWARF_AXIS_RANGE_AU[0]:
+                draw.redrawn("pair.brown_dwarf_desert")
+                continue
             if fixed is None and span is not None:
                 low, high = max(a_lo, span[0]), min(a_hi, span[1])
                 if low > high:                # a span of one axis (a cataclysmic variable's, an AM CVn's) has low == high
@@ -1199,7 +1256,7 @@ class _Builder:
             if _gate_forbids(interaction, heavy, self.age_yr, () if pair is None else (pair[0].kind, pair[1].kind)):
                 draw.redrawn("pair.interaction_gate")
                 continue
-            flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
+            flags = NODE_INTERACTED if law not in ("star", *BROWN_LAWS) or interaction in ("accreting", "post-common-envelope") else 0
             flags |= {"wind": NODE_WIND_FED, "disk": NODE_DISK_FED}.get(accretes, 0)
             if parent is not None:
                 if not stable_at(e):
@@ -1215,9 +1272,6 @@ class _Builder:
             if ((law == "compact-pair" or double_dwarf)
                     and not stability.survives_gravitational_waves(m_left, m_right, axis, e, self.age_yr)):
                 draw.redrawn("pair.gravitational_waves")
-                continue
-            if self._in_desert(left, right, axis):
-                draw.redrawn("pair.brown_dwarf_desert")
                 continue
             break
         else:
@@ -1291,14 +1345,6 @@ class _Builder:
             node["mass_solar"] -= lost
             node["period_years"] = math.sqrt(node["separation_au"] ** 3 / node["mass_solar"])
             parent_no = node["parent_node_no"]
-
-    def _in_desert(self, left, right, axis):
-        if axis >= BROWN_DWARF_DESERT_AU or not (isinstance(left, int) and isinstance(right, int)):
-            return False
-        kinds = {self.leaves[left].kind, self.leaves[right].kind}
-        if "brown-dwarf" not in kinds or kinds == {"brown-dwarf"}:
-            return False
-        return self.rng.random() >= BROWN_DWARF_DESERT_KEEP
 
     def clears_extents(self):
         """The final check: every pair's closest approach clears what it holds (`pair_clears` with the extents of the orbits as
@@ -1496,11 +1542,11 @@ def draw_stripped_helium(unit):
     return unit < tuning.HOT_SUBDWARF_POST_CE_SHARE
 
 
-def draw_white_dwarf_merger(age_yr, unit):
-    """Whether a placed white dwarf of the old population is the product of a double white dwarf merger (GEN.271,
-    `double-white-dwarf-merger`; the `white-dwarf` share of the `merger_product_fraction` knob, 10%). One uniform."""
-    shares = system_types.TUNING_KNOBS["merger_product_fraction"]
-    return age_yr / 1.0e9 >= tuning.OLD_POPULATION_MIN_AGE_GY and unit < shares["white-dwarf"]
+def draw_white_dwarf_merger(mass_solar, age_yr, unit):
+    """Whether a white dwarf of this mass in the old population is the product of a double white dwarf merger (GEN.271,
+    `double-white-dwarf-merger`; GEN.708): at the share of its mass (`white_dwarf_merger.merger_fraction`, [R5355] by mass bin and [R5354]
+    below 0.9 solar masses). One uniform."""
+    return age_yr / 1.0e9 >= tuning.OLD_POPULATION_MIN_AGE_GY and unit < white_dwarf_merger.merger_fraction(mass_solar)
 
 
 def draw_giant_companion(leaf_kind, birth_mass_sol, unit):
@@ -1732,6 +1778,33 @@ def _bind_helium_core_companion(dwarf, companion, fe_h):
     dwarf.mass_max_solar = max(dwarf.initial, dwarf.mass)
 
 
+def _substellar_units(leaves, birth, age_yr, rng, room, fe_h):
+    """
+    The substellar members a tree draws besides its stars (GEN.331), appended to `leaves`, and the shape units they make: a brown dwarf companion at
+    `tuning.BROWN_DWARF_COMPANION_CHANCE` (a pair of two brown dwarfs in `tuning.BROWN_DWARF_PAIR_SHARE` of them, the second of 0.8 to 1 times the
+    first's mass) and a planetary-mass companion at `tuning.PLANETARY_MASS_COMPANION_CHANCE`, each only round a star over the hydrogen-burning limit and
+    while the tree has `room` for it. A unit is a leaf's index, or `(first, second)` for the pair. Each is a member of its own in the tree and takes an
+    axis from `period_days`'s brown laws.
+    """
+    units = []
+    if birth <= mass_boundaries.sol("hydrogen_burning_limit"):
+        return units
+    if len(leaves) < room and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE:
+        first = _star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=fe_h, substellar=True)
+        leaves.append(first)
+        unit = len(leaves) - 1
+        if len(leaves) < room and rng.random() < tuning.BROWN_DWARF_PAIR_SHARE:
+            ratio = rng.uniform(*tuning.BROWN_DWARF_PAIR_MASS_RATIO_RANGE)
+            second_mass = max(first.initial * ratio, brown_dwarf.mass_range_solar()[0])
+            leaves.append(_star_leaf(second_mass, age_yr, rng, fe_h=fe_h, substellar=True))
+            unit = (unit, len(leaves) - 1)
+        units.append(unit)
+    if len(leaves) < room and rng.random() < tuning.PLANETARY_MASS_COMPANION_CHANCE:
+        leaves.append(_star_leaf(brown_dwarf.sample_planetary_mass_solar(rng), age_yr, rng, fe_h=fe_h, substellar=True))
+        units.append(len(leaves) - 1)
+    return units
+
+
 def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False,
             star_weights=None):
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
@@ -1745,6 +1818,12 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         leaf = (_star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h) if placed.record is None
                 else _leaf_of(placed.record))
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
+        if leaf.kind == "white-dwarf":
+            # A white dwarf that a star's own history made is a double white dwarf merger product at the share of its mass, not at
+            # the blue stragglers' (GEN.708); the same uniform and the same rejuvenation draw.
+            merger = draw_white_dwarf_merger(leaf.mass, age_yr, types[0])
+            effective_age = age_yr * (REJUVENATION_FRACTION_RANGE[0] + types[5] * (
+                REJUVENATION_FRACTION_RANGE[1] - REJUVENATION_FRACTION_RANGE[0])) if merger else None
         if placed.record is not None:
             leaf.seed = None                 # the built primary needs no seed of its own: the member draws one
         leaf.effective_age_yr = effective_age
@@ -1786,11 +1865,9 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         for _ in range(count - 1):
             leaves.append(_star_leaf(companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h))
         # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
-        # of stars, so it adds none).
-        brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
-                 and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
-        if brown:
-            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h, substellar=True))
+        # of stars, so it adds none), as a pair of two when 15% of them are (GEN.331), and a planetary-mass companion is one more
+        # on its own chance.
+        brown_units = _substellar_units(leaves, birth, age_yr, rng, max_stars - (compact is not None), placed.tree_fe_h) if n_stars is None else []
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER
@@ -1802,16 +1879,18 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             # of the roster, on the axis at which its giant filled its lobe with this core, on a circle.
             _bind_helium_core_companion(leaf, leaves[1], placed.tree_fe_h)
             units[0] = (0, 1)
-            units.extend(range(2, count + brown))
+            units.extend(range(2, count))
+            units.extend(brown_units)
             return leaves, units
-        units.extend(range(1, count + brown))
+        units.extend(range(1, count))
+        units.extend(brown_units)
         return leaves, units
     base = {"black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
             "intermediate-mass-black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, True),
             "neutron-star": lambda: _remnant_leaf("neutron-star", birth, placed.mass_solar),
             "white-dwarf": lambda: _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]()
     leaves = [base]
-    if placed.kind == "white-dwarf" and draw_white_dwarf_merger(age_yr, rng.random()):
+    if placed.kind == "white-dwarf" and draw_white_dwarf_merger(placed.mass_solar, age_yr, rng.random()):
         base.flags |= MEMBER_MERGER_PRODUCT
         base.effective_age_yr = rejuvenated_age_yr(age_yr, rng)
     if n_stars is not None and n_stars <= 1:     # a directive for a single object (no binaries, GEN.719)

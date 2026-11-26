@@ -328,3 +328,19 @@ def test_the_mass_of_a_star_in_its_record_is_the_present_one():
     params = se.star_params(mass, age, state)
     assert params["mass_kg"] == pytest.approx(state["mass_sol"] * constants.SOLAR_MASS_TO_KG)
     assert params["mass_kg"] < 0.9 * mass * constants.SOLAR_MASS_TO_KG and params["initial_mass_sol"] == mass
+
+
+@pytest.mark.parametrize("mass, fe_h", [(1.0, 0.0), (1.0, 0.3), (1.5, -1.0), (1.5, -0.5), (1.5, 0.0), (1.5, 0.3), (2.0, -1.0), (2.0, -0.5), (2.0, 0.0), (2.0, 0.3)])
+def test_the_giants_of_a_one_to_two_solar_mass_star_are_class_three_whatever_their_light_and_metallicity(mass, fe_h):
+    """GEN.396: the class comes from the evolved star's own phase, not from a luminosity range (the old class III range of 50 to 1,000 solar
+    luminosities sat above the dim first-ascent giants, 2 to 50 solar luminosities for these masses). Along the track the class goes
+    main sequence, subgiant, giant, and a giant lighter than 50 solar luminosities is still class III."""
+    line = pm.timeline(mass, fe_h)
+    sweep = []
+    for age in np.linspace(line.windows[0].start_gy * 0.97, line.end_gy * 0.9999, 400):
+        state = se.evolve_star(mass, float(age), random.Random(1), fe_h=fe_h)
+        if state.get("phase") != "horizontal-branch":
+            sweep.append((state["yerkes_class"], state["luminosity_sol"]))
+    order = [name for i, (name, _) in enumerate(sweep) if i == 0 or name != sweep[i - 1][0]]
+    assert order[:3] == ["V", "IV", "III"]
+    assert min(light for name, light in sweep if name == "III") < 50.0

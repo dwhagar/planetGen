@@ -469,11 +469,11 @@ def _values_piece(ctx, table):
 # --- counts: the sectors' stats, then the galaxy's stored counts -------------------------------------------------------------------
 
 def _counts_pieces(ctx):
-    return ["sectors", "galaxy"] if ctx.scope.everything else ["sectors"]
+    return ["sectors", "directives", "galaxy"] if ctx.scope.everything else ["sectors", "directives"]
 
 
 def _counts_piece(ctx, piece):
-    """A sector's stats count the systems it holds (`sectors`), and the galaxy's stored counts (DB.121) the rows the tables hold (`galaxy`); a warning only."""
+    """A sector's stats count the systems it holds (`sectors`), the directive record of a sector agrees with itself (`directives`, GEN.179) and the galaxy's stored counts (DB.121) the rows the tables hold (`galaxy`); the first and last are a warning only."""
     problems = []
     if piece == "sectors":
         scope_sql, params = ctx.scope.where("s.id")
@@ -487,6 +487,17 @@ def _counts_piece(ctx, piece):
         if rows:
             problems.append(Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
                                     [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}" for row in rows], warning=True))
+    elif piece == "directives":
+        # GEN.179: a sector's directive record agrees with itself: it has a row for each minimum, and its status says `unmet` exactly when a minimum was missed.
+        scope_sql, params = ctx.scope.where("d.sector_id")
+        rows = ctx.rows(
+            "SELECT d.sector_id AS id, d.status AS status, COUNT(m.sector_id) AS asked, COALESCE(SUM(m.got < m.wanted), 0) AS missed"
+            " FROM sector_directives d LEFT JOIN sector_directive_minimums m ON m.sector_id = d.sector_id"
+            f" WHERE 1 = 1{scope_sql} GROUP BY d.sector_id, d.status"
+            " HAVING asked = 0 OR (status = 'unmet') <> (missed > 0) ORDER BY d.sector_id", params)
+        if rows:
+            problems.append(Problem(f"{len(rows)} sector(s) keep a directive record that contradicts itself.",
+                                    [f"sector id {row['id']}: status {row['status']}, {row['asked']} minimum(s) asked, {row['missed']} missed" for row in rows]))
     else:
         # DB.121: the running totals and the sectors' facet rows against a full count of the tables (`planetgen fill-block-totals` repairs).
         from planetgen.db import galaxy_counts

@@ -157,9 +157,12 @@ def test_the_halo_does_not_widen_the_outline():
     # TEST.561: the edge shell moves a few shells with every change of the mass function and the companions (3,421 at the pin, 3,418 once the train 8 changes
     # raised the mean system mass from 0.5105 to 0.5111 solar masses), so the test checks the outline against the model and not a pinned shell: the last
     # shell has a band that clears the threshold, the next has none, and the edge stays near where the pinned figures put it.
+    # Train 62: GEN.922 moved the single-star mass function's center to 0.092 (inside the paper's 0.079 +0.021), which raises the mean system mass about 5 percent, so the
+    # galaxy holds about 5 percent fewer systems for the same stars and the edge falls from shell 3,418 to 3,387 (bisected on the train: the edge was 3,418 on the
+    # merge of 7453 and 3,387 on the merge of 7456; the commit of GEN.922 alone moves it, its parent does not).
     shape = mathcheck._reference_galaxy_shape()
     extents, outer, _confirmed = build_shell_extents(shape, EDGE_PC, 1.0 / E_VALUE)
-    assert 3400 < outer < 3440
+    assert 3370 < outer < 3410
     assert len(extents) == outer + 1
     assert _band_qualifies(shape, EDGE_PC, outer, extents[-1][1], 1.0 / E_VALUE)
     assert not any(_band_qualifies(shape, EDGE_PC, outer + 1, band, 1.0 / E_VALUE) for band in range(0, spherical.band_range(outer + 1)[1] + 1))

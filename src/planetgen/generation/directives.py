@@ -147,6 +147,41 @@ class Outcome:
         return f"directives not met after {self.attempts} draws ({misses}); the closest draw was kept"
 
 
+STATUSES = (MET_NATURALLY, MET_AFTER_ATTEMPTS, MET_FORCED, UNMET)
+"""tuple: The statuses an `Outcome` can have, as the database's `sector_directives.status` keeps them (GEN.179)."""
+
+
+class Record:
+    """
+    What a sector keeps of the directive it was drawn under (GEN.179): the directive's `digest`, how the draw came out
+    (`status` and the `attempts` made) and, for each minimum asked, what was `wanted` and what the kept sector `got`.
+    `store.insert_sector` writes it with the sector (`sector_directives`, `sector_directive_minimums`), so the sector page
+    and the check show what was asked and what was drawn, and a repair that draws the sector again reads the same
+    minimums. A sector drawn with no directive has none.
+
+    Attributes:
+        digest (str): `Directive.digest`, the 16 hexadecimal digits the attempt seeds are made from.
+        status (str): One of `STATUSES`.
+        attempts (int): The draws made, 1 or more (a forced fill counts as one more).
+        minimums (list): `(key, wanted, got)` for every minimum of the directive, in key order.
+    """
+
+    def __init__(self, digest, status, attempts, minimums):
+        self.digest = digest
+        self.status = status
+        self.attempts = attempts
+        self.minimums = list(minimums)
+
+
+def record_of(directive, outcome, sector):
+    """The `Record` of `sector`, drawn under `directive` with `outcome`, or `None` when the directive asks for nothing."""
+    if not directive:
+        return None
+    got = measure(sector)
+    minimums = [(key, want, got[key]) for key, want in sorted(directive.minimums.items()) if want > 0]
+    return Record(directive.digest(), outcome.status, outcome.attempts, minimums)
+
+
 def _score(missed):
     """Total shortfall; the least wins when no draw meets everything."""
     return sum(want - got for want, got in missed.values())

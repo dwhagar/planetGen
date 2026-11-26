@@ -20,7 +20,7 @@ from collections import namedtuple
 
 from planetgen.db import storage_checksum
 from planetgen.generation import member_record, multistar, stored_trees
-from planetgen.physics import constants, system_tree
+from planetgen.physics import body_strength, constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
 
@@ -81,7 +81,7 @@ def binary_nodes(star_system, epoch_unix):
                                     pair.binary_mutual_orbital_ascending_node_deg, pair.binary_mutual_orbital_phase_deg)
         period = pair.binary_mutual_orbital_period_years
     else:
-        pair = star_system.wide_binary
+        pair = star_system.pair_orbit      # (a wide pair's orbit is its node's: GEN.640 slice b)
         separation_au, eccentricity = pair.separation_au, pair.eccentricity
         inclination, node, phase, period = pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years
     mass_solar = sum(star.mass for star in star_system.stars) / SOLAR_MASS_KG
@@ -134,7 +134,10 @@ def write_dark_members(conn, star_system_id, members, replace=True):
     if replace:
         storage_checksum.mark_system(conn, star_system_id)
         conn.execute("DELETE FROM dark_members WHERE star_system_id = ?", (star_system_id,))
-    _insert_rows(conn, "dark_members", DARK_COLUMNS, star_system_id, members)
+    sql = (f"INSERT INTO dark_members (star_system_id, {', '.join(DARK_COLUMNS)}, {', '.join(body_strength.STELLAR_FIELDS)})"
+           f" VALUES (?, {', '.join('?' * (len(DARK_COLUMNS) + len(body_strength.STELLAR_FIELDS)))})")
+    for member in members:
+        conn.execute(sql, (star_system_id, *(getattr(member, column) for column in DARK_COLUMNS), *body_strength.dark_member_values(member)))    # GEN.1204
 
 
 def read_dark_members(conn, star_system_id):
@@ -167,6 +170,62 @@ def star_places(star_system):
                                 pair.binary_primary_position_z), 0),
                 (ROOT_NODE_NO, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
                                 pair.binary_secondary_position_z), 1)]
-    pair = star_system.wide_binary
+    pair = star_system.pair_orbit
     return [(ROOT_NODE_NO, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au), 0),
             (ROOT_NODE_NO, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au), 1)]
+
+
+def pair_node_no(conn, star_system_id):
+    """The node of the system's own pair (the stars of roles `primary` and `secondary`): the node both hang in, else the lowest
+    node above them (a dark member or a sub-pair between them), `None` for a single star or a system with no stored tree."""
+    rows = conn.execute(
+        "SELECT role, parent_node_id FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')",
+        (star_system_id,)).fetchall()
+    places = {row["role"]: row["parent_node_id"] for row in rows}
+    if len(places) < 2 or None in places.values():
+        return None
+    nodes = conn.execute("SELECT node_no, parent_node_no FROM orbit_nodes WHERE star_system_id = ?", (star_system_id,)).fetchall()
+    if not nodes:
+        return None
+    return stored_trees.lowest_node_above(
+        [OrbitNode(node_no=n["node_no"], parent_node_no=n["parent_node_no"], slot=None, mass_solar=0.0, separation_km=0.0,
+                   eccentricity=0.0, inclination_deg=0.0, ascending_node_deg=0.0, arg_periapsis_deg=0.0, mean_anomaly_deg=0.0,
+                   epoch_unix=0.0, period_years=0.0) for n in nodes],
+        places["primary"], places["secondary"])
+
+
+def _slot_under(nodes, star, node_no):
+    """The slot of node `node_no` the star row `star` (`parent_node_id`, `slot`) hangs under, directly or through the nodes below it."""
+    parent = {node.node_no: (node.parent_node_no, node.slot) for node in nodes}
+    at, slot = star["parent_node_id"], star["slot"]
+    while at != node_no:
+        at, slot = parent[at]
+    return slot
+
+
+def pair_places_km(conn, star_system_id):
+    """
+    The system's own pair as the orbit tree places it (GEN.640 slice a), the reader the `star_systems.binary_mutual_*`,
+    `binary_primary_position_*` and `binary_secondary_position_*` columns were: `None` for a single star, else a dict
+    `{"node": OrbitNode, "mutual_km", "primary_km", "secondary_km", "secondary_mass_fraction"}`. `mutual_km` is the secondary's
+    position relative to the primary at the pair node's own epoch (the orbit as the last update left it), and the two stars sit
+    either side of the pair's center of mass in proportion to the other's mass, as the columns held them. The pair node's mean
+    anomaly is what `store.advance_orbital_phases` turns, so no column of the pair needs an update of its own.
+    """
+    node_no = pair_node_no(conn, star_system_id)
+    if node_no is None:
+        return None
+    nodes = read_nodes(conn, star_system_id)
+    node = next(node for node in nodes if node.node_no == node_no)
+    stars = {row["role"]: row for row in conn.execute(
+        "SELECT role, mass_kg, parent_node_id, slot FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')",
+        (star_system_id,)).fetchall()}
+    total = stars["primary"]["mass_kg"] + stars["secondary"]["mass_kg"]
+    fraction = min(stars["primary"]["mass_kg"], stars["secondary"]["mass_kg"]) / total    # the pair classes' primary is the heavier star, whichever role it has
+    mutual = [_au_to_km(value) for value in system_tree.node_relative_au(node, node.epoch_unix)]
+    if _slot_under(nodes, stars["primary"], node_no) == 1:
+        mutual = [-value for value in mutual]    # the node is the orbit of its slot-1 child about its slot-0 child; the pair is the second star about the first
+    return {
+        "node": node, "mutual_km": mutual, "secondary_mass_fraction": fraction,
+        "primary_km": [-fraction * value for value in mutual], "secondary_km": [(1.0 - fraction) * value for value in mutual],
+    }

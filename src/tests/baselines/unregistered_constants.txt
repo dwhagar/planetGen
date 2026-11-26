@@ -139,7 +139,6 @@ planetgen.galaxy.shape_draw:AUTO_SIZE_ATTEMPTS
 planetgen.galaxy.shape_draw:BAR_LENGTH_OVER_H_EARLY
 planetgen.galaxy.shape_draw:BAR_LENGTH_OVER_H_LATE
 planetgen.galaxy.shape_draw:BAR_LENGTH_OVER_H_RANGE
-planetgen.galaxy.shape_draw:BAR_LENGTH_PER_SCALE_RADIUS
 planetgen.galaxy.shape_draw:DISK_HALF_LIGHT_OVER_R200_DEX
 planetgen.galaxy.shape_draw:EXPONENTIAL_HALF_LIGHT_OVER_SCALE
 planetgen.galaxy.shape_draw:KELVIN_S0_SA
@@ -289,8 +288,6 @@ planetgen.generation.generator_battery:SECTOR_SYSTEMS
 planetgen.generation.late_accretion:EARTH_KG
 planetgen.generation.mass_ratio:QUANTILE_BISECTIONS
 planetgen.generation.mass_ratio:_NO_COMPANIONS
-planetgen.generation.multistar:BROWN_DWARF_DESERT_AU
-planetgen.generation.multistar:BROWN_DWARF_DESERT_KEEP
 planetgen.generation.multistar:CIRCULAR_BELOW_DAYS
 planetgen.generation.multistar:COMPACT_PAIR_AXIS_AU
 planetgen.generation.multistar:COMPACT_PAIR_CIRCULAR_BELOW_AU
@@ -1153,10 +1150,6 @@ planetgen.tuning:COMET_PERIHELION_DISTANCE_RANGE_AU
 planetgen.tuning:COMPANION_DRAW_ATTEMPTS
 planetgen.tuning:COMPANION_LOG_PERIODS_DAYS
 planetgen.tuning:CONVECTIVE_BINDING_COEFFICIENT
-planetgen.tuning:CORE_RING_HEIGHT_BULGE_RATIO
-planetgen.tuning:CORE_RING_RADIUS_BULGE_RATIO
-planetgen.tuning:CORE_RING_WIDTH_BULGE_RATIO
-planetgen.tuning:CORE_STAR_FORMATION_SPAN_GY
 planetgen.tuning:COSMIC_MEAN_DENSITY_CM3
 planetgen.tuning:COURSE_ARC_SAMPLE_RAD
 planetgen.tuning:COURSE_BELOW_RESOLUTION
@@ -1277,7 +1270,6 @@ planetgen.tuning:PARABOLIC_COMET_ECCENTRICITY_RANGE
 planetgen.tuning:PARABOLIC_COMET_INCLINATION_MAX_DEG
 planetgen.tuning:PLANETARY_NEBULA_CENTRAL_MIN_TEMPERATURE_K
 planetgen.tuning:PLANET_CORE_SATURATION_SHARPNESS
-planetgen.tuning:PLANET_MIN_STAR_AGE_GY
 planetgen.tuning:PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR
 planetgen.tuning:PLANET_OCCURRENCE_METALLICITY_EXPONENT
 planetgen.tuning:PLANET_SURVIVAL_AGE_GY
@@ -1293,7 +1285,6 @@ planetgen.tuning:PROTOSTAR_MAX_AGE_YR
 planetgen.tuning:PULSAR_ACTIVE_LIFETIME_YR
 planetgen.tuning:PULSAR_DISK_DISTANCE_AU_RANGE
 planetgen.tuning:PULSAR_DISK_MASS_EARTH_RANGE
-planetgen.tuning:PULSAR_DISK_MAX_RADIUS_KM
 planetgen.tuning:PULSAR_DISK_PERIOD_RATIOS
 planetgen.tuning:PULSAR_DISK_PERIOD_RATIO_SCATTER
 planetgen.tuning:PULSAR_DISK_PLANET_COUNT
