@@ -128,7 +128,9 @@ def test_a_rocky_planet_is_never_larger_than_a_sub_neptune_can_be(sweep):
     # 7.72 after the GEN.1521 respacing moved an orbit into the tide's range; none is a rocky letter. So the bound for an ordinary planet is 8.5, the tail's measured maximum with a margin.
     assert max(row.radius for row in ordinary) <= 8.5
     assert max((row.radius for row in puffed), default=0.0) <= 2.0 * 7.5       # a puff of 7.5 Earth radii under the tide's largest factor of 2
-    assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 6.0
+    # GEN.1845: 4.9 g/cc at the median start of 0.04; at 0.025 the thin tail of a 12 Earth-mass core (an envelope of 0.4 to 0.7 percent, radius 2.1) comes out at 6.3 and 6.8 g/cc: the core's own density
+    # (a bare 12 Earth-mass rock is about 7), so the bound is 7.5, under the iron-rich bare core, and still catches a rocky density on a planet typed with an envelope of a puff's size.
+    assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 7.5
 
 
 def test_no_puffed_planet_escapes_the_super_puff_type(sweep):
@@ -183,7 +185,7 @@ def test_a_rogue_planet_keeps_the_whole_envelope_it_started_with(host_star, mass
             start = rogue.build.captured_envelope
             assert rogue.envelope_mass_fraction == pytest.approx(start)      # no light, no loss: what it started with
             assert 0.0 < start <= envelope_capture.MAX_START + 1e-9
-            assert rogue.radius > rogue.build.bare_core["radius"] * 1.15
+            assert rogue.radius > rogue.build.bare_core["radius"] * 1.05       # 1.15 until GEN.1845: a start of 1.2 percent on a 12 Earth-mass core (the thin tail of the median 0.025) adds 10 percent
             assert planet_type.planet_type(rogue) in (planet_type.TRANSITIONAL, planet_type.TERRESTRIAL)
             assert planet_classes.classify(rogue) == rogue.planet_class
             if rogue.envelope_mass_fraction >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
