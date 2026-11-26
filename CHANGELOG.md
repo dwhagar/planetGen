@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4791+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A world with surface water now draws its ice-free albedo around the Earth's 0.30 (0.225 to 0.375), so Earth-like worlds come out a few kelvin warmer and a little richer in oxygen.
+
+### Changed
+
+- GEN.1836: the ice-free Bond albedo a world with surface water draws (`tuning.ALBEDO_WET_RANGE`, stand-in CC4) is 0.225 to 0.375, not 0.25 to 0.40, so its centre is the Earth's 0.30 and not 0.325. Each edge moves 0.025, inside the 0.05 the row allows; still a tier T6 educated guess, tweak L3 (hand-tuned), and the drawing is unchanged (one uniform draw), so only the albedo value moves. On the pinned Earth analog (30 paired trials, Earth's own water) the median came out 5.6 K cold (277.6 K against 288 K) and a third of the copies were too cold to make oxygen (GEN.1835 report); with the range centred on 0.30 the copy reads 283.2 K and 4.7 kPa of oxygen on main, and 289.8 K on the GEN.1821 branch. Every world with surface water draws a slightly lower albedo on average, so the worlds move warmer by a few kelvin and the Class M counts move with them; the census after the change is in the pull request. Boss's yes of 11:24 PM EST 11-22 on the GEN.1835 report.
+
 ## [8.0.4790+db279.gen150.api14] - 2026-11-26
 
 **Headline:** A sector now keeps the directive it was drawn under and how the draw came out, and its page and `check-db` show it.
