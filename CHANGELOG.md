@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4786+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The brown dwarfs, neutron stars, black holes and stripped helium stars that hang in a multi-star system's tree now store their bulk density and binding energy like the single ones do.
+
+### Added
+
+- `dark_members` gains `density_g_cm3` and `binding_energy_j` (-1 for the infinite binding energy of a black hole), worked out by `body_strength.dark_member_values` from the member's mass and the radius the tree already drew it with (`bulk_values`, the code a single brown dwarf, neutron star or black hole goes through, GEN.1162). A system made before has them empty until its sector is regenerated; a migration does not draw.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4785+db279.gen150.api14] - 2026-11-26
 
 **Headline:** A giant given a polar orbit at the final roll of the orbit rows is turned onto that plane with its position, spin and moons, not left lying off it.
