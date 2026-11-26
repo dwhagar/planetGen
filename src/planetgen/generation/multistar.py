@@ -38,8 +38,9 @@ and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
    its axis bounded by `stability.max_inner_axis` and is then checked with
    `stability.is_triple_stable` and the Kozai screen; up to 60 tries a
    pair, 30 restarts a tree, then the lightest star is dropped.
-5. **The compact filters.** A compact pair whose Peters time is shorter than
-   the age is rejected; a bound companion beyond 1,000 AU of a neutron star
+5. **The compact filters.** A degenerate pair (white dwarfs, neutron stars and
+   black holes in any mix) whose Peters time is shorter than the age is
+   rejected; a bound companion beyond 1,000 AU of a neutron star
    or a black hole that did not collapse directly is rejected; at most three
    compact members to a tree.
 
@@ -214,6 +215,8 @@ REMNANT_WINDOW_FRACTION = 1.0 / 3.0
 life, so the table value (a mean over all ages) is divided by this inside the window."""
 
 COMPACT_KINDS = ("neutron-star", "black-hole")
+DEGENERATE_KINDS = COMPACT_KINDS + ("white-dwarf",)
+"""tuple: The member kinds that are degenerate objects, whose close pairs the gravitational-wave (Peters) screen applies to."""
 MEMBER_KINDS = ("main-sequence", "giant", "white-dwarf", "neutron-star", "black-hole", "brown-dwarf",
                 "pre-main-sequence", "protostar", "stripped-helium", "thorne-zytkow", "wolf-rayet")
 """tuple: Every member kind. The last three exist for the type generators that follow (the evolution of a
@@ -1065,10 +1068,12 @@ class _Builder:
             return None
         return next((leaf.orbit_au for leaf in pair if leaf.orbit_au is not None), None)
 
-    def double_white_dwarf(self, left, right):
-        """Whether the pair is two white dwarfs, which the Peters rule screens as it does a compact pair."""
+    def degenerate_pair(self, left, right):
+        """Whether the pair is two degenerate objects (white dwarfs, neutron stars, black holes in any mix): every such pair meets the
+        Peters rule, which a pair of two white dwarfs, two neutron stars or black holes, or a white dwarf with one of those must
+        survive (GEN.1851: a neutron star or a black hole with a white dwarf had skipped it)."""
         pair = self.pair_leaves(left, right)
-        return pair is not None and pair[0].kind == "white-dwarf" and pair[1].kind == "white-dwarf"
+        return pair is not None and all(leaf.kind in DEGENERATE_KINDS for leaf in pair)
 
     def wide_cap(self, sub):
         """The widest axis the pair can have: 1,000 AU if it holds a neutron star or a black hole that did not
@@ -1152,10 +1157,10 @@ class _Builder:
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
         fixed = self.fixed.get(id(sub))
         span = self.orbit_span(left, right)
-        double_dwarf = self.double_white_dwarf(left, right)
         # GEN.331: a brown dwarf's law is flat outside the desert and thin inside it, but a pair whose room is all inside the desert (a brown dwarf round a
         # star that has a close partner) has no draw of its own to thin: it is kept in `BROWN_DWARF_DESERT_KEEP` of the trees, decided once here.
         desert_kept = law != "brown-companion" or rng_keeps_desert(self.rng)
+        degenerate = self.degenerate_pair(left, right)
         for _ in range(PAIR_RETRIES):
             left, right, m_left, m_right, total = drawn
             core = None
@@ -1269,7 +1274,7 @@ class _Builder:
                     continue
                 if verdict == "kl_active":
                     flags |= NODE_KL_ACTIVE
-            if ((law == "compact-pair" or double_dwarf)
+            if (degenerate
                     and not stability.survives_gravitational_waves(m_left, m_right, axis, e, self.age_yr)):
                 draw.redrawn("pair.gravitational_waves")
                 continue

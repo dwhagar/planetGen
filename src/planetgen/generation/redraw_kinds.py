@@ -27,7 +27,7 @@ KINDS = {
     "pair.interaction_gate": Kind("star-tree", False, "an interaction the pair's members or the age do not allow (a compact accretor, a contact binary of the wrong age)"),
     "pair.unstable_triple": Kind("star-tree", False, "a triple that fails the hierarchical stability screen"),
     "pair.kozai": Kind("star-tree", False, "a triple the Kozai-Lidov screen calls unsafe"),
-    "pair.gravitational_waves": Kind("star-tree", False, "a compact or double white dwarf pair that would merge within the age by gravitational waves"),
+    "pair.gravitational_waves": Kind("star-tree", False, "a degenerate pair (white dwarf, neutron star, black hole) that would merge within the age by gravitational waves"),
     "pair.brown_dwarf_desert": Kind("star-tree", False, "a brown dwarf closer than the desert's edge, thinned to the observed share"),
     # --- the whole tree (multistar._grow_tree and _contact_pair_alone) ------------------------------------------------------------------
     "tree.restart_pair_failed": Kind("star-tree", False, "a tree drawn again because one of its pairs found no orbit in the retries"),
