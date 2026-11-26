@@ -36,7 +36,7 @@ registered law as the anchor.
   mass gap, 45 solar masses, 40 to 56 for the carbon-oxygen reaction rate's one-sigma range ([R5365]): the pulsations that gap comes
   from strip the heavier stars before they collapse. The hole's mass is `5 + (anchor mass - 5) x stretch`: the same rank in the law
   at every place, and a flat law up to the top, no pile at the top.
-* A star of the member tree and a remnant's composition take the stretch of their own [Fe/H]. The scatter's rows, the rows of a ring
+* A star of the member tree and a remnant's composition take the stretch of their own [Fe/H]. The scatter's rows (the disk, bulge and halo scatter, the reach groups and the rows of a component's own pass), the rows of a ring
   sector and the holes of the sector fill take the stretch of their place: the densities' mean of each population's mean stretch
   over its [Fe/H] distribution (`remnant_density.stretch_array`, the same tables as the failed share's mean).
 * The scatter's mass cut (`tuning.PHENOMENON_MIN_MASS_SOLAR`, 14) and `remnant_mass.share_above`, `moments` stay in the anchor law's
