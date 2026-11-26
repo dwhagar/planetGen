@@ -901,7 +901,7 @@ def runtime_ratio(sample):
 
 def load(work, name, distill=None, distill_from_k=340.0, hold=False, runtime=False, pairs=None):
     """The feature matrix and the target `ln(T_s / T_e)` of the converged samples of `name`. With `distill` (a network), every sample the model was not asked about
-    (not in the jsonl) that the starting file puts at `distill_from_k` or hotter (the airs `solve --cool-below` leaves out, which cost minutes each) takes that network's own
+    (not in the jsonl) that the starting file puts at `distill_from_k` or hotter (a set held whole, `hold`, also takes the airs above the model's top pressure, which the network reads at its edge, GEN.1854) (the airs `solve --cool-below` leaves out, which cost minutes each) takes that network's own
     answer as its target (GEN.1304); the cool ones it was not asked about are a random part of the set (`solve` takes them in a random order) and are left out."""
     from planetgen.physics import constants, greenhouse_table
 
@@ -938,7 +938,7 @@ def load(work, name, distill=None, distill_from_k=340.0, hold=False, runtime=Fal
             answers = cached["answers"]
         else:
             held_index = [index for index, sample in enumerate(samples)
-                          if index not in asked and sum(sample[0].values()) <= greenhouse_table.PRESSURE_MAX_PA and (hold or not temperate_wet(sample))
+                          if index not in asked and (hold or sum(sample[0].values()) <= greenhouse_table.PRESSURE_MAX_PA) and (hold or not temperate_wet(sample))
                           and (hold or greenhouse_table.warming(*sample).surface_temperature_k >= distill_from_k)]
             held_airs = [samples[index] for index in held_index]
             answers = None
