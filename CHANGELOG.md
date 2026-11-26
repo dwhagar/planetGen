@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4800+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A test now holds that the giants of a one to two solar mass star are class III whatever their light and metallicity, closing GEN.396 (the old class III luminosity range is long gone).
+
+### Changed
+
+- GEN.396 asked for the class III range to follow the evolved star's own luminosity and mass instead of a hand-set 50 to 1,000 solar luminosities. The range was already gone: a giant's class comes from its track phase (`stellar_evolution._evolved_state`), and `YERKES_LUMINOSITY_RANGES` is removed. What was missing was the item's test: `test_post_main_sequence` now sweeps ten cases (1.0 to 2.0 solar masses, Fe/H from -1.0 to +0.3) along the whole track and asserts the class runs main sequence, subgiant, giant, and that a giant lighter than 50 solar luminosities is still class III. No generation output changes.
+
 ## [8.0.4799+db279.gen150.api14] - 2026-11-26
 
 **Headline:** The neutron stars and black holes the galaxy places are now cut at the mass limit of the place they are in, as its stars are, not at one limit for the whole galaxy.
