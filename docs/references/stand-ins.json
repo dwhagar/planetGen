@@ -79613,7 +79613,7 @@
           "fields": [
             [
               "What it is",
-              "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded"
+              "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded; exosphere.MAX_SPECIES 8: the most species a record holds"
             ],
             [
               "The range it moves in",
@@ -79644,7 +79644,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded"
+          "what": "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded; exosphere.MAX_SPECIES 8: the most species a record holds"
         },
         {
           "burn_down": null,
