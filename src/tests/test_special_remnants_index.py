@@ -22,7 +22,7 @@ def test_the_remnants_piece_builds_the_address_index_when_the_scatter_took_it_of
         steps = []
         ctx = SimpleNamespace(db=conn, kept=lambda name, make: make(), step=lambda label, total: steps.append((label, total)),
                               phase=lambda text, **kw: said.append(text), commit_piece=lambda result: None, advance=lambda n: None)
-        monkeypatch.setattr(store, "get_galaxy_shape", lambda c: SimpleNamespace())
+        monkeypatch.setattr(store, "get_galaxy_shape", lambda c: SimpleNamespace(shape=None, edge_pc=1.0, core_min_luminosity_sol=None, core_mass_limit_sol=None, halo_min_luminosity_sol=500.0))
         monkeypatch.setattr(store, "scatter_limits_of", lambda c, skeleton: None)
         monkeypatch.setattr(store, "backfilled_uncharted_addresses", lambda c: [(1, 1, 1), (1, 1, 2)])
         monkeypatch.setattr(store, "addresses_holding_below_cut_remnants", lambda c, mass: set())

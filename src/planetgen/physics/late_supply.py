@@ -25,7 +25,9 @@ What it leaves out (stated; rows LS4, LS5): the secular and resonant lifting of 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, influx, scatter
+from planetgen.physics import constants, influx, scatter, unit_registry
+
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 INWARD_SHARE = 0.1
 """float: The share of the part of a reservoir's early (primordial) mass that no giant swept (the part that stays in its ring, ground by collisions) that is scattered onto planet-crossing orbits and so shared among the bodies. [Stand-in 6.254 LS1, tier T6, tweak L3.]"""
@@ -106,7 +108,7 @@ def eject_share(radius_km, planet_au, mass_kg, star_mass_solar):
     """The share of the planetesimals that get past a body (and are not taken by it) that it throws out of the system: `1 - exp(-Theta / THETA_EJECT)` with `Theta` its Safronov number (`scatter`, the rule `influx.shield` uses for the dust)."""
     if not (radius_km > 0.0 and planet_au > 0.0 and mass_kg > 0.0 and star_mass_solar > 0.0):
         return 0.0
-    theta = mass_kg / (star_mass_solar * constants.SOLAR_MASS_TO_KG) * planet_au * AU_M / (radius_km * 1.0e3)
+    theta = mass_kg / _msun_to_kg(star_mass_solar) * planet_au * AU_M / (radius_km * 1.0e3)
     return -math.expm1(-theta / scatter.THETA_EJECT)
 
 

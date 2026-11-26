@@ -834,6 +834,10 @@ class SpaceSector:
         fill begins; `None` for a sector that was not filled by `generate_sector`."""
         self.stage_counts = collections.Counter()
         """Counter: Objects made, by `(stage, kind)` (`generation.fill_stages.count`; GEN.251)."""
+        self.directive_record = None
+        """`generation.directives.Record` or None: The directive the sector was drawn under and how the draw came out
+        (`run_sector.generate_directed_sector`; GEN.179); `store.insert_sector` saves it with the sector. `None` for a
+        sector drawn with no directive, which stores nothing."""
 
     def __len__(self):
         return len(self.entries)

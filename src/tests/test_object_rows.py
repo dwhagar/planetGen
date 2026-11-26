@@ -296,3 +296,27 @@ def test_the_load_helpers_invert_their_conversions():
     assert object_rows.load_dict(fields, row, only=("a",)) == {"a": 1, "b": 2}
     obj = types.SimpleNamespace(d=2.0, n=None, a=1, b=2)
     assert object_rows.values_of(fields[:3], obj, {}) == [300000.0, None, 1, 2]
+
+
+def test_a_null_for_a_required_column_is_refused_naming_the_body_and_the_columns_left_empty():
+    """GEN.1856: a planet saved with no spin period gave only 'Column rotation_period_hours cannot be null' once in four runs of a two-worker run, raised when the connection wrote the INSERTs it
+    holds back, with the body long gone; the row is refused where it is made, naming the table, the required columns left empty and the object, so the next occurrence says which body took which path."""
+    import pymysql
+
+    connection = _Connection()
+    moon = types.SimpleNamespace(name="Itzeshur IIIa", body_type="t", is_moon=True, mass=1.5e23, distance=0.0021, rotation_period_hours=None)
+    fields = (object_rows.attr("rotation_period_hours"),)
+    with pytest.raises(pymysql.err.IntegrityError) as caught:
+        object_rows.insert_row(connection, "moons", fields, moon)
+    text = str(caught.value)
+    assert "Column 'rotation_period_hours' cannot be null" in text and "table moons" in text and "required columns left empty: rotation_period_hours" in text
+    assert "SimpleNamespace" in text and "name='Itzeshur IIIa'" in text and "is_moon=True" in text and "distance=0.0021" in text
+    assert caught.value.args[0] == 1048      # still the server's error number, so the callers that read it go on reading it
+    assert connection.calls == []            # nothing was queued for the body
+
+
+def test_a_null_for_a_column_that_may_be_null_is_written():
+    nullable = next(column.name for column in models.metadata.tables["moons"].columns if column.nullable and not column.primary_key and not column.computed)
+    connection = _Connection()
+    object_rows.insert_row(connection, "moons", (object_rows.attr(nullable),), types.SimpleNamespace(**{nullable: None}))
+    assert [params for _sql, params in connection.calls] == [(None,)]

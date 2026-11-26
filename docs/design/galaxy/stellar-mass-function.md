@@ -14,7 +14,7 @@ what is set and what is derived, and what each consumer reads.
 | Single stars | `imf.SINGLE` (`xi`) | Every star born, by mass | Set: [R0705] (PASP 115:763, Table 2, disk, individual stars) |
 | Primaries | `imf.PRIMARY` (`P`) | The star a system is built around, by its birth mass | Derived: `xi` less the companions of heavier primaries (`generation/primary_mass_function.py`) |
 
-**Single stars.** A log-normal in log mass below 1 solar mass (centre 0.079, width 0.69 dex) and the power law
+**Single stars.** A log-normal in log mass below 1 solar mass (centre 0.092, width 0.69 dex; [R0705] gives the centre as 0.079 +0.021 -0.016, and GEN.922 nudged it to 0.092, inside that, stand-in MF1 level L1: at 0.079 the primaries of 0.6 to 0.8 solar masses were 7.1 percent of those of 0.08 to 0.8, under the system function's band, and no companion count or mass ratio law moves that bin) and the power law
 `dN/dM ~ M^-2.3` above, joined continuously at 1 solar mass. The function is kept as a continuous piecewise power law
 (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`): the log-normal is cut at every 0.05 dex and each pair of nodes is joined by the
 chord of `ln dN/dM` against `ln M`, within 0.07% of the log-normal. The sampler, the integrals and the number counts of
@@ -82,6 +82,11 @@ the census (0.004 per star), so the share of the massive stars left to fail and 
 the solar failed share goes from 13.6% to 17.5% (`black_hole_formation.share_cap`). A galaxy with the Milky Way's 5e10 solar
 masses of stars holds 1.0e8 black holes, in line with the published estimate, and a metal-rich busy shell holds 1.6 neutron
 stars to a black hole (it was 2.1).
+
+GEN.922 then moved the centre of the single-star function from 0.079 to 0.092 solar masses (stand-in MF1), which keeps the
+power law above 1 solar mass and so lifts the massive share (8 to 150 solar masses) from 0.713% to 0.772% of the stars born.
+The cap on the failed share (`black_hole_formation.share_cap`) rises with it, from 21 to 33% to 27 to 38% for 40% to 20% of
+the neutron stars ejected, and the black holes of a galaxy are about 8% more numerous at the same failed share.
 
 ## Source tiers
 

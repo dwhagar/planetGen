@@ -14,7 +14,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.phenomena import system_types
-from planetgen.physics import stability
+from planetgen.physics import stability, white_dwarf_merger
 from planetgen.util import draw
 
 SIGMAS = 4.0
@@ -88,11 +88,13 @@ def test_a_hot_subdwarf_is_the_stand_in_share_of_post_common_envelope_pairs():
     assert not multistar.draw_stripped_helium(share + 1e-9)
 
 
-def test_an_old_white_dwarf_is_a_double_white_dwarf_merger_product_at_the_knob_share_and_never_when_young():
-    share = system_types.TUNING_KNOBS["merger_product_fraction"]["white-dwarf"]
-    assert multistar.draw_white_dwarf_merger(AGE_YR, share - 1e-9)
-    assert not multistar.draw_white_dwarf_merger(AGE_YR, share + 1e-9)
-    assert not multistar.draw_white_dwarf_merger(1.0e7, 0.0)
+def test_an_old_white_dwarf_is_a_double_white_dwarf_merger_product_at_the_share_of_its_mass_and_never_when_young():
+    share = white_dwarf_merger.merger_fraction(1.15)
+    assert share == 0.78
+    assert multistar.draw_white_dwarf_merger(1.15, AGE_YR, share - 1e-9)
+    assert not multistar.draw_white_dwarf_merger(1.15, AGE_YR, share + 1e-9)
+    assert not multistar.draw_white_dwarf_merger(1.15, 1.0e7, 0.0)
+    assert not multistar.draw_white_dwarf_merger(0.6, AGE_YR, 0.0)       # under the floor of the bump, never
 
 
 def test_a_g_or_k_giant_is_symbiotic_or_barium_at_the_rows_shares():
@@ -141,18 +143,19 @@ def test_double_white_dwarf_axes_are_log_uniform_up_to_the_peters_cut(white_dwar
     assert _within(wide, len(axes), expected) or abs(wide / len(axes) - expected) < 0.03
 
 
-def test_double_white_dwarf_merger_products_are_ten_percent_of_old_white_dwarfs_and_flagged_and_rejuvenated():
-    rng = draw.Stream("gen271-mergers")
-    placed = multistar.Placed("white-dwarf", 0.9, 4.0)
+@pytest.mark.parametrize("mass, share", [(0.6, 0.0), (0.8, 0.25), (0.95, 0.25), (1.05, 0.36), (1.15, 0.78), (1.25, 0.49), (1.32, 0.38)])
+def test_double_white_dwarf_merger_products_are_the_share_of_their_mass_and_flagged_and_rejuvenated(mass, share):
+    rng = draw.Stream(f"gen708-mergers-{mass}")
+    placed = multistar.Placed("white-dwarf", mass, 4.0)
     flagged = 0
-    for _ in range(20_000):
+    for _ in range(8_000):
         member = multistar.draw_member_tree(placed, AGE_YR, rng).members[0]
         if member.flags & multistar.MEMBER_MERGER_PRODUCT:
             flagged += 1
             assert 0.0 < member.effective_age_yr < AGE_YR
         else:
             assert member.effective_age_yr is None
-    assert _within(flagged, 20_000, system_types.TUNING_KNOBS["merger_product_fraction"]["white-dwarf"])
+    assert _within(flagged, 8_000, share) if share else flagged == 0
 
 
 def test_cataclysmic_variables_are_6_5_in_10000_white_dwarfs_with_periods_1_3_to_10_hours_and_accreting(

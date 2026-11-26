@@ -94,6 +94,35 @@ HAZARD_TYPES = ("black_hole", "neutron_star", "quasar")
 """tuple: The standalone phenomena a ship must steer clear of (they have a keep-out radius): named in a sector's hazard row."""
 
 
+DIRECTIVE_STATUS_TEXT = {
+    "met_naturally": "met on the first draw",
+    "met_after_k_attempts": "met after {attempts} draws",
+    "met_forced": "not met in {earlier} draws, so a fill asked for a habitable world in each system it needed",
+    "unmet": "not met after {attempts} draws; the closest draw was kept",
+}
+"""dict: How a stored directive's status reads on a sector page (GEN.179), `{attempts}` and `{earlier}` filled from the record."""
+
+DIRECTIVE_KEY_TEXT = {"systems": "star systems", "habitable": "habitable worlds"}
+"""dict: The words a page uses for a directive's `systems` and `habitable` keys; `type:G` reads as "G stars"."""
+
+
+def _directive_row(directive):
+    """
+    The "Drawn under" row of a sector page (GEN.179): what the run asked of the sector (`wanted`), what the kept sector
+    holds (`got`) and how the draw came out. `None` for a sector drawn with no directive.
+    """
+    if not directive:
+        return None
+    asked = []
+    for item in directive.get("minimums") or []:
+        key = item["key"]
+        words = DIRECTIVE_KEY_TEXT.get(key) or (key[len("type:"):] + " stars" if key.startswith("type:") else key)
+        asked.append(f"at least {item['wanted']:,} {words} (got {item['got']:,})")
+    attempts = directive["attempts"]
+    result = DIRECTIVE_STATUS_TEXT.get(directive["status"], directive["status"]).format(attempts=attempts, earlier=attempts - 1)
+    return {"label": "Drawn under", "html": esc("; ".join(asked) + (": " if asked else "") + result)}
+
+
 def sector_rows(detail, facilities, type_labels):
     """
     The rows of a sector page's panel (UX.191): what the sector holds, the hazards in it, the facilities and where it lies.
@@ -119,6 +148,9 @@ def sector_rows(detail, facilities, type_labels):
         rows.append({"label": "Hazards", "html": esc(f"{len(hazards):,} compact object" + ("" if len(hazards) == 1 else "s")
                                                       + f", nearest {nearest['name']}")})
     rows.extend(_facilities_row(facilities))
+    directive = _directive_row(detail.get("directive"))
+    if directive:
+        rows.append(directive)
     bubble = detail.get("superbubble")
     if bubble:
         rows.append({"label": "Inside", "html": esc(f"a superbubble {bubble['radius_pc'] * 2:g} pc across")})

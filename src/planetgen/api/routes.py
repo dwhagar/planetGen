@@ -2031,16 +2031,42 @@ def uncharted_phenomenon(scatter_id):
 @bp.route("/lookup")
 def lookup_route():
     """
-    `GET /api/lookup?text=<Object ID or name>` (GEN.1140) -- what an Object ID or a name is now, including one the object used to have. 200 with
+    `GET /api/lookup?text=<Object ID or name>[&near=<sector>]` (GEN.1140, API.38) -- what an Object ID or a name is now, including one the object used to have. 200 with
     `status` `current` (it has it now) or `redirect` (it had it once; the body is the object that has it now, `retired` is what was asked
     for) and `kind`, `ref`, `id`, `name`, `former_designations` and, for a name that other objects once had too, `also`; 410 `gone` for a
     designation of a deleted object; 404 `unknown` for one nobody had; 400 for no text.
+
+    A bare local name (`Zaidonr Jaisonn`, GEN.1255) names an object in every sector at once, so it is searched sector by sector, the ones nearest `near` (a sector's 14 hex digits) first. When
+    that ends inside the request: 200 `current` for one match (with its `sector`), 200 `matches` for several (each with its `sector`), 404 `unknown` that says how many sectors were
+    searched. Otherwise 202 `searching` with the matches of the nearest sectors so far, `searched` of `of`, a `line` and a `status_url` (`GET /api/lookup/jobs/<id>`).
     """
     try:
-        status, body = lookup_module.lookup(get_db(), request.args.get("text"))
+        status, body = lookup_module.lookup(get_db(), request.args.get("text"), request.args.get("near"), config=_resolve_requested_db_config())
     except ValueError as exc:
         raise ApiError(str(exc), status_code=400) from exc
-    return jsonify(body), status
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    response = jsonify(body)
+    response.status_code = status
+    if status == 202:
+        response.headers["Location"] = body["status_url"]
+    return response
+
+
+@bp.route("/lookup/jobs/<job_id>")
+def lookup_job_route(job_id):
+    """
+    `GET /api/lookup/jobs/<id>` (API.38) -- where the search for a bare local name stands: `state` (`queued`, `running`, `succeeded`, `failed`), `searched` of `of` sectors, the `line`
+    with the counts and the time in clock form, `eta_seconds` and `eta`, and the finished answer as `result` (the body the request would have given, with `http_status`). Public, like the
+    lookup; it names only name searches. 404 for an unknown or expired id (kept an hour); 503 without Redis.
+    """
+    try:
+        found = lookup_module.search_status(job_id)
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if found is None:
+        raise ApiError(f"no such name search: {job_id}", status_code=404)
+    return jsonify(found)
 
 
 @bp.route("/objects/<ref>")

@@ -2,6 +2,332 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4815+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The nearby-objects list no longer fails on a system that has a trojan region.
+
+### Fixed
+- Listing the bodies of a system for the nearby search raised a KeyError when the system had a giant's trojan region: the list read a belt number for every belt, and a trojan region takes none. It now names every belt the way the rest of the product does (`Asteroid belt N`, or `<host> L4 trojan region`).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4814+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A local name typed without its sector now finds the objects that have it, each with its sector, nearest sectors first.
+
+### Added
+
+- `GET /api/lookup?text=Zaidonr+Jaisonn[&near=<sector>]`: a bare local name (GEN.1255) names an object in every sector at once, so the lookup undoes the scramble of each sector in turn and reads the Object ID it gives. One match opens as an Object ID typed in full does (`current`, with its `sector`); several come back as `matches`, each with its sector; none is `unknown` and says how many sectors were searched. Every answer carries `searched`, `of` and `complete`.
+- A search that is not done inside the request goes on as a job and answers `202 searching` with the matches of the nearest sectors so far. `GET /api/lookup/jobs/<id>` reports `searched` of `of` sectors with a progress line (`Searched 1,200 of 480,000 sectors in 1s`), the time left in clock form and the finished answer. The search never stops short without saying so.
+- The sectors searched are every sector row, every cell of the scatter tables and every birth sector of the standalone phenomena, the one nearest `near` (the sector the person is in) first.
+
+### Changed
+
+- The scramble of a sector's serials is found 49 times faster (0.460 ms to 0.009 ms a sector, the same parameters for every sector, held by a test), which makes a pass over every sector cheap. No name changes.
+
+generation-output: unchanged
+
+## [8.0.4813+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The light job tests expect the time-limit message in the wording the product writes (1m 40s, 1s), so they pass again.
+
+### Fixed
+
+- TEST.837: `test_light_jobs.py` expected the time limit of a job that ran too long as 100 s and 1 s; the product writes it as 1m 40s and 1s since the duration rule. Tests only.
+
+## [8.0.4812+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: the every-button test looks at each page in a page of its own, so no load is refused
+
+### Fixed
+
+- TEST.836: `test_every_plain_button_does_something` sent one browser page to the address again for every button, and after about ten loads the browser refused the next load's scripts (`ERR_INSUFFICIENT_RESOURCES`: each load makes about 250 requests, the Shoelace modules among them, and the requests of the loads before it stay outstanding in that page's renderer until the server has answered them). The Shoelace elements were then never defined and the click waited for a button that was not there (`web.generate_task`, `web.admin_queue`, `web.admin_queue_jobs`, `web.admin_queue_run`, `web.polities`, `web.sector`, `web.system` came and went red with the load). Each look is now a page of its own; those pages pass (12 passed) and a new page opened right after a refused load always loaded, which is what pointed at the page and not the server.
+
+## [8.0.4811+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: the page tests' site galaxy builds in minutes, and once, not in 15 minutes per module
+
+### Fixed
+
+- TEST.835 (the browser tests that "hang for 29 minutes"): they were waiting on the module fixture `site_db` (`tests/test_web_a11y.py`, about 20 files), which generates real systems and, since the air history (GEN.1745), took 935 s (15 min 35 s) alone, and over the 1740 s of the TEST.621 watchdog on a shared run, which ended the worker in setup. Now it builds its systems without the air-history record (`tests/air_history_off.py`, TEST.831: the pages these tests walk do not read it; the chart has its own tests, `test_life_air_chart` and `test_item_pages`), which cut the build to 334 s and 203 s on two runs, and the built galaxy is kept in the TEST.807 dump cache, so the rest of the files load it in about 13 s.
+
+## [8.0.4810+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: a double click on a star or a body flies to it and opens its information
+
+### Fixed
+
+- MAP.140 (GitHub issue 714): the behaviour was built by the fly-through (MAP.146, MAP.226, MAP.304) and the select-and-open that goes with it was only half covered. Two browser tests now hold it: on the Galaxy Map a single click on a star selects it and opens its information without a flight, and a double click flies the camera onto it with the information still open; on the System Map's 3D view a double click on a planet flies the camera closer to it and its name is in the information panel.
+
+## [8.0.4809+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A row with a missing value for a required column is refused where it is made, and the error names the body and the columns left empty.
+
+### Fixed
+- A row refused for a NULL in a required column (`rotation_period_hours` came out so once in four runs of a two-worker run, and the error named the column and nothing else) now says the table, the required columns that were left empty, and the object's class and name, kind and place, so the next occurrence points at the body and the path that made it. The check is made as the row is built, because a sector save holds its INSERTs back and the server only refuses at the flush, after the body is gone. The error is the server's own class and number (1048); the generated numbers do not change.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4808+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Two hand-written mass conversions use the unit registry again
+
+### Fixed
+
+- TEST.834: `test_mass_conversions` was red on main: the GEN.1493 slice 3 late supply (`late_supply.eject_share`, a planet's mass over the star's mass in kilograms) and the GEN.1814 melt sulfur (`melt_sulfur`, a body's mass in Earth masses) each multiplied or divided by a mass constant by hand. Both now call `unit_registry.converter`; the numbers are the same to the last bit (200,000 draws compared), so generation output is unchanged (35 tests pass across `test_mass_conversions`, `test_late_supply`, `test_melt_sulfur`).
+
+generation-output: unchanged
+
+## [8.0.4807+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The Galaxy Map opens flown in to the largest charted region, not the whole galaxy
+
+### Changed
+
+- MAP.189 (GitHub issue 1232): with sectors charted, the first frame of the Galaxy Map flies in to the largest charted region (the first of the charted-regions list: its window, the camera where the region's sphere fills the view, as a click on the region lands, MAP.319) and shows only that space at the start; the wheel or Whole galaxy still reaches the whole galaxy. An address that asks for something else (a camera, a sector, a system) is left as it was, and `?whole=1` opens the whole galaxy as before; the whole galaxy's own address carries `whole=1` when the map has a region to fly to, so a fresh load of an address shows the view it names (MAP.106). Browser test `test_the_galaxy_map_opens_flown_in_to_the_largest_charted_region_and_zooms_out_to_the_whole_galaxy`; the browser tests that look at the whole galaxy ask for `?whole=1`.
+
+## [8.0.4806+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The star mass function's centre is nudged from 0.079 to 0.092 solar masses (inside the paper's own uncertainty), so the primaries of 0.6 to 0.8 solar masses are in their census band and the star mass function census has no known anomaly left.
+
+### Changed
+
+- `tuning.IMF_BELL_CENTER_SOL` (stand-in MF1, tier T2, tweak level L1) is 0.092, not the published 0.079. [R0705: Eq. 17], gives the centre as 0.079 (+0.021, -0.016) and the width as 0.69 (+0.05, -0.01); the primaries of 0.6 to 0.8 solar masses were 7.1 percent of those of 0.08 to 0.8 in the 60,000-system census, under the 7.3 percent floor of the system function's band, and neither the companion counts (x0.5 to x3 moves the bin 6.8 to 7.3 percent) nor the companion mass ratio law (GEN.951) move it, so the single-star curve is what is nudged. More stars of 0.2 to 0.8 solar masses, fewer of 0.08 to 0.2, in every galaxy; the census shows all bins in band.
+- `tuning.PREVALENCE_DRAW_SHARES["multi_star"]` follows the primary mass function (0.0046 to 0.0049).
+- The white dwarf share guard in `test_star_population` is the local census's own range: [R5364] (new in the reference list) counts 20 white dwarfs among 375 stars, a 95 percent Poisson range of 3.3 to 8.2 percent (was 4.0 to 7.0, unsourced); the draw is 7.1 percent.
+- GEN.922 closes with this note: the star mass function census (TEST.454) has no known anomaly (the GEN.951 and GEN.996 tags are dropped), and the guards that held the generator to the published centre now hold it to the registered 0.092 and to the paper's range 0.063 to 0.100.
+
+## [8.0.4805+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The share of white dwarfs that are double white dwarf merger products now follows the white dwarf's mass, from the 100 pc sample, instead of one flat 10 percent.
+
+### Changed
+
+- GEN.708: a white dwarf of the old population is a merger product at the share its mass has in the newest sample: 25, 36, 78, 49 and 38 percent in the bins from 0.9 to 1.35 solar masses ([R5355], 204 white dwarfs of the 100 pc sample), and 25 percent between 0.7 and 0.9 (the second peak of [R5354], a stand-in). An old population comes to 8 to 12 percent flagged, inside the sample's 14 percent with a factor of 2, and about half of the white dwarfs of 0.9 solar masses and up, as in the sample. A white dwarf that a system's own star made takes the same draw (it had the blue stragglers' 0.5 percent before). The white dwarf's mass is not redrawn: the initial-final relation already gives more heavy white dwarfs than the sample, so a mass bump on top would count them twice. The flat `white-dwarf` entry of the `merger_product_fraction` knob is gone. Registry rows WM1 to WM3 (section 6.330). Generated values change (which white dwarfs are flagged and rejuvenated); no epoch bump.
+
+## [8.0.4804+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A system's pair is read from its orbit node, not kept in a second copy, so a pair has one place to be wrong.
+
+### Changed
+- **`StarSystem.pair_orbit` replaces `WideBinaryPair` and `system.wide_binary` (GEN.640, slice b).** The pair's axis, eccentricity, period, periapsis, apoapsis, angles, speed and the places of its two stars are now worked out from the pair's node in the orbit tree (`generation/pair_orbit.PairOrbit`). On 300 seeded wide pairs of two to five stars every number equals what the old class held, to 1e-9. The wide-pair draws stay in `generation/wide_binary.py`.
+- **Serialization schema 10.** A saved system no longer carries a `wide_binary` key; it is read from `orbit_nodes`.
+
+## [8.0.4803+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A pair of stars is placed from its orbit tree, so the system map and 3D view follow the nightly orbit update from the tree's own node.
+
+### Changed
+- **The pair's orbit and the place of its two stars are read from `orbit_nodes` (GEN.640, slice a).** The 3D scene, the system detail, a star's place in an object's positions and a stored wide pair take the pair's phase and positions from its node at the node's own epoch, with `db/orbit_trees.pair_places_km`. A close pair is where its columns held it; a wide pair's second star now sits on its orbit's ellipse, not on a circle of its separation, so a stored wide pair's position, as the 3D scene, the system map and the object page give it, changes (a stored-value change for those rows; generation and the stored columns are untouched).
+- **The orbit update no longer writes the pair columns** (`binary_mutual_orbital_phase_deg`, `binary_mutual_position_*`, `binary_primary_position_*`, `binary_secondary_position_*` and the pair's clock): the nodes it already advances (GEN.313) are the pair's orbit. `cli.orbits` reports one step fewer (the old "binary mutual orbit(s)" line).
+
+## [8.0.4802+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The smallest galaxy the Scale dial offers, 281 solar masses of stars, is now as small as the real one it is half of (Segue 1), not nine times too large.
+
+### Changed
+- GEN.612: the thin disk's scale length came from [R4048]'s late-type size-mass fit down to every mass, but that fit starts at about 1e8.8 solar masses of stars: at the Scale dial's floor of 281 solar masses it gave a half-light radius of 220 pc, nine times Segue 1's 23.9 pc. Under 10^8.5 solar masses (`shape_draw.DWARF_SIZE_EDGE_SOLAR`) the median is now the field dwarfs' law of [R0655] (`log r_e = 0.667 + 0.296 log M*`, fitted over log M* 5.5 to 8.5, scaled by 1.018 so it meets [R4048]'s at the edge): 25 pc at 281 solar masses, 558 pc at 1e7, 1.55 kpc at the edge. Below log M* 5.5 the law is continued as a labelled placeholder (rows DG1 to DG3 of the new 6.332; Segue 1 is 0.11 dex under it) and a dwarf's height is the thin disk's flatness (7.3) until the dwarf families are built. The halo needs no extension: a galaxy under 4.6e6 solar masses draws none (Boss, 7:33 PM EDT on 2026-10-21) and the relation of the mass chain stands above it (row HF3). A test sweeps the dial's whole range, 281 to 1.55e11, for finite, ordered laws. Galaxies of 3.2e8 solar masses and more, the Auto window included, draw as before.
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4801+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A millisecond pulsar's disk planets can now be as heavy as the range says (up to 10 Earth masses, PSR B1257+12's heaviest is 4.3), and the two pulsar-planet origins that are not built say what they wait for.
+
+### Changed
+
+- The disk origin drew its mass range cut at 3.3 Earth masses, where a fixed 10,000 km radius ceiling at a mean density ended it; the cut is gone (GEN.593, `PULSAR_DISK_MAX_RADIUS_KM` removed, `pulsar_planets.disk_mass_range_earth` removed). A disk planet is drawn from 0.01 to 10 Earth masses whole and its radius follows from its mass by the terrestrial law (a 10 Earth mass one is about 11,800 km, class S, carbon-rich).
+- The captured-giant and ablated-companion origins stay unbuilt, now named with what they wait for (`tuning.PULSAR_PLANET_PREREQUISITES`: GEN.163 and GEN.555), with the stand-in written in the module: a bare pulsar, logged with the origin and its prerequisite.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4800+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A test now holds that the giants of a one to two solar mass star are class III whatever their light and metallicity, closing GEN.396 (the old class III luminosity range is long gone).
+
+### Changed
+
+- GEN.396 asked for the class III range to follow the evolved star's own luminosity and mass instead of a hand-set 50 to 1,000 solar luminosities. The range was already gone: a giant's class comes from its track phase (`stellar_evolution._evolved_state`), and `YERKES_LUMINOSITY_RANGES` is removed. What was missing was the item's test: `test_post_main_sequence` now sweeps ten cases (1.0 to 2.0 solar masses, Fe/H from -1.0 to +0.3) along the whole track and asserts the class runs main sequence, subgiant, giant, and that a giant lighter than 50 solar luminosities is still class III. No generation output changes.
+
+## [8.0.4799+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The neutron stars and black holes the galaxy places are now cut at the mass limit of the place they are in, as its stars are, not at one limit for the whole galaxy.
+
+### Changed
+- GEN.377: the phenomenon scatter kept one mass cut for the whole galaxy while GEN.333 gave the star scatter three (core, baseline, halo). The cut is now the tier limit of the band an object is placed in: the baseline cut, the core's (`--core-mass-limit`, else the baseline times `CORE_TIER_FACTOR`) and the halo's (the baseline's, since the halo has no mass limit of its own), the same Generate page settings, no new setting (`generation/phenomenon_cuts.py`). The band walk gives each band its tier's share of each class and draws the masses above its cut; the reach beyond the outline and the clusters' and satellites' phenomena draw candidates at the lowest cut and keep each with its band's tier's share; the sector's fill and the backfill ring's remnants draw what lies under the sector's own band's cut. A galaxy whose three cuts agree draws what it drew before. The stage log line names the core's and the halo's cut when they differ. Core bands now place neutron stars and black holes from the core's cut, and the sector fill leaves them what lies below it.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4798+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Brown dwarf companions now follow the observed laws: 3.2 percent of Sun-like stars have one at 28 to 1,590 AU, almost none sit in the 3 to 10 AU desert, 15 percent of them are a pair of two, and a few stars have a planetary-mass companion.
+
+### Added
+- **Brown dwarf pairs and planetary-mass companions (GEN.331).** In 15 percent of the trees that hold a brown dwarf, there are two, at a separation that peaks near 4 AU and masses within 80 percent of each other. A planetary-mass companion (5 to 13 Jupiter masses) is a member of its own in 0.5 percent of the trees; the scatter's member table labels it "Planetary-mass companion".
+- **A brown dwarf's own orbit law.** A brown dwarf or planetary-mass companion about the rest of its tree has an axis that is flat per decade from 10 AU to 5,000 AU, with 1 percent of that density inside 10 AU (the brown dwarf desert), in place of the stars' log-normal period law. The companion chance is 5.7 percent, which puts 3.2 percent of Sun-like stars at 28 to 1,590 AU.
+- The cooling track of the brown dwarf model continues under 0.01 solar masses (temperature as mass to the 0.66, radius as mass to the -0.04), for planetary-mass companions.
+
+### Changed
+- A brown dwarf round a star that has a close partner no longer ends inside the desert in a fifth of the cases: the pair is kept in 1 percent of the trees whose room is all desert, as the redraw rule did for a pair of one star.
+
+generation-output: changed
+
+## [8.0.4797+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The stars of a system of three or more now have names that say where they hang in the tree: Voranthis Aa, Voranthis Ab, Voranthis B, with a word of its own for each side of a wide split.
+
+### Added
+- **Path codes for the stars of a tree (GEN.312).** Inside a branch the codes go level one `A`, `B`, level two `a`, `b`, level three `1`, `2`, then `.1`, `.2`; a star alone in its branch has none. Each child of a wide split takes a word of its own after the system's first word (the heavier from the star word lists, the lighter from the small and child ones, as a wide pair always did): `Voranthis Kelmoor Aa`, `Voranthis Pikkita Ba`. A dark member (a brown dwarf, a neutron star, a black hole) has a code too.
+- **Planet stems that carry the host's code.** The branch that holds the primary uses the system's first word, any other branch its own word, and a coded star adds its code: `Voranthis Aa I`, `Pikkita Ba I`. The planets of a pair about its node take the node's name: `Voranthis B I`.
+
+### Changed
+- A system of three or more stars was named `Voranthis A`, `B`, `C` and its pairs `Voranthis CD`; its stars, pairs and planets now take the names above. A system of one or two stars keeps its names.
+- The branch words of a stored system are read back from its star names, for any number of wide splits, not only a wide pair's two.
+
+generation-output: changed
+
+## [8.0.4796+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A generated galaxy's metal-poor globular clusters now lie where the Milky Way's do, on the published cored halo law, and the cluster laws are checked against the Harris catalog statistically.
+
+### Changed
+- GEN.297: the halo group of a generated galaxy's globular clusters took a bare `r^-3.5` from 1 kpc, which put its median distance at 3.3 kpc against the Milky Way catalog's 7.1. It now follows `(1 + D/Dc)^-gamma` with gamma 4.0 and `Dc` 1.8 kpc, the fit of [R5363] to the Milky Way's old halo clusters ([R5361] find the same R^-3.9 fall-off), as row GC1 of 6.335 (tier T2, tweak L0). The metal-poor median distance is now 6.7 kpc (file 7.1) and the whole system's 4.6 kpc (file 5.1). The metal-rich share stays at 0.35: it sits inside the 30 to 40 percent red share of early-type host systems [R5362] and is not fitted to the one galaxy of the file. Positions of halo clusters change, and the sizes and concentrations that follow a cluster's distance with them; counts, masses, metallicities and the metal-rich group do not.
+- New tests compare 3,000 generated clusters with the file's distributions (distance by group, the two [Fe/H] groups and the metal-rich share band, King concentration, core-collapsed share, half-mass radius); the design note records the file's version, the mass-to-light assumption and the findings.
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4795+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A moon that the size rule took out of its planet no longer comes back bare with no spin period, which stopped a sector save with "rotation_period_hours cannot be null".
+
+### Fixed
+
+- `planets.drop_unstable_moons` takes a moon out of `planet.moons` when it is too big for its planet, but the planet's born-moon list kept it, and `refinish_rocky` runs the moon history again from that list. `moon_history._settle` re-checked the orbit rules and not the size rule, so such a moon came back bare (deferred climate set, no spin), after `finish_moons` had already run (GEN.1856). `_settle` now holds the size limits of `planets.moon_size_limits` too, and `StarSystem._settle_to_final_age` finishes the moons again after `refinish_rocky`, so a moon the history gives back through a new orbit comes back finished. A system with no size-dropped moon is as before; one with such a moon now keeps it dropped.
+- `test_dropped_moon_stays_dropped` builds the case (a moon the size rule dropped is not back; no moon is bare or without a spin at the end of the settle pass).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4794+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A barred galaxy's central gas ring now has its own gas velocity dispersion, drawn from the central gas of barred galaxies, not the Milky Way's 5 km/s for every ring.
+
+### Changed
+- GEN.1847: the ring of `galaxy/core_gas.py` took the Central Molecular Zone's 5 km/s for every galaxy's ring, and that dispersion sets both the marginally stable gas of the ring (GEN.1846) and the feedback time of the most massive cluster it can form (GEN.1195). It is now drawn with the galaxy's seed: log-normal with a median of 11.5 km/s and 0.30 dex ([R5360: Table 2], PHANGS-ALMA CO(2-1) of 30 barred galaxies without an AGN), held to two standard deviations (2.9 to 46 km/s). The sample is of the central 1.5 kpc at 150 pc resolution and finds no change with ring size, so every ring size takes the same law, and its bar's non-circular motions and beam smearing make it an upper bound on a ring's own turbulence (row RG1 of 6.334, tier T2, tweak L0). The Milky Way's 5 km/s stays the reference structure's test shape. The ring of a typical galaxy holds about 2.3 times the gas it did and forms heavier clusters at the top; the old constant `CORE_RING_GAS_DISPERSION_KMS` is gone.
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4793+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A barred galaxy's central gas ring now has a size, an age and a gas content drawn from the rings seen in other galaxies, not the Milky Way's 100 pc ring scaled by the bulge.
+
+### Changed
+- GEN.1846: the ring of `galaxy/core_gas.py` (GEN.282) took the Milky Way's radius (100 pc), width (50 pc) and height (30 pc) over the bulge, a typed star-forming age of 1 Gy and a typed 50 Myr of gas residence, all from one galaxy. The radius is now the bar's length times a ratio drawn with the galaxy's seed from the 102 nuclear rings of [R5359: Table A2] (log-normal, median 0.114, 0.31 dex, never over the quarter of the bar that the atlas finds the largest a ring reaches; the Milky Way's 100 pc is 0.021 of its bar, 2.4 sigma into the compact tail). The age is drawn from the 17 rings of [R5358: Table 4] (median 0.39 Gy, 0.70 dex), the width is half the radius ([R5359]'s limit for a ring) and the height 0.3 of it (rows NR1 to NR5 of 6.333; NR4 on the burn-down register). The ring's gas is the smaller of the marginally stable gas of the ring's own rotation (Toomre `Q` 1, the dispersion of row CMX7) and what the bar has delivered over the ring's age; it is 2.4e7 solar masses for the Milky Way shape (observed 3e7 to 5e7, [R1910]) and a few 1e8 for a ring of the median size, as the 17 rings of [R5358] hold. The Milky Way's ring is the reference structure's, a test shape, not a default of any generated galaxy. The most massive cluster of the Milky Way shape's ring is 3.4e4 against the 3.2e4 of [R3720]; a galaxy of drawn size now has rings from 0.007 to 0.25 of its bar, so a larger ring holds more gas at a lower rotation speed and a smaller one the reverse. Constants `CORE_RING_RADIUS_BULGE_RATIO`, `CORE_RING_WIDTH_BULGE_RATIO`, `CORE_RING_HEIGHT_BULGE_RATIO`, `CORE_STAR_FORMATION_SPAN_GY` and `CORE_RING_GAS_RESIDENCE_MYR` are gone (row CMX4 retired). `Structure` gains `nuclear_ring_bar_ratio` and `nuclear_ring_age_gy`; it is redrawn from the seed, so nothing stored changes.
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4792+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A galaxy's central ring no longer has its heaviest possible cluster cut back to 1e5 solar masses, which was the Milky Way's own limit, not every ring's.
+
+### Changed
+- GEN.1842: the most massive cluster a ring can form came from [R3720]'s relation on the ring's own gas, shear and bound share, then was cut at a hard 1e5 solar masses (`CLUSTER_MAX_MASS_CEILING_SOL`, row CMX3). That 1e5 is the paper's footnote 9 for the Milky Way's sample (Arches and Quintuplet 2e4, a maximum of a few 1e4 and certainly under 1e5), but the nuclear rings of other galaxies hold clusters of mean log mass 6.1 to 7.1 (NGC 1097, NGC 1672, NGC 7469 in [R5358: Table 3], 17 rings), and 3 of 16 barred galaxies of a test sample sat at the cut. The ceiling is gone (row CMX3 now says so); a ring's maximum is the relation alone and the clusters drawn stay under the mass function's own upper limit of 1e6 (`OPEN_CLUSTER_MASS_RANGE_SOL`). The Milky Way's ring is unchanged at 9.7e4 by this change (GEN.1846 then draws the ring's size and gas; the reference ring is 3.4e4): its nucleus (123 km/s at 100 pc, M(<100 pc) 3.5e8) is the measured one (3.9 +- 1e8, [R5357]), which is why the relation gives more there than the paper's 3.2e4 on 180 km/s. The heaviest young cluster the Milky Way ring makes is 1.1e3 to 3.0e4 over 12 seeds (median 6e3), against the observed 2e4, and a test pins the heaviest to 1e4 to 1e5. Rings whose cap was cut at 1e5 now cap higher (up to 5.5e5 in the sample); every other ring draws as before.
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4791+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A world with surface water now draws its ice-free albedo around the Earth's 0.30 (0.225 to 0.375), so Earth-like worlds come out a few kelvin warmer and a little richer in oxygen.
+
+### Changed
+
+- GEN.1836: the ice-free Bond albedo a world with surface water draws (`tuning.ALBEDO_WET_RANGE`, stand-in CC4) is 0.225 to 0.375, not 0.25 to 0.40, so its centre is the Earth's 0.30 and not 0.325. Each edge moves 0.025, inside the 0.05 the row allows; still a tier T6 educated guess, tweak L3 (hand-tuned), and the drawing is unchanged (one uniform draw), so only the albedo value moves. On the pinned Earth analog (30 paired trials, Earth's own water) the median came out 5.6 K cold (277.6 K against 288 K) and a third of the copies were too cold to make oxygen (GEN.1835 report); with the range centred on 0.30 the copy reads 283.2 K and 4.7 kPa of oxygen on main, and 289.8 K on the GEN.1821 branch. Every world with surface water draws a slightly lower albedo on average, so the worlds move warmer by a few kelvin and the Class M counts move with them; the census after the change is in the pull request. Boss's yes of 11:24 PM EST 11-22 on the GEN.1835 report.
+
+## [8.0.4790+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A sector now keeps the directive it was drawn under and how the draw came out, and its page and `check-db` show it.
+
+### Changed
+
+- A run given `--directive` minimums (GEN.96) used to throw the attempt record away once the winning draw was saved. The sector now keeps it: two new tables, `sector_directives` (the directive's digest, the status `met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`, and the draws made) and `sector_directive_minimums` (for each minimum asked: its key, what was wanted and what the kept sector got), written in the sector's own save transaction (migration 0275, a placeholder the merging train renumbers). A sector drawn with no directive stores nothing, and nothing is backfilled for sectors made before.
+- `GET /api/sectors/<id>` gains `directive` (`digest`, `status`, `attempts`, `minimums` of `{key, wanted, got}`; `null` when none). The sector page shows a "Drawn under" row in its At a glance panel, for example "at least 2 habitable worlds (got 3): met after 4 draws".
+- `check-db counts` gains a `directives` piece: a record whose status says `unmet` while every minimum was met, or the other way round, or that has no minimum rows, is reported as damage.
+- The fingerprint leaves the two tables out: they record what was asked of a run, not what it made. This is also the record DB.17's parity repair reads when it draws a sector again.
+
+generation-output: unchanged
+
+## [8.0.4789+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A millisecond pulsar of a globular cluster can now hold a captured giant like PSR B1620-26 b, and every scattered object records which cluster it was drawn in.
+
+### Added
+
+- `phenomenon_scatter.cluster_id` (GEN.163, schema v275): the `galaxy_components.id` of the globular cluster a scattered object was drawn in. The component pass writes it; every other scatter writes NULL (field objects, satellites, rows made before v275). A built neutron star carries it (`NeutronStar.cluster_id`).
+- The captured-giant origin of a pulsar's planets is built, for a pulsar of a cluster only: one planet of 1 to 4 Jupiter masses at 20 to 50 AU, both log-uniform (`tuning.PULSAR_GIANT_MASS_JUPITER_RANGE`, `PULSAR_GIANT_DISTANCE_AU_RANGE`), made by the ordinary planet classes (a gas giant, with the moons of its class). A field pulsar that draws the origin stays bare, as the design rule says.
+
+### Changed
+
+- The bare-pulsar stand-in for the captured giant is gone (`PULSAR_PLANET_BUILT_ORIGINS` now holds `disk` and `captured-giant`); the ablated companion stays unbuilt until the pair builder (GEN.555).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4788+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A young star now holds no planets and no belts while it still has its own disk, and holds them once the disk is gone, instead of none under a fixed 10 million years.
+
+### Changed
+
+- The fixed cut of 10 Myr (`PLANET_MIN_STAR_AGE_GY`, gone) is the star's own disk (GEN.1552): `StarSystem._holds_its_disk` is true while the star's `disk_kind` is class 0, I or II (which its age and its own dispersal time, GEN.1551, gave it), and then `_apply_star_history`, the trojan and belt-promotion passes leave the star with no planets and no belts; a request for a class or a `SLOTS` list overrides it as before. A star whose disk is gone before 10 Myr (about 7 in 10 stars of 3 Myr, by the measured curve of GEN.1551) now stands with its bodies where it was empty.
+- `pre_main_sequence.dispersal_yr` is the star's own time again, no longer held at 10 Myr, so a few stars hold a disk past 10 Myr, as the measured curve of GEN.1551 has it.
+- `tests/audit/prevalence_disk_age.py` (the disk-and-planet census by star age, built ahead under GEN.1553) comes with it.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4787+db279.gen150.api14] - 2026-11-26
+
+**Headline:** An interstellar comet's row says whether it was drawn without the carbon chains that make a green coma, and its coma class and main gases can be read off its coma.
+
+### Added
+- `interstellar_comets.carbon_chain_depleted` (schema v278, migration 0278): the flag its nucleus was drawn with (little CN and C2, so no green coma), on the comet's sheet as "Depleted in carbon chains". It is NULL for a comet stored before v278 (a migration does not draw).
+- `physics/comet_coma.coma_class(coma)` (which carbon oxide leaves the nucleus faster: CO2-dominated or CO-dominated) and `dominant_volatiles(coma)` (the three gases after water that leave fastest), read off the coma rows of GEN.455 with no draw and no threshold of their own.
+
+Reuses `physics/comet_coma.py` and the `interstellar_comet_coma` rows of GEN.455 part A (nothing of the first GEN.1227 build, PR 7443, is kept but the flag).
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4786+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The brown dwarfs, neutron stars, black holes and stripped helium stars that hang in a multi-star system's tree now store their bulk density and binding energy like the single ones do.
+
+### Added
+
+- `dark_members` gains `density_g_cm3` and `binding_energy_j` (-1 for the infinite binding energy of a black hole), worked out by `body_strength.dark_member_values` from the member's mass and the radius the tree already drew it with (`bulk_values`, the code a single brown dwarf, neutron star or black hole goes through, GEN.1162). A system made before has them empty until its sector is regenerated; a migration does not draw.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4785+db279.gen150.api14] - 2026-11-26
+
+**Headline:** A giant given a polar orbit at the final roll of the orbit rows is turned onto that plane with its position, spin and moons, not left lying off it.
+
+### Fixed
+- `planets.finish_orbit_oddities` rolls the orbit rows again once the orbit is final, and the polar orbit (W4, `orbit_oddities.polar_orbit`) writes a fresh inclination, after the secular exchange or the Kozai pump has moved the plane. With the eccentricity unmoved nothing recomputed the position, so a giant (a class I at 92.4 AU round an M50 hypergiant, where 92 AU is under 10 stellar radii) lay 40 AU off the plane its inclination and node name; `test_systems[M50-True-COMETS]` failed on that about 2 times in 270 on the Train 62 head.
+- New `planets.turn_orbit_plane` takes the planet to the new plane the way the exchange and the pump do (same argument of latitude and periapsis, `release_moons`, `carry_spin_with_orbit`, `update_orbital_position`); `finish_orbit_oddities` calls it when the roll changed the inclination or the node. Reuse: the steps of `kozai_pump_planets` and `secular_exchange`. Regression test in `test_orbit_settle_vector.py` (fails without the fix: 0.07 AU off the plane).
+
+generation-affects: fill
+
 ## [8.0.4784+db275.gen150.api14] - 2026-11-25
 
 **Headline:** The sector placement tests' stand-in systems carry the host surface the placement now reads

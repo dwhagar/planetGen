@@ -84,12 +84,12 @@ def test_the_stored_earth_water_rows_are_the_baselines_and_redraw_the_same(analo
 
 
 def test_the_earth_water_row_is_held_at_what_main_gives_and_the_gap_to_the_earth_is_an_open_finding(analog):
-    """TEST.820: the row is held at today's 140-trial medians, not at the Earth's 288 K and 101 kPa. The gap (7.7 K cold and 11.0 kPa low at the Train 61 head; the oxygen and the CO2 are low too) is an open finding, GEN.1835 (Lane 05): when it is closed
+    """TEST.820: the row is held at today's 140-trial medians, not at the Earth's 288 K and 101 kPa. The gap (4.3 K cold and 9.9 kPa low at the Train 62 head; the oxygen and the CO2 are low too) is an open finding, GEN.1835 (Lane 05): when it is closed
     the baseline is renewed on purpose, the numbers below move with it and the targets stay the Earth's. The mantle's law is the middle of the generator's draw range (no sourced Earth viscosity law is in the registry)."""
     summary = analog.summarize_earth(analog.load_baseline()["earth_rows"])
     assert summary["trials"] == analog.EARTH_WATER_TRIALS and summary["errors"] == 0
-    assert (summary["median_temperature_k"], summary["median_pressure_kpa"], summary["class_m"]) == (280.3, 90.3, 40)
-    assert summary["temperature_gap_k"] == -7.7 and summary["pressure_gap_kpa"] == -11.0
+    assert (summary["median_temperature_k"], summary["median_pressure_kpa"], summary["class_m"]) == (283.7, 91.4, 36)
+    assert summary["temperature_gap_k"] == -4.3 and summary["pressure_gap_kpa"] == -9.9
     assert analog.EARTH_TARGET == {"temperature_k": 288.0, "pressure_kpa": 101.3}
 
 
