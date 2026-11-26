@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4810+db279.gen150.api14] - 2026-11-26
+
+**Headline:** Tests: a double click on a star or a body flies to it and opens its information
+
+### Fixed
+
+- MAP.140 (GitHub issue 714): the behaviour was built by the fly-through (MAP.146, MAP.226, MAP.304) and the select-and-open that goes with it was only half covered. Two browser tests now hold it: on the Galaxy Map a single click on a star selects it and opens its information without a flight, and a double click flies the camera onto it with the information still open; on the System Map's 3D view a double click on a planet flies the camera closer to it and its name is in the information panel.
+
 ## [8.0.4809+db279.gen150.api14] - 2026-11-26
 
 **Headline:** A row with a missing value for a required column is refused where it is made, and the error names the body and the columns left empty.
