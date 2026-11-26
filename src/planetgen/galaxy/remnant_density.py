@@ -34,7 +34,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import density as galaxyDensity
-from planetgen.physics import black_hole_formation, metallicity
+from planetgen.physics import black_hole_formation, metallicity, remnant_mass
 from planetgen.physics.units import pc_to_ly
 
 BLACK_HOLE = "black-hole"
@@ -259,3 +259,71 @@ def formed_per_star(shape, kind=BLACK_HOLE):
     if kind == BLACK_HOLE:
         return base_rate_per_star() / retained_share() * mean_factor(shape)
     return base_rate_per_star(kind) * mean_factor(shape, kind, False)
+
+
+# --- The mass of a place's black holes (GEN.554, stand-in BHM1) ---------------------------------------------------------
+
+
+@functools.lru_cache(maxsize=256)
+def _stretch_mean_table(sigma):
+    """`(means, stretch)`: the mean over a normal [Fe/H] peak of scatter `sigma` of `remnant_mass.black_hole_stretch`, on a grid of
+    peak means like `_failed_mean_table`'s."""
+    low, high = tuning.METALLICITY_RANGE_FE_H
+    means = np.linspace(low - 4.0 * sigma, high + 4.0 * sigma, tuning.BLACK_HOLE_FAILED_MEAN_TABLE_STEPS)
+    return means, metallicity.expected_factor_array(remnant_mass.black_hole_stretch, means, sigma)
+
+
+def _stretch_mean(means, sigma):
+    """The mean stretch of a normal [Fe/H] peak of mean `means` (array) and scatter `sigma`."""
+    table_means, table = _stretch_mean_table(float(sigma))
+    return np.interp(means, table_means, table)
+
+
+def _stretch_of_peaks(peaks):
+    """The mean stretch of `((weight, mean, sigma), ...)`."""
+    total = sum(weight for weight, _mean, _sigma in peaks)
+    return sum(weight * _stretch_mean(np.asarray(mean, dtype=float), sigma) for weight, mean, sigma in peaks) / total
+
+
+def population_stretches(distance_ly):
+    """`{population: mean stretch of its stellar-mass black holes}` at arrays of distances from the center, in light years (or one):
+    the factor `remnant_mass.black_hole_stretch` has over the population's [Fe/H] there (the generic peaks for a cluster or a satellite)."""
+    distance = np.asarray(distance_ly, dtype=float)
+    stretches = {}
+    by_disk = {}
+    for name in tuning.STELLAR_POPULATION_AGE_RANGES_GY:
+        if name in _GENERIC_PEAKS:
+            stretches[name] = _stretch_of_peaks(_GENERIC_PEAKS[name]) + np.zeros_like(distance)
+            continue
+        key = metallicity.open_cluster_disk_population(name) if name in tuning.OPEN_CLUSTER_POPULATIONS else name
+        if key not in by_disk:
+            means, sigma = metallicity.mean_fe_h_array(key, distance)
+            by_disk[key] = _stretch_mean(means, sigma)
+        stretches[name] = by_disk[key]
+    return stretches
+
+
+def stretch_array(x, y, z, shape):
+    """The stretch of the black holes' mass span (`remnant_mass.black_hole_stretch`) at arrays of points, parsecs: the populations'
+    stretches (`population_stretches`) weighed by their densities there (1 where nothing is)."""
+    mix = galaxyDensity.population_densities_array(x, y, z, shape)
+    distance = pc_to_ly(np.sqrt(np.asarray(x, dtype=float) ** 2 + np.asarray(y, dtype=float) ** 2 + np.asarray(z) ** 2))
+    stretches = population_stretches(distance)
+    total = sum(np.maximum(density, 0.0) for density in mix.values())
+    weighted = sum(np.maximum(density, 0.0) * stretches[name] for name, density in mix.items())
+    return np.where(total > 0.0, weighted / np.where(total > 0.0, total, 1.0), 1.0)
+
+
+def place_stretch(position_pc, shape):
+    """`stretch_array` at one point (a float)."""
+    x, y, z = (np.asarray([float(c)]) for c in position_pc)
+    return float(stretch_array(x, y, z, shape)[0])
+
+
+def stretch_from_peaks(populations):
+    """The stretch at the sector profile's `populations` (name -> `PopulationProfile`): the shares and the [Fe/H] peaks of the
+    place itself (1 when there are no stars)."""
+    total = sum(pop.share for pop in populations.values())
+    if total <= 0.0:
+        return 1.0
+    return sum(pop.share * float(_stretch_of_peaks(pop.fe_h)) for pop in populations.values() if pop.share > 0.0) / total

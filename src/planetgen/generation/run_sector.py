@@ -728,13 +728,15 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
                                                     below_cut.seed)
     entries = []
     made = 0
+    stretch = remnant_density.place_stretch(fill.center_pc, fill.shape) if draws else None
     with draw.bound(rng):
         for kind, subtype, mass_range, count in draws:
             for _ in range(count):
                 config = fill.apply_population(SystemConfig())
                 if kind == "black-hole":
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly,
-                                        mass_class=subtype, mass_range=mass_range)
+                                        mass_class=subtype, mass_range=mass_range,
+                                        mass_stretch=stretch if subtype == "stellar" else None)
                 else:
                     remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly,
                                           mass_range=mass_range)

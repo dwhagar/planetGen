@@ -439,14 +439,17 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
             points, (mass_draw, keep) = _candidates(
                 component, _class_mean(component, kind, subtype, rate, shape) / here[1], rng)
             addresses = [_address(tuple(int(value) for value in points[:, index]), edge_pc) for index in range(points.shape[1])]
+            # GEN.554: a stellar-mass black hole's mass follows the metals of its place
+            stretch = (remnant_density.stretch_array(*(points[:3] / MPC_PER_PC), shape)
+                       if shape is not None and phenomenon_scatter._stretched(kind, subtype) else None)
             if cuts.is_uniform:
                 share = None
-                masses = phenomenon_scatter._masses(kind, subtype, cuts.tiers[0], mass_draw)
+                masses = phenomenon_scatter._masses(kind, subtype, cuts.tiers[0], mass_draw, stretch)
             else:
                 # GEN.377: the candidates are at the lowest cut's rate; each is kept with its band's tier's share and its mass is drawn above that cut.
                 tier_of = [cuts.limits.tier_at(address[0], address[1]) for address in addresses]
                 share = keep < np.array(phenomenon_scatter.tier_shares(kind, subtype, cuts))[tier_of]
-                masses = phenomenon_scatter._masses(kind, subtype, np.array(cuts.tiers)[tier_of], mass_draw)
+                masses = phenomenon_scatter._masses(kind, subtype, np.array(cuts.tiers)[tier_of], mass_draw, stretch)
             for index in range(points.shape[1]):
                 seed_here = rng.getrandbits(63)
                 point = tuple(int(value) for value in points[:, index])

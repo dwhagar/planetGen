@@ -501,7 +501,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
         mpc = points_mpc(radius, cos_colat, lon)
         band_index = bands[band_row]
         kept = _stored_in_cells(mpc, shell_index, band_index, wedge, wedge_count, edge_pc)
-        masses = _masses(kind, subtype, cuts.tiers[0] if tier_of_band is None else np.array(cuts.tiers)[tier_of_band][band_row], uniform[5])
+        masses = _masses(kind, subtype, cuts.tiers[0] if tier_of_band is None else np.array(cuts.tiers)[tier_of_band][band_row], uniform[5],
+                         remnant_density.stretch_array(*(mpc / MPC_PER_PC), shape) if _stretched(kind, subtype) else None)
         seeds = rng.randbits_list(63, total)
         columns = [band_index.tolist(), wedge.tolist(), kept.tolist(), seeds, *mpc.tolist(),
                    masses.tolist() if masses is not None else [None] * total]
@@ -511,21 +512,31 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
                        map_luminosity(mass), None)
 
 
-def _masses(kind, subtype, min_mass_solar, uniform):
+def _stretched(kind, subtype):
+    """Whether a class's mass follows the place's metals: the stellar-mass black holes' (GEN.554, `remnant_mass.black_hole_stretch`)."""
+    return kind == "black-hole" and subtype == "stellar"
+
+
+def _masses(kind, subtype, min_mass_solar, uniform, stretch=None):
     """The solar masses the uniform draws `uniform` (one per object) give, log-uniform or uniform by the class's `mass_law`
     between the scatter's cut and the class's top; `None` for a kind not drawn by mass. `min_mass_solar` is a number, or an array with
-    the cut of each object (GEN.377: its band's tier's)."""
+    the cut of each object (GEN.377: its band's tier's). `stretch`, one per object, is the span of the black holes' law at the object's
+    place (`remnant_density.stretch_array`): the cut is in the anchor law's masses, so each hole keeps its rank in the law and its mass is
+    stretched (`remnant_mass.stretched_mass_sol`, GEN.554)."""
     if np.ndim(min_mass_solar):
-        return _masses_at(kind, subtype, np.asarray(min_mass_solar, dtype=float), uniform)
-    bounds = mass_range(kind, subtype, min_mass_solar, True)
-    if bounds is None:
-        return None
-    low, high = bounds
-    if low >= high:
-        return np.full(len(uniform), low)
-    if mass_law(kind, subtype)[1]:
-        return np.exp(math.log(low) + uniform * (math.log(high) - math.log(low)))
-    return low + uniform * (high - low)
+        masses = _masses_at(kind, subtype, np.asarray(min_mass_solar, dtype=float), uniform)
+    else:
+        bounds = mass_range(kind, subtype, min_mass_solar, True)
+        if bounds is None:
+            return None
+        low, high = bounds
+        if low >= high:
+            masses = np.full(len(uniform), low)
+        elif mass_law(kind, subtype)[1]:
+            masses = np.exp(math.log(low) + uniform * (math.log(high) - math.log(low)))
+        else:
+            masses = low + uniform * (high - low)
+    return masses if stretch is None or masses is None else remnant_mass.stretched_mass_sol(masses, stretch)
 
 
 def _masses_at(kind, subtype, cuts, uniform):
@@ -630,6 +641,7 @@ def ring_remnant_rows(address, center_pc, shape, expected_stars, min_mass_solar,
             continue
         low, high = bounds
         logarithmic = mass_law(kind, subtype)[1]
+        stretch = remnant_density.place_stretch(center_pc, shape) if _stretched(kind, subtype) else None
         for _ in range(count):
             point = None
             for _redraw in range(bright_stars.SLOT_REDRAWS):
@@ -638,6 +650,8 @@ def ring_remnant_rows(address, center_pc, shape, expected_stars, min_mass_solar,
                     break
             uniform = rng.random()
             mass = low if low >= high else (math.exp(math.log(low) + uniform * (math.log(high) - math.log(low))) if logarithmic else low + uniform * (high - low))
+            if stretch is not None:
+                mass = float(remnant_mass.stretched_mass_sol(mass, stretch))
             if point is None:
                 continue       # every point rounded out of the cell: the sector's own draw skips such an object the same way
             rows.append(_row(shell_index, band_index, wedge, kind, point, rng, subtype=subtype, mass_solar=mass))
