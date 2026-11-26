@@ -234,3 +234,165 @@ def test_the_command_is_registered_and_exits_by_what_is_left(conn, on, mysql_con
     with pytest.raises(SystemExit) as stop:
         generate.run_repair_db(generate.build_parser()[0].parse_args(["repair-db"]))
     assert stop.value.code == 2
+
+
+# ---------------------------------------------------------------------
+# DB.17: a sector parity cannot mend is drawn again from the seed
+# ---------------------------------------------------------------------
+
+from planetgen.generation import directives                     # noqa: E402
+from planetgen.queue import api_jobs                            # noqa: E402
+from planetgen.util import generator_epoch                      # noqa: E402
+
+
+def _unmendable(conn, on, epoch="now", address=(3, 4, 5)):
+    """A damaged sector that is in no parity group, with a grid address and an epoch, and a second sector beside it."""
+    ids = _sectors(conn, 2)
+    with on.file.locked():
+        on.release(ids[0], read_member=parity._read_member(conn))
+    _flip(conn, ids[0])
+    value = generator_epoch.generator_epoch() if epoch == "now" else epoch
+    conn.execute("UPDATE sectors SET shell_index = ?, band_index = ?, wedge_index = ?, generator_epoch = ? WHERE id = ?",
+                 (*address, value, ids[0]))
+    conn.commit()
+    return ids
+
+
+def _record(conn, sector_id, texts=("habitable>=2",), status=directives.MET_AFTER_ATTEMPTS, attempts=4):
+    directive = directives.parse(texts)
+    store.save_directive_record(conn, sector_id, directives.Record(
+        directive.digest(), status, attempts, [(key, want, want) for key, want in sorted(directive.minimums.items())]))
+    conn.commit()
+    return directive
+
+
+def _fake_regenerate(monkeypatch, calls, new_id=None):
+    def regenerate(sector_id, config, directive=None):
+        calls.append((sector_id, directive))
+        return {"deleted": {}, "sector_id": new_id or sector_id, "sector_name": "Redrawn"}
+    monkeypatch.setattr(api_jobs, "regenerate_sector", regenerate)
+
+
+def test_without_regenerate_a_sector_parity_cannot_mend_is_left_as_it_was(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _unmendable(conn, on)
+    report = repair.repair(conn)
+    assert [(r.sector_id, r.outcome) for r in report.results] == [(ids[0], repair.UNREPAIRABLE)]
+    assert calls == []
+
+
+def test_a_dry_run_lists_what_would_be_drawn_again_and_draws_nothing(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _unmendable(conn, on)
+    report = repair.repair(conn, dry_run=True, regenerate=True)
+    assert [(r.sector_id, r.outcome) for r in report.results] == [(ids[0], repair.WOULD_REDRAW)]
+    assert not report.clean
+    assert calls == []
+
+
+def test_a_sector_is_drawn_again_under_the_directive_its_record_names(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls, new_id=987)
+    ids = _unmendable(conn, on)
+    _record(conn, ids[0], ("habitable>=2", "systems>=10"))
+    report = repair.repair(conn, regenerate=True)
+    [result] = report.results
+    assert (result.sector_id, result.outcome) == (ids[0], repair.REDRAWN)
+    assert calls == [(ids[0], ["habitable>=2", "systems>=10"])]
+    assert "now sector id 987 Redrawn" in result.reason
+    assert "its directive record was not written again" in result.reason       # the fake wrote no new record
+
+
+def test_a_sector_drawn_without_a_directive_is_drawn_again_without_one(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _unmendable(conn, on)
+    report = repair.repair(conn, regenerate=True)
+    assert [(r.sector_id, r.outcome) for r in report.results] == [(ids[0], repair.REDRAWN)]
+    assert calls == [(ids[0], None)]
+
+
+def test_a_sector_of_another_generator_epoch_is_refused_and_the_epochs_are_named(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    old = generator_epoch.generator_epoch() - 1
+    ids = _unmendable(conn, on, epoch=old)
+    report = repair.repair(conn, regenerate=True)
+    [result] = report.results
+    assert result.outcome == repair.UNREPAIRABLE
+    assert f"epoch {old}" in result.reason and f"epoch {generator_epoch.generator_epoch()}" in result.reason
+    assert calls == []
+
+
+def test_a_sector_with_no_recorded_epoch_or_no_address_is_refused(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _unmendable(conn, on, epoch=None)
+    [result] = repair.repair(conn, regenerate=True).results
+    assert result.outcome == repair.UNREPAIRABLE and "does not record the generator epoch" in result.reason
+    conn.execute("UPDATE sectors SET generator_epoch = ?, shell_index = NULL, band_index = NULL, wedge_index = NULL WHERE id = ?",
+                 (generator_epoch.generator_epoch(), ids[0]))
+    conn.commit()
+    [result] = repair.repair(conn, regenerate=True).results
+    assert result.outcome == repair.UNREPAIRABLE and "no grid address" in result.reason
+    assert calls == []
+
+
+def test_a_record_that_does_not_make_its_directive_again_is_refused(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _unmendable(conn, on)
+    _record(conn, ids[0])
+    conn.execute("UPDATE sector_directives SET directive_digest = ? WHERE sector_id = ?", ("0" * 16, ids[0]))
+    conn.commit()
+    [result] = repair.repair(conn, regenerate=True).results
+    assert result.outcome == repair.UNREPAIRABLE and "cannot make again" in result.reason
+    assert calls == []
+
+
+def test_admin_edits_are_not_restored_and_the_report_says_so(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _unmendable(conn, on)
+    plan_id = conn.execute("INSERT INTO change_plans (requester_name, requester_role) VALUES ('a', 'admin')").lastrowid
+    for number in range(2):
+        conn.execute("INSERT INTO edit_journal (plan_id, object_uid, sector_id, aspect, generator_epoch) VALUES (?, ?, ?, 'name', ?)",
+                     (plan_id, bytes(12), ids[0], generator_epoch.generator_epoch()))
+    conn.commit()
+    [dry] = repair.repair(conn, dry_run=True, regenerate=True).results
+    assert dry.outcome == repair.WOULD_REDRAW and "2 admin edit(s) are NOT restored" in dry.reason
+    [done] = repair.repair(conn, regenerate=True).results
+    assert done.outcome == repair.REDRAWN and "2 admin edit(s) are NOT restored" in done.reason
+
+
+def test_a_redraw_that_fails_is_reported_and_the_others_still_run(conn, on, monkeypatch):
+    def broken(sector_id, config, directive=None):
+        raise RuntimeError("no workers")
+    monkeypatch.setattr(api_jobs, "regenerate_sector", broken)
+    ids = _unmendable(conn, on)
+    [result] = repair.repair(conn, regenerate=True).results
+    assert result.outcome == repair.UNREPAIRABLE
+    assert "drawing it again failed: no workers" in result.reason and "planetgen sectors" in result.reason
+
+
+def test_without_a_parity_file_every_damaged_sector_goes_to_the_seed(conn, on, monkeypatch):
+    calls = []
+    _fake_regenerate(monkeypatch, calls)
+    ids = _sectors(conn, 2)
+    _flip(conn, ids[1])
+    conn.execute("UPDATE sectors SET shell_index = 1, band_index = 2, wedge_index = 3, generator_epoch = ? WHERE id = ?",
+                 (generator_epoch.generator_epoch(), ids[1]))
+    conn.commit()
+    os.unlink(on.file.path)
+    report = repair.repair(conn, regenerate=True)
+    assert [(r.sector_id, r.outcome) for r in report.results] == [(ids[1], repair.REDRAWN)]
+    assert calls == [(ids[1], None)]
+
+
+def test_a_stored_record_gives_the_directive_texts_only_when_they_hash_to_its_digest():
+    digest = directives.parse(["habitable>=2", "type:G>=1"]).digest()
+    assert directives.directive_texts_of(digest, [("habitable", 2), ("type:G", 1)]) == ["habitable>=2", "type:G>=1"]
+    assert directives.directive_texts_of(digest, [("habitable", 3), ("type:G", 1)]) is None
+    assert directives.directive_texts_of(digest, [("nonsense", 1)]) is None
