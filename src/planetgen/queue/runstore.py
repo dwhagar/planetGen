@@ -114,7 +114,7 @@ def restore_lost(conn, control=None):
 def settle_lost(conn, control=None):
     """
     Restores the runs Redis lost (`restore_lost`) and ends each that was live when it went, as a run whose process is gone: `failed` and killed with `LOST_TEXT`, its ledger rows ended (`runcontrol.clear_run`).
-    A run that was held, done, failed or canceled comes back as it was and is left alone. Then `settle_ended` ends the ledger rows of the runs that ended in Redis with theirs still open.
+    A run that was held, done, failed or canceled comes back as it was and is left alone. Then `settle_ended` ends the ledger rows of the runs that ended in Redis with theirs still open, and `settle_stuck` ends a live run nothing can run in (OPS.314).
 
     Returns:
         list[str]: The ids of the runs it ended.
@@ -125,6 +125,7 @@ def settle_lost(conn, control=None):
         if runrecord.run_state(conn, run_id) in runrecord.LIVE_STATES and runcontrol.clear_run(conn, run_id, who="the supervisor", reason=LOST_TEXT) is not None:
             ended.append(run_id)
     settle_ended(conn, control)
+    ended.extend(settle_stuck(conn, control))
     return ended
 
 
@@ -148,6 +149,76 @@ def settle_ended(conn, control=None):
             if runrecord.run_state(conn, row["run_id"]) in runrecord.FINAL_STATES:
                 controls.end_rows(control, int(row["ledger_run"]))
                 ended.append(row["run_id"])
+        control.commit()
+    finally:
+        if own:
+            control.close()
+    return ended
+
+
+STUCK_FAILED_SECONDS = 600.0
+"""float: How long a live run may stand with a failed job and nothing running or ready before it is ended as failed (OPS.314)."""
+
+STUCK_WAITING_SECONDS = 1800.0
+"""float: How long a live run may stand with jobs waiting and nothing running, ready or failed before it is ended as failed (OPS.314)."""
+
+_idle_since = {}
+"""dict: `{run id: first time it was seen with nothing able to run}`, in this process; a run that moves again, or ends, is dropped."""
+
+
+def stuck_reason(control, ledger_run, counts, seconds):
+    """What to say of a run nothing can run in: the first failed job with its error, or the jobs that wait on something that never finishes, with how long it stood (HMS)."""
+    from planetgen.util import logrecord
+    stood = logrecord.duration_text(seconds)
+    failed = control.execute("SELECT j.stage, j.command, j.item_key, a.error_text FROM engine_jobs j LEFT JOIN engine_attempts a ON a.job_id = j.id AND a.attempt = j.attempt "
+                             "WHERE j.run_id = ? AND j.state = 'failed' ORDER BY j.id LIMIT 1", (ledger_run,)).fetchone()
+    total = sum(counts.values())
+    done = counts.get("done", 0)
+    if failed is not None:
+        where = f"{failed['command']}" + (f" {failed['item_key']}" if failed["item_key"] else "") + f" of stage {failed['stage']}"
+        text = (failed["error_text"] or "no error was kept").strip().splitlines()[0][:300] if (failed["error_text"] or "").strip() else "no error was kept"
+        return (f"nothing could run for {stood}: job {where} failed ({text}), no job was running, and {counts.get('waiting', 0)} job(s) wait on it ({done} of {total} jobs done); "
+                f"nothing was following the run, so it is ended here")
+    return (f"nothing could run for {stood}: {counts.get('waiting', 0)} job(s) wait on a job that never finishes, none is running or ready ({done} of {total} jobs done); "
+            f"nothing was following the run, so it is ended here")
+
+
+def settle_stuck(conn, control=None, now=None):
+    """
+    OPS.314: ends a live run in which nothing can run any more. A run whose ledger rows have no job `running` or `ready`, and have a job `failed` (or only jobs `waiting`), stands for
+    `STUCK_FAILED_SECONDS` (`STUCK_WAITING_SECONDS` with no failed job) and then ends `failed` with the cause said in plain words (`stuck_reason`), its rows ended (`controls.end_rows`), so
+    the Queue page does not show it Running for days with no worker alive. A run that has a job running or ready, is held or is over is left alone.
+
+    Returns:
+        list[str]: The ids of the runs it ended.
+    """
+    import time
+    from planetgen.queue import controls
+    now = time.time() if now is None else now
+    own = control is None
+    if own:
+        from planetgen.db import store
+        control = store.get_control_connection(store.control_mysql_config())
+    ended = []
+    try:
+        for row in control.execute("SELECT r.run_id, r.ledger_run FROM engine_run_records r JOIN engine_runs e ON e.id = r.ledger_run WHERE e.state IN ('running', 'waiting')").fetchall():
+            run_id, ledger_run = row["run_id"], int(row["ledger_run"])
+            if runrecord.run_state(conn, run_id) not in runrecord.LIVE_STATES:
+                _idle_since.pop(run_id, None)
+                continue
+            counts = {r["state"]: int(r["n"]) for r in control.execute("SELECT state, COUNT(*) AS n FROM engine_jobs WHERE run_id = ? GROUP BY state", (ledger_run,)).fetchall()}
+            if counts.get("running") or counts.get("ready") or not (counts.get("failed") or counts.get("waiting")):
+                _idle_since.pop(run_id, None)
+                continue
+            first = _idle_since.setdefault(run_id, now)
+            limit = STUCK_FAILED_SECONDS if counts.get("failed") else STUCK_WAITING_SECONDS
+            if now - first < limit:
+                continue
+            reason = stuck_reason(control, ledger_run, counts, now - first)
+            runrecord.finish_run(conn, run_id, "failed", error=reason)
+            controls.end_rows(control, ledger_run)
+            _idle_since.pop(run_id, None)
+            ended.append(run_id)
         control.commit()
     finally:
         if own:

@@ -173,3 +173,49 @@ def test_a_run_that_ended_in_redis_with_its_ledger_rows_open_has_them_ended_and_
     runrecord.finish_run(conn, live_run, "canceled", error="the test is over")
     runrecord.delete_run(conn, live_run)
     runrecord.delete_run(conn, ended_run)
+
+
+def _set_jobs(mysql_config, engine, state, failed_error=None):
+    """Puts every job of the ledger run `engine` into `state`; the first of them is `failed` with `failed_error` kept on its attempt when that is given."""
+    control = store.get_control_connection(store.control_mysql_config(mysql_config))
+    try:
+        control.execute("UPDATE engine_jobs SET state = ? WHERE run_id = ?", (state, engine))
+        if failed_error is not None:
+            first = control.execute("SELECT id, attempt FROM engine_jobs WHERE run_id = ? ORDER BY id LIMIT 1", (engine,)).fetchone()
+            control.execute("UPDATE engine_jobs SET state = 'failed', attempt = 1 WHERE id = ?", (first["id"],))
+            control.execute("INSERT INTO engine_attempts (job_id, attempt, started_at, ended_at, outcome, error_kind, error_text) VALUES (?, 1, NOW(6), NOW(6), 'failed', 'ValueError', ?)",
+                            (first["id"], failed_error))
+        control.commit()
+    finally:
+        control.close()
+
+
+def test_a_run_nothing_can_run_in_ends_failed_with_the_cause_after_ten_minutes(mysql_config):
+    """OPS.314: Boss's Run 57 stood Running for a day at 21 of 233 jobs, 1 failed, no worker alive; the supervisor ends it and says why."""
+    conn, run_id, _step = _started(mysql_config)
+    engine = _ledger_state(conn, run_id, mysql_config)[0]
+    _set_jobs(mysql_config, engine, "waiting", failed_error="ValueError: the air solve did not converge\nTraceback ...")
+    runstore._idle_since.clear()
+    assert runstore.settle_stuck(conn, now=1000.0) == [], "first seen: not yet"
+    assert runstore.settle_stuck(conn, now=1000.0 + runstore.STUCK_FAILED_SECONDS - 1) == []
+    assert runrecord.read_run(conn, run_id)["state"] in runrecord.LIVE_STATES
+    assert runstore.settle_stuck(conn, now=1000.0 + runstore.STUCK_FAILED_SECONDS + 1) == [run_id]
+    after = runrecord.read_run(conn, run_id)
+    assert after["state"] == "failed"
+    assert "nothing could run for 10m" in after["error"] and "the air solve did not converge" in after["error"] and "Traceback" not in after["error"]
+    assert {job["state"] for job in _jobs(mysql_config, engine)} <= {"done", "canceled", "failed"}
+    assert runstore.settle_stuck(conn, now=5000.0) == [], "ended once"
+
+
+def test_a_run_with_a_job_running_or_ready_is_left_alone_however_long_it_stands(mysql_config):
+    conn, run_id, _step = _started(mysql_config)
+    engine = _ledger_state(conn, run_id, mysql_config)[0]
+    runstore._idle_since.clear()
+    for state in ("ready", "running"):
+        _set_jobs(mysql_config, engine, state)
+        assert runstore.settle_stuck(conn, now=1000.0) == []
+        assert runstore.settle_stuck(conn, now=1000.0 + 10 * runstore.STUCK_WAITING_SECONDS) == []
+        assert runrecord.read_run(conn, run_id)["state"] in runrecord.LIVE_STATES
+    assert run_id not in runstore._idle_since, "a run that can move is not counted as idle"
+    runrecord.finish_run(conn, run_id, "canceled", error="the test is over")
+    runrecord.delete_run(conn, run_id)

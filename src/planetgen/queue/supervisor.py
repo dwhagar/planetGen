@@ -370,7 +370,7 @@ class LostRuns:
             log.swallowed("queue/supervisor", "LostRuns.turn", exc)
             return []
         if ended and self.supervisor is not None:
-            self.supervisor.act(f"ended {len(ended)} run(s) Redis lost", ", ".join(ended))
+            self.supervisor.act(f"ended {len(ended)} run(s) that could not go on", ", ".join(ended) + " (lost with Redis, or nothing able to run: the run record says which)")
         return ended
 
     def clear(self):
