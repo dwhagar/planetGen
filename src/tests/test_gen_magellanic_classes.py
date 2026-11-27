@@ -121,7 +121,7 @@ def test_a_satellites_planetary_nebulae_and_magnetars_follow_its_history_and_a_c
 
 
 def _only_the_satellite_classes(monkeypatch):
-    monkeypatch.setattr(component_pass, "phenomenon_rates", lambda _cut: [])
+    monkeypatch.setattr(component_pass, "phenomenon_rates", lambda _cut, _highest=None: [])
 
 
 def _remnants(component, shape, seeds, monkeypatch):
@@ -170,7 +170,7 @@ def test_the_classes_every_component_has_keep_their_draws(monkeypatch):
     everything = list(component_pass.scatter_phenomena([SMC], EDGE, 9, min_mass_solar=cut, shape=WITH_SATELLITES))
     generic = [row for row in everything if row[3] not in ("supernova-remnant",)
                and not (row[3] == "neutron-star" and row[4] == phenomenon_scatter.MAGNETAR_SUBTYPE)]
-    monkeypatch.setattr(component_pass, "satellite_rates", lambda _cut: [])
+    monkeypatch.setattr(component_pass, "satellite_rates", lambda _cut, _highest=None: [])
     only = list(component_pass.scatter_phenomena([SMC], EDGE, 9, min_mass_solar=cut, shape=WITH_SATELLITES))
     assert generic == only
 

@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="design/composition/water-delivery-tuning.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="water-delivery-the-mass-law-of-row-b4-gen510-replaced-by-the-formation-distance-law-gen802">Water delivery: the mass law of row b4 (GEN.510), replaced by the formation-distance law (GEN.802)</h1><p class="meta">docs/design/composition/water-delivery-tuning.md</p>
+<h1 id="water-delivery-the-mass-law-of-row-b4-gen510-replaced-by-the-formation-distance-law-gen802">Water delivery: the mass law of row b4 (GEN.510), replaced by the formation-distance law (GEN.802)</h1><p class="meta">docs/design/composition/water-delivery-tuning.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#0-gen802-one-law-in-the-formation-distance-and-the-mass">0. GEN.802: one law in the formation distance and the mass</a></li><li style="margin-left:0px"><a href="#1-what-changed-gen510-superseded">1. What changed (GEN.510, superseded)</a></li><li style="margin-left:0px"><a href="#2-what-it-is-not">2. What it is not</a></li><li style="margin-left:0px"><a href="#3-gen1839-the-generators-m-dwarf-planets-against-the-three-density-modes-of-r2774">3. GEN.1839: the generator's M-dwarf planets against the three density modes of [R2774]</a></li></ul></details>
 <p>Status: GEN.510 built 2026-10-24 (lane &quot;Source and tune atmosphere draws&quot;); replaced 2026-10-25 by GEN.802, which wires one joint law into rows b1 to b4 (section 0). Data now <code>src/planetgen/physics/data/ngpps_formation_water.json</code> (the earlier <code>ngpps_water_fraction.json</code> is gone), tests <code>src/tests/test_water_delivery.py</code>. Decision D1 of <code>tunable-gaps.md</code> is followed: the formation model is a switch with the Bern population as the MODEL default and a flagged bracket.</p>
 <h2 id="0-gen802-one-law-in-the-formation-distance-and-the-mass">0. GEN.802: one law in the formation distance and the mass</h2>
 <p>The mass logistic below (centre 6.1 Earth masses, slope 6.28 per dex) and the snow-line weights of b1 to b3 were two views of one process, and the gate <code>x &gt;= 1</code> of b4 contradicted the population (<code>volatile-delivery-formation-distance.md</code>). The rows now draw their class from three nested events fitted jointly to the 10,506 planets of 0.5 to 30 Earth masses of the Bern condensed-water population (starting distance from DACE ng76): not dry (water mass fraction f of at least 0.00025), high or rich (at least 0.0016), rich (at least 0.1), each a logit <code>a + b ln x + c log10 M + h max(0, ln x - ln 0.6)</code> with ln x clipped to x in 0.03 to 4 and the mass to 0.5 to 30 Earth masses (coefficients in the data file; the separate straight fits of the research note cross each other and a shared-slope ordered logit is biased in the middle range, so the hinge at 0.6 was added: log likelihood -2557 against -2787 and -2767). The nested probabilities are held in order. b1 is the dry share, b2 the low share, b3 the high share and b4 the water-rich share times the plateau <code>c_b4</code> (the water-rich planets the plateau removes are counted as high). The mass moves the water-rich share by 0.13 per dex in the logit, so the old mass law is not applied on top. Not tuned to any outcome (tier 6 for the centre, 7 for the width and class split, tweak L0; registry row AT.b4); the thresholds that map f to Ortenzi's cases remain a design assumption. The recipes are not read by the generator yet: no generated value changes, no epoch.</p>
@@ -55,11 +55,52 @@ main{padding:16px 16px 60px}}
 <h2 id="2-what-it-is-not">2. What it is not</h2>
 <ul>
 <li>A MODEL label: the numbers come from a physics simulation with disc priors, not from a measurement and not from a Solar System body. The row is partly verified, with that limit written in it.</li>
-<li>It is not tuned to the density modes of [R2774] (0.94, 0.47, 0.24 with their selection): that comparison needs radii from composition and the mass-radius selection model (GEN.505), and mass and radius alone cannot break the degeneracy with hydrogen-helium envelopes (about 6 informative JWST spectra). It stays open under GEN.510.</li>
+<li>It is not tuned to the density modes of [R2774] (0.94, 0.47, 0.24 with their selection): mass and radius alone cannot break the degeneracy with hydrogen-helium envelopes (about 6 informative JWST spectra). The comparison, made with the generator's own M-dwarf planets and the selection model of GEN.505, is section 3 (GEN.1839); it is a check, not a tuning.</li>
 <li>Rows b1 to b3 (dry, low, high delivery by the snow-line ratio) stay labelled stand-ins: their payloads are Earth delivery scenarios and formation distance is not observable. b5 (the continuous water fraction) and b6 (rogue water, not a separate draw) also stay stand-ins; T9 and T11 have no ensemble beyond Earth's budget.</li>
 <li>The stellar-mass scaling of the minimum ice mass (3 (M*/Msun)^0.48 from two figure reads) is not built.</li>
 <li>The recipes are not read by the generator yet: no generated value changes, no epoch.</li>
 </ul>
+<h2 id="3-gen1839-the-generators-m-dwarf-planets-against-the-three-density-modes-of-r2774">3. GEN.1839: the generator's M-dwarf planets against the three density modes of [R2774]</h2>
+<p><strong>What was run (COMPUTED).</strong> <code>scripts/m_dwarf_density_modes.py</code> draws M0V to M4V systems with the real generator (the draw of <code>scripts/class_census.py</code>, seeds 50000 up, the five types in rotation, no abundance tier) and keeps every planet from 0.3 Earth masses up and under 4 Earth radii. Each planet's own density goes on the scale of the paper (the Earth-like planet of the same mass, 32.5 percent iron and 67.5 percent silicate, from <code>bulk_structure.radius_fit_earth</code>; an Earth-like planet is 1.00 at any mass). The sample of the paper is a sample of transiting planets, so each planet is weighted by its chance to transit (the host's radius over the orbit's size), which makes the cold zone, where the generator also forms planets, count for almost nothing. It is then measured with the <code>m-dwarf</code> precision model of GEN.505 and kept when it passes (mass better than 25 percent, radius better than 8 percent). The three groups are split at 0.35 and 0.65. 303 systems were drawn (the run was stopped there; 241 held a small planet), 1,380 small planets, 1,013 measured, 160 effective planets after the weight (Kish). The host is 0.40 solar masses at the median. The table of the planets is in the project files, <code>reports/gen1839-m-dwarf-density-modes-2026-11-24/planets.jsonl</code>, so the numbers can be read again without a draw.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group (measured, transit-weighted)</th>
+<th>Generator: share, density, radius, median mass</th>
+<th>[R2774]: density, radius</th>
+<th>Reading</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rocky (0.65 up)</td>
+<td>69 percent, 1.02 +/- 0.20, 1.16 +/- 0.27, 1.8 Earth masses</td>
+<td>0.94 +/- 0.13, 1.21 +/- 0.28</td>
+<td>density 0.6 sigma high, radius agrees</td>
+</tr>
+<tr>
+<td>water (0.35 to 0.65)</td>
+<td>10 percent, 0.49 +/- 0.08, 1.90 +/- 0.43, 4.5 Earth masses</td>
+<td>0.47 +/- 0.05, 1.97 +/- 0.28</td>
+<td>agrees on both; 19 percent under 2 Earth masses (the paper: water worlds start at 2 to 3)</td>
+</tr>
+<tr>
+<td>puffy (under 0.35)</td>
+<td>21 percent, 0.20 +/- 0.08, 2.81 +/- 0.48, 5.1 Earth masses</td>
+<td>0.24 +/- 0.04, 2.85 +/- 0.63</td>
+<td>density 1 sigma low, radius agrees</td>
+</tr>
+</tbody>
+</table></div>
+<p>Without the weight (every planet of the system counts, whatever its orbit) the same run gives 0.94, 0.51 and 0.19, but the middle group's radius falls to 1.57 and its median mass to 1.7 Earth masses with 55 percent under 2: the cold-zone planets of an M-dwarf system, which are light and often icy (they formed far outside a snow line at 0.7 AU), fill it. That is not what a transit survey sees, and the first reading of this comparison (the version of this section before the weight) took it for a fault of the delivery law. A cut at periods under 30 days instead of the weight gives the same answer as the weight (puffy 0.23 and 2.81, water 0.50 and 1.87 with a median 4.1 Earth masses, rocky 1.01 and 1.15), so the result does not hang on the form of the weight.</p>
+<p><strong>Findings.</strong></p>
+<ol>
+<li><strong>All three modes are reproduced</strong> within about one published error in density and radius, for the planets a transit survey would see. Nothing here asks for a change to the delivery law, the envelope law or the composition draw.</li>
+<li><strong>The middle mode is mostly not water.</strong> Of the generator's planets in it, 15 percent hold 10 percent water or more and 10 percent hold 30 percent or more, while 44 percent carry a hydrogen-helium envelope over 1 percent of their mass. The generator reproduces the density of the paper's water-world group, not its 1:1 composition: the degeneracy of density with a light envelope that the paper and the JWST spectra leave open (section 2) shows here as a result. The paper does not say which it is and neither does this check.</li>
+<li><strong>No gap at 0.65.</strong> The share of the weight per 0.1 bin of density is 6.6, 8.0, 6.3, 4.1, 3.1, 2.6, 3.7, 7.6, 16.3, 14.9, 14.8 percent from 0.1 up: a trough between 0.4 and 0.7 with its floor at 0.6, between a broad peak near 0.2 and one near 1.0. A sample of 34 planets from it leaves 0.60 to 0.70 empty with chance 0.27, so the paper's clean gap is not in tension with it.</li>
+<li><strong>The water-rich share does not fall or rise with mass</strong> for the transiting planets (10 percent water or more: 7.6 percent under 1 Earth mass, 7.5 to 2, 5.7 to 3, 4.9 to 6, 5.0 above), because the in-situ close-in planets of an M dwarf form inside its snow line. A minimum ice mass for planets formed beyond the snow line (GEN.1840) would not change the modes checked here: the planets of the cold zone it would bear on are not in the sample, and the generator forms its planets where they are, with no migration of ice-rich cores into the inner system. Whether the cold zone itself should carry light ice-rich planets at 5 AU of a 0.4 solar-mass star is not tested by a transit sample.</li>
+</ol>
+<p><strong>The &quot;switch&quot; of decision D1 (settled).</strong> D1 kept the formation model &quot;as a switch with the NGPPS logistic as the MODEL default and the flagged bracket 0 to 0.87&quot;. No such switch exists in the code and none is wanted: the Bern law is the only draw (section 0), the plateau <code>c_b4</code> is fixed at 1 in <code>class_shares</code>, and the flagged bracket lives in the registry rows DW1 to DW3 (<code>gap-filling-plan.md</code> section 6.41) with their tier and tweak level. The alternative D1 names (a fixed bracket instead of the model) would be the model removed, which the physics-drives rule rules out. So &quot;switch&quot; means nothing as a runtime option; it stays a registry bracket.</p>
 
 </main>
 </div>

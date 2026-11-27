@@ -92,7 +92,7 @@ from planetgen.web.lib.tabledisplay import (
     to_plain_text,
 )
 
-from planetgen.names.bodies import node_pair_label
+from planetgen.names import tree_names
 from planetgen.physics import planet_class_text, planet_type, trojan_overlay, trojans
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
@@ -1894,11 +1894,22 @@ def finite_row(row):
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
+def _stored_node_names(system, stars):
+    """`{node_no: name}` of the nodes of the stored tree (GEN.312, `names.tree_names`): the system's name and the node's path code, with the branch word of each wide split read back
+    from the names of the stars under it; empty where the names are not of that shape (a star renamed by hand)."""
+    nodes = system.get("orbits") or ()
+    if not nodes:
+        return {}
+    members = [(star.get("parent_node_no"), star.get("slot")) for star in stars]
+    words = tree_names.words_from_names(system["name"], nodes, members, [star.get("name") for star in stars], missing="~")
+    return {} if words is None else tree_names.name_tree(system["name"], nodes, members, words).nodes
+
+
 def _node_pair_hosts(system, stars, planets, belts=()):
     """
     GEN.332, slice A: the inner pair nodes of the tree that hold planets or belts (`planets.host_node_id`, `asteroid_belts.host_node_id`, slice C), each as `(host, its planets, its belts)` where `host` is a
     copy of the heaviest star of the node's subtree that stands for the pair as one body, as the generator's proxy does: the pair's name
-    (`names.bodies.node_pair_label`), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
+    (`names.tree_names`, GEN.312), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
     stars' center of mass, `id` and `scene_id` `node-<n>` and `map_role` "Pair". A node whose stars are not among `stars` (a system stored before the tree) is left out and its
     planets and belts stay where they were.
     """
@@ -1921,6 +1932,7 @@ def _node_pair_hosts(system, stars, planets, belts=()):
             found.extend(below(sub))
         return found
 
+    node_names = _stored_node_names(system, stars)
     hosts = []
     for node_no in sorted(set(by_node) | set(belts_of)):
         bodies = by_node.get(node_no, [])
@@ -1932,7 +1944,7 @@ def _node_pair_hosts(system, stars, planets, belts=()):
         lead = max(leaves, key=lambda star: star["mass_kg"] or 0.0)
         host = dict(lead)
         host.update({
-            "name": node_pair_label(system["name"], [star.get("name") or "" for star in leaves], node_no),
+            "name": node_names.get(node_no) or f"{system['name']} node {node_no}",
             "mass_kg": mass, "luminosity_w": light, "radius_km": max(star["radius_km"] or 0.0 for star in leaves),
             "temperature_k": sum((star["luminosity_w"] or 0.0) * (star["temperature_k"] or 0.0) for star in leaves) / light,
             "offset_x_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_x_au") or 0.0) for star in leaves) / mass,

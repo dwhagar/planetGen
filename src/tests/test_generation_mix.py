@@ -43,10 +43,12 @@ def _stars(systems):
 
 
 def _planets(systems):
+    """The planets of the systems that formed as planets: not an asteroid and not a belt member promoted to a planet (GEN.1510 makes the ten heaviest round bodies of every
+    belt planets that keep `belt_rank`; they sit in their belt, all cold, and made two of three bodies this count saw)."""
     for system in systems:
         for _star, planets in ((host.star, host.orbiters) for host in system.hosts):
             for body in planets:
-                if body.body_type != 'a':
+                if body.body_type != 'a' and body.belt_rank is None:
                     yield body
 
 

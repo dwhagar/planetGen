@@ -33,7 +33,7 @@ def _agree(stored, mass):
 
 
 def test_the_columns_include_the_map_luminosity():
-    assert scatter.PHENOMENON_SCATTER_COLUMNS[-1] == "map_luminosity_sol" == store.PHENOMENON_SCATTER_COLUMNS[-1]
+    assert "map_luminosity_sol" in scatter.PHENOMENON_SCATTER_COLUMNS == store.PHENOMENON_SCATTER_COLUMNS
 
 
 def test_a_scatter_row_carries_the_luminosity_of_its_mass():

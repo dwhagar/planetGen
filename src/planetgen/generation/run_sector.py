@@ -695,7 +695,7 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
         return sector.add_phenomenon(Quasar(config, black_hole_mass_solar=row["mass_solar"]), "quasar",
                                      position=position)
     if kind == "black-hole":
-        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"],
+        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=phenomenon_scatter.base_subtype(kind, row["subtype"]),
                                mass_solar=row["mass_solar"],
                                mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True))
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
@@ -703,6 +703,7 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
         neutron_star = NeutronStar(config, galactic_center_dist_ly=dist_ly, mass_solar=row["mass_solar"],
                                    mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True),
                                    magnetar=row["subtype"] == phenomenon_scatter.MAGNETAR_SUBTYPE)
+        neutron_star.cluster_id = row.get("cluster_id")
         return sector.add_phenomenon(neutron_star, "neutron-star", position=position)
     if kind == "supernova-remnant":
         return sector.add_phenomenon(SupernovaRemnant(config), "supernova-remnant", position=position)
@@ -727,13 +728,15 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
                                                     below_cut.seed)
     entries = []
     made = 0
+    stretch = remnant_density.place_stretch(fill.center_pc, fill.shape) if draws else None
     with draw.bound(rng):
         for kind, subtype, mass_range, count in draws:
             for _ in range(count):
                 config = fill.apply_population(SystemConfig())
                 if kind == "black-hole":
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly,
-                                        mass_class=subtype, mass_range=mass_range)
+                                        mass_class=subtype, mass_range=mass_range,
+                                        mass_stretch=stretch if subtype == "stellar" else None)
                 else:
                     remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly,
                                           mass_range=mass_range)
@@ -1263,6 +1266,7 @@ def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
         build_forced=lambda count: generate_sector(_forced_args(args, count), **kwargs)[1])
     where = f" {galaxySeed.address_text(address)}" if address is not None else ""
     log.normal(f"Sector{where}: {outcome.describe()}.")
+    sector.directive_record = directives.record_of(directive, outcome, sector)    # GEN.179: stored with the sector
     return sector.name, sector
 
 

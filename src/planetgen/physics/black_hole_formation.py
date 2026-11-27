@@ -22,9 +22,9 @@ from planetgen.physics import imf, ms_lifetime, stellar_evolution
 
 @functools.lru_cache(maxsize=1)
 def imf_massive_share():
-    """The share of the stars born that have `tuning.CORE_COLLAPSE_MASS_RANGE_SOL` solar masses (8 to 150): 0.713% of
-    the generator's own IMF (the massive stars that can end as a neutron star or a black hole; 0.637% on the Kroupa function
-    before GEN.927)."""
+    """The share of the stars born that have `tuning.CORE_COLLAPSE_MASS_RANGE_SOL` solar masses (8 to 150): 0.772% of
+    the generator's own IMF (the massive stars that can end as a neutron star or a black hole; 0.713% before the center of
+    the mass function moved to 0.092 solar masses, GEN.922, and 0.637% on the Kroupa function before GEN.927)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
     return imf.number(low, high) / imf.number(imf.lowest_mass_sol(), imf.highest_mass_sol())
 

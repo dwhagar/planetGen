@@ -115,7 +115,7 @@ def test_a_job_that_runs_past_its_time_limit_is_killed_and_fails_with_the_reason
     forker.end(job_id, number=signal.SIGKILL)
     duty.turn()
     body = lightjobs.status(connection, job_id)
-    assert body["state"] == "failed" and body["error"] == "the job ran past its time limit of 100 s and was ended"
+    assert body["state"] == "failed" and body["error"] == "the job ran past its time limit of 1m 40s and was ended"
 
 
 def test_a_job_asked_to_stop_is_killed_and_a_pending_one_is_taken_off_the_line(duty):
@@ -348,7 +348,7 @@ def test_a_light_job_killed_from_outside_fails_naming_the_signal_and_one_over_it
     slow = _submit(connection, "time:sleep", (60,))
     connection.hset(lightjobs.job_key(slow), "limit", "1")
     body = _turns(forking, connection, slow, ("failed",))
-    assert body["error"] == "the job ran past its time limit of 1 s and was ended"
+    assert body["error"] == "the job ran past its time limit of 1s and was ended"
 
 
 def test_a_kind_with_enough_recorded_runs_is_held_to_a_multiple_of_its_longest_and_one_with_few_to_the_typed_limit(duty, monkeypatch):

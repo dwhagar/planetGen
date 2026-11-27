@@ -208,3 +208,42 @@ def test_the_stored_shape_row_gains_nothing():
             assert not re.search(rf"\b{name}\b", table.group(1)), name
     for name in overrides:
         assert re.search(rf"\b{name}\s+(TINYINT|DOUBLE),", table.group(1)), f"{name} must stay nullable with no default (DB.66)"
+
+
+def test_a_barred_galaxys_nuclear_ring_follows_the_observed_rings_and_an_unbarred_one_has_none():
+    """GEN.1846: the ring's radius over the bar's length is log-normal about 0.114 with 0.31 dex ([R5359], 73 rings with a measured bar) held to 0.007 and a quarter of the bar,
+    its age about 0.39 Gy with 0.7 dex held to 10 Myr and 12.6 Gy ([R5358], 17 rings, 38 Myr to 5.1 Gy); no bar, no ring."""
+    import statistics
+    barred = [structure for _mass, structure in STRUCTURES if structure.bar_present]
+    assert len(barred) > 300
+    ratios = [structure.nuclear_ring_bar_ratio for structure in barred]
+    ages = [structure.nuclear_ring_age_gy for structure in barred]
+    assert min(ratios) >= 0.007 - 1.0e-12 and max(ratios) <= 0.25 + 1.0e-12
+    assert min(ages) >= 10.0 ** 7.0 / 1.0e9 - 1.0e-12 and max(ages) <= 10.0 ** 10.1 / 1.0e9 + 1.0e-12
+    assert statistics.median(ratios) == pytest.approx(0.114, rel=0.12)
+    assert statistics.pstdev([math.log10(r) for r in ratios]) == pytest.approx(0.31, abs=0.04)      # the clamp at a quarter of the bar takes a little off the top
+    assert statistics.median(ages) == pytest.approx(10.0 ** 8.59 / 1.0e9, rel=0.2)
+    assert statistics.pstdev([math.log10(a) for a in ages]) == pytest.approx(0.70, abs=0.07)
+    for _mass, structure in STRUCTURES:
+        if not structure.bar_present:
+            assert (structure.nuclear_ring_bar_ratio, structure.nuclear_ring_age_gy) == (0.0, 0.0)
+    assert sd.draw_nuclear_ring(_seed(5), False) == (0.0, 0.0, 0.0)
+
+
+def test_a_barred_galaxys_ring_gas_dispersion_follows_the_central_gas_of_barred_galaxies_and_is_held_to_the_sourced_range():
+    """GEN.1847: the ring's gas dispersion is log-normal about 11.5 km/s (log10 1.06, 0.30 dex: [R5360: Table 2], 30 barred galaxies without an AGN) held to two standard
+    deviations, 2.9 to 46 km/s; the Milky Way's 5 km/s stays the reference structure's; no bar, no ring, no dispersion."""
+    import statistics
+    barred = [structure for _mass, structure in STRUCTURES if structure.bar_present]
+    values = [structure.nuclear_ring_dispersion_kms for structure in barred]
+    assert len(values) > 300
+    assert min(values) >= 10.0 ** 0.46 - 1.0e-9 and max(values) <= 10.0 ** 1.66 + 1.0e-9
+    assert 2.8 < min(values) < 4.5 and 30.0 < max(values) < 46.1
+    assert statistics.median(values) == pytest.approx(10.0 ** 1.06, rel=0.1)
+    assert statistics.pstdev([math.log10(v) for v in values]) == pytest.approx(0.30, abs=0.04)     # the clamp at two sigma takes a little off the top
+    assert 10.0 ** sd.NUCLEAR_RING_DISPERSION_RANGE[0] == pytest.approx(2.88, abs=0.02) and 10.0 ** sd.NUCLEAR_RING_DISPERSION_RANGE[1] == pytest.approx(45.7, abs=0.2)
+    for _mass, structure in STRUCTURES:
+        if not structure.bar_present:
+            assert structure.nuclear_ring_dispersion_kms == 0.0
+    assert galaxyStructure.REFERENCE_STRUCTURE.nuclear_ring_dispersion_kms == 5.0
+    assert sd.draw_nuclear_ring(_seed(5), True) == sd.draw_nuclear_ring(_seed(5), True)

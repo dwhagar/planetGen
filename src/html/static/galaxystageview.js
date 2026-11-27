@@ -966,6 +966,8 @@ export function createStageView(host) {
     const extra = [];
     const pickQuery = host.pickQuery ? host.pickQuery() : "";
     if (pickQuery) extra.push(pickQuery.slice(1));
+    // MAP.189: a plain address opens flown in to the largest charted region, so the whole galaxy names itself ("whole=1") when the map has such a region to fly to (MAP.106: a fresh load shows the view).
+    if (!query && host.openingRegion) extra.push("whole=1");
     return joinQuery(query, extra.concat(displayParts()));
   }
 
@@ -1267,6 +1269,14 @@ export function createStageView(host) {
     v.dist = zoom * full;
   }
 
+  // MAP.189 (GitHub issue 1232): a galaxy with charted sectors opens flown in to the largest charted region (its window, the camera where its sphere fills the view, as a click on
+  // the region lands, MAP.319), not to the whole galaxy; the wheel still goes out to it. Once, on the first view, when the address asked for nothing else.
+  function flyToOpeningRegion(r) {
+    const region = host.openingRegion;
+    if (!region || host.openWhole || pinned || !isWholeGalaxy(r) || pendingOpen || selectedSector || !region.block) return;
+    openRegion(region.block, { center: region.center, radius: region.radius });
+  }
+
   function flyTo(r) {
     closeAmbient();
     const from = display && view ? viewNow() : null;
@@ -1284,6 +1294,7 @@ export function createStageView(host) {
       else closeOnCharted(r, view);
       applyView();
       afterArrival();
+      if (!want) flyToOpeningRegion(r);
       return;
     }
     if (old) leaving.push(old);
@@ -2540,6 +2551,7 @@ export function createStageView(host) {
       });
     }, function () {
       if (!active || token !== enterSystemToken) return;
+      systemFailed.add(entry.href);      // MAP.435: the wheel does not stop on a system that will not load: it goes on past its star
       notice("The system could not be loaded. Please try again shortly.");
     });
   }
@@ -2951,6 +2963,16 @@ export function createStageView(host) {
     const taken = before > 0 ? view.dist / before : 1;
     view.target = MC.targetAboutAnchor(view.target, anchor, taken);
     applyView();
+    // MAP.434: in an opened sector, at the floor of the range the zoom can come no nearer (before it, a stage's range ends where it hands over to the next, and the step is held there), and a step that only shrank the view's distance moved nothing: the
+    // wheel stopped, 9.4 pc short of a drawn, pickable star it was aimed at. What the floor took from the step the camera makes up by
+    // moving along the ray to the anchor (the anchor stays under the pointer: the eye moves on its own ray), so the wheel reaches any
+    // thing it can pick, where `zoomAcross` then opens the system.
+    const rest = taken > 0 ? asked / taken : 1;
+    if (entered && !enteredSystem && rest < 0.999) {
+      const eye = camera.position;
+      view.target = [view.target[0] + (anchor[0] - eye.x) * (1 - rest), view.target[1] + (anchor[1] - eye.y) * (1 - rest), view.target[2] + (anchor[2] - eye.z) * (1 - rest)];
+      applyView();
+    }
   }
 
   // MAP.200: the zoom as a share of the policy's log range, 0 at the
@@ -3011,7 +3033,8 @@ export function createStageView(host) {
       if (!host.fetchSystemScene) return false;
       const picked = sectorStage.selectedEntry();
       const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
-        ? picked : (under && nearestStar(under, view.dist * NEAREST_STAR_REACH)) || nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
+        ? picked : (under && nearestStar(under, view.dist * NEAREST_STAR_REACH)) || nearestStar(view.target, view.dist * NEAREST_STAR_REACH)
+          || (under && drawnSystemNear(under, view.dist * NEAREST_STAR_REACH));
       if (!star) return false;
       enterSystem(star, { push: true, fly: false });
       return true;
@@ -3072,6 +3095,31 @@ export function createStageView(host) {
   }
 
   // The star of the open sector nearest `point` (parsecs) within `reach`.
+  // MAP.435: the system of a star the map draws that lies in no star of the open sector (a block next to it holds it), within `reach` of
+  // `point`: an entry like the sector's own (href, endpoint, name, position), or null. The wheel comes in on any star the map draws and picks.
+  // A star in the open sector's own block and not among the stars the sector lists has no system to open (a star of unmade space).
+  function inOpenSector(star) {
+    const at = P.sectorAddressAt(star.x, star.y, star.z, edgePc);
+    const mine = entered && entered.sector;
+    return !!mine && at.shell === mine.shell && at.band === mine.band && at.wedge === mine.wedge;
+  }
+
+  function drawnSystemNear(point, reach) {
+    if (!host.drawnStars || !host.systemHref) return null;
+    let best = null;
+    let bestDistance = reach;
+    host.drawnStars().forEach(function (star) {
+      if (star.system_id == null) return;
+      const d = Math.hypot(star.x - point[0], star.y - point[1], star.z - point[2]);
+      if (d < bestDistance && !inOpenSector(star)) {
+        best = star;
+        bestDistance = d;
+      }
+    });
+    const href = best ? host.systemHref(best.system_id) : null;
+    return href && !systemFailed.has(href) ? { href: href, endpoint: "system:" + best.system_id, name: best.name || "", x: best.x, y: best.y, z: best.z } : null;
+  }
+
   function nearestStar(point, reach) {
     let best = null;
     let bestDistance = reach;

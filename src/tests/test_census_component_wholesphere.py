@@ -118,7 +118,7 @@ def test_a_region_holds_the_same_kinds_of_members_wherever_it_is_in_the_galaxy()
 
 
 FLOOR_SOL = tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL
-"""The default bright-star floor, 9,000 L_sun."""
+"""The default bright-star floor, 18,000 L_sun."""
 MASS_CUT_SOL = 14.0
 """The default mass pass limit: every star born at or above it is placed."""
 
@@ -150,12 +150,58 @@ def test_every_population_has_a_share_between_zero_and_one_and_the_old_ones_have
     shares = {name: population.placed_star_fraction(FLOOR_SOL, MASS_CUT_SOL, name)
               for name in population.POPULATIONS}
     assert all(0.0 <= share <= 1.0 for share in shares.values())
-    for name in ("old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster", "nuclear_disk"):
+    for name in ("old", "bulge", "halo", "satellite", "nuclear_cluster", "nuclear_disk"):
         assert shares[name] == 0.0, name
-    # 10 to 13 Gyr populations hold no star at or above 9,000 L_sun and none born above 14 solar masses.
+    # 10 to 13 Gyr populations hold no star at or above the floor and none born above 14 solar masses, except a globular cluster: its own pre-placed stars
+    # start at the faint edge of its horizontal branch (GEN.161, `tuning.CLUSTER_BRIGHT_FLOOR_SOL`), so its giants and branch stars are placed at plan time.
     for name, (low, _high) in tuning.STELLAR_POPULATION_AGE_RANGES_GY.items():
-        if low >= 3.0:
+        if low >= 3.0 and name != "cluster":
             assert shares[name] == 0.0, name
+    assert shares["cluster"] > 0.0
+
+
+def _independent_cluster_bright_share(fe_h=-1.5):
+    """The share of a globular cluster's living stars at or above the horizontal branch's faint edge, from counting the stars of a coeval population and not
+    from the code that computes the share. Stars leave the main sequence at the turn-off at the rate the IMF at the turn-off mass times the speed the turn-off
+    mass falls with age gives (mid-age of the cluster window, the main-sequence lifetime of the birth [Fe/H]); the stars above the floor are those that are
+    in a phase brighter than it, whose time is the horizontal branch's (`HORIZONTAL_BRANCH_DURATION_GY`), the red giants brighter than it (1 in 1.44 +- 0.06 of
+    the branch's stars, [R3879]) and the asymptotic giants (`AGB_MS_FRACTION` of the main-sequence lifetime). The living stars are the IMF integrated over
+    the stars still alive at an age uniform in the window."""
+    low_age, high_age = tuning.STELLAR_POPULATION_AGE_RANGES_GY["cluster"]
+    breaks, slopes = tuning.IMF_BREAKS_SOL, tuning.IMF_SLOPES
+    factors = [1.0]
+    for i in range(1, len(slopes)):
+        factors.append(factors[-1] * breaks[i] ** (slopes[i] - slopes[i - 1]))
+
+    def per_mass(mass):
+        i = max([j for j in range(len(slopes)) if breaks[j] <= mass * (1.0 + 1.0e-12)] or [0])
+        return factors[i] * mass ** (-slopes[i])
+    steps, low, high = 6000, math.log(breaks[0]), math.log(breaks[-1])
+    living = 0.0
+    for k in range(steps):
+        mass = math.exp(low + (k + 0.5) * (high - low) / steps)
+        alive = min(1.0, max(0.0, (evolution.remnant_formation_time_gy(mass, fe_h) - low_age) / (high_age - low_age)))
+        living += per_mass(mass) * mass * alive * (high - low) / steps
+    age = 0.5 * (low_age + high_age)
+    lower, upper = 0.3, 1.5                             # the turn-off mass: the star whose main sequence ends at this age (the lifetime falls with mass)
+    for _ in range(80):
+        middle = 0.5 * (lower + upper)
+        lower, upper = (middle, upper) if evolution.main_sequence_lifetime_gy(middle, fe_h) > age else (lower, middle)
+    turn_off, h = 0.5 * (lower + upper), 1.0e-3
+    slope = (evolution.main_sequence_lifetime_gy(turn_off * (1.0 + h), fe_h) - evolution.main_sequence_lifetime_gy(turn_off * (1.0 - h), fe_h)) / (2.0 * h * turn_off)
+    leaving_per_gy = per_mass(turn_off) * abs(1.0 / slope)
+    branch = tuning.HORIZONTAL_BRANCH_DURATION_GY
+    giants_above_branch = branch / 1.44
+    asymptotic = tuning.AGB_MS_FRACTION * age
+    return leaving_per_gy * (branch + giants_above_branch + asymptotic) / living
+
+
+def test_a_clusters_pre_placed_share_is_its_branch_and_the_giants_over_the_branchs_floor():
+    """GEN.161: the cluster's share at its floor of 35 L_sun matches the independent count of the stars brighter than it, within the spread of its inputs (the
+    red giants to branch stars ratio 1.44 +- 0.06, and the turn-off of one mid-age taken for the window)."""
+    share = population.placed_star_fraction(FLOOR_SOL, MASS_CUT_SOL, "cluster")
+    assert share == pytest.approx(_independent_cluster_bright_share(), rel=0.10)
+    assert share == pytest.approx(population.bright_star_fraction(tuning.CLUSTER_BRIGHT_FLOOR_SOL, "cluster"), rel=1e-12)
 
 
 def test_the_young_populations_share_follows_the_mass_function_over_the_lifetimes():
@@ -185,7 +231,11 @@ def test_a_cells_pre_placed_share_is_the_mixs_weighted_share_of_its_populations(
                                                                brightStars.age_laws_of(context.shape))
                      for pop, density in context.densities.items()) / total
         assert context.bright_share() == pytest.approx(wanted, rel=1e-9, abs=1e-15)
-        if name in OLD_REGIONS + ("thick-disk",):
+        cluster_share = population.bright_star_fraction(tuning.CLUSTER_BRIGHT_FLOOR_SOL, "cluster")
+        if name == "globular-cluster":
+            # A cluster's own stars are placed from the horizontal branch's floor (GEN.161): the share is the mix's, none of whose populations keeps more than the cluster.
+            assert 0.5 * cluster_share < context.bright_share() <= cluster_share * (1.0 + 1.0e-9), name
+        elif name in OLD_REGIONS + ("thick-disk",):
             assert context.bright_share() < 1.0e-5, name
 
 

@@ -117,6 +117,12 @@ def test_every_plain_button_does_something(browser, base_url, page_targets, admi
         page.wait_for_timeout(500)
         count = page.locator(PLAIN_BUTTONS).count()
         for index in range(count):
+            # TEST.836: each look at the page is a page of its own. A page that is sent to the address again and again leaves the
+            # requests of the loads before it (about 250 a load, the Shoelace modules among them) outstanding in its renderer until
+            # the server has answered them, and past the renderer's limit the browser refuses the next load's scripts
+            # (ERR_INSUFFICIENT_RESOURCES), so its elements are never defined and the click waits for a button that is not there.
+            page.close()
+            page = context.new_page()
             page.goto(base_url + path, wait_until="load")
             _settle(page)
             page.wait_for_timeout(300)

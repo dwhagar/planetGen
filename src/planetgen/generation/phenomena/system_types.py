@@ -213,7 +213,8 @@ SYSTEM_TYPE_RATES = {
         "13.3", "Double white dwarf merger product", "white dwarfs", 0.10, "S", ("old",), "draw_white_dwarf_merger",
         271, "F", (10, 11), by_class={"wide DWD heavier star": 0.26},
         note="The high-mass bump, 0.8 to 1.1 solar masses; 26% to 54% of wide double white dwarfs have a "
-             "merger-product heavier star."),
+             "merger-product heavier star. The share of a white dwarf follows its mass: 25% to 78% above "
+             "0.9 solar masses, 8% to 12% of an old population."),
     "white-dwarf-post-ce": _t(
         "13.3", "White dwarf plus main-sequence star, post-common-envelope pair", "white-dwarf companions", 0.10,
         "I", ("old", "halo", "cluster"), "draw_white_dwarf_binary", 271, "F", (10, 13),
@@ -363,21 +364,21 @@ it; the completeness test reads the note and fails when a row has no entry."""
 
 
 TUNING_KNOBS = {
-    "tight_tail_weight": 6.0,
+    "tight_tail_weight": 8.0,
     "post_ce_fraction": 0.10,
     "accreting_fraction": {"low-mass-xray-binary": 0.01, "high-mass-xray-binary": 0.40},
-    "merger_product_fraction": {"massive": 0.08, "field": 0.005, "white-dwarf": 0.10},
+    "merger_product_fraction": {"massive": 0.08, "field": 0.005},
 }
 """dict: The knobs of section 13.7. `tight_tail_weight` multiplies the density of
 pairs with a period under a day for primaries under the massive limit, until
 the contact share of FGK systems is inside 0.2% to 0.77% and the Algol share
-of a constant-star-formation disk approaches 0.1% (GEN.270 set it to 6.0, the
-plain draw being 1.0); `post_ce_fraction` is the post-common-envelope
+of a constant-star-formation disk reaches 0.1% (GEN.270 set it to 6.0, which gave 0.09%; GEN.1855
+raised it to 8.0, which gives 0.100%; the plain draw is 1.0); `post_ce_fraction` is the post-common-envelope
 share of white-dwarf companions (the Maoz 9.5% for double white dwarfs and a
 matching value for white dwarf plus star); `accreting_fraction` is the share of
 compact companions that accrete, by class (1% to 40%); `merger_product_fraction`
-is the merger-product share of massive (8%), field (0.5%) and white-dwarf (10%)
-stars. All are aligned against the audit counts of the note's section 15."""
+is the merger-product share of massive (8%) and field (0.5%) stars (the white dwarfs' share
+follows their mass, `physics/white_dwarf_merger.py`, GEN.708). All are aligned against the audit counts of the note's section 15."""
 
 
 def fraction_of_systems(key):

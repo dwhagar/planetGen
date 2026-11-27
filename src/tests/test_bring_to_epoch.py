@@ -326,8 +326,8 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
     # re-made it for more than ten minutes (TEST.679). Each cell holds one system here, in the first making and in every making again.
     cell_to_generate = run_galaxy._cell_to_generate
 
-    def one_system_cell(address, config, link=True):
-        early, args, *rest = cell_to_generate(address, config, link)
+    def one_system_cell(address, config, link=True, directive=None):
+        early, args, *rest = cell_to_generate(address, config, link, directive)
         if early is None:
             args.num_systems, args.density = 1, None
         return (early, args, *rest)

@@ -65,7 +65,7 @@ LOCAL_UNITS = {
     "Msun/yr": LocalUnit("mass rate", _msun_to_kg(1.0) / _YEAR_S),
     "J/kg": LocalUnit("specific energy", 1.0), "kg/mol": LocalUnit("molar mass", 1.0),
     "A*m2": LocalUnit("magnetic moment", 1.0),
-    "DU": LocalUnit("column density", 2.687e20),
+    "DU": LocalUnit("column density", 2.687e20), "cm-2": LocalUnit("column density", 1.0e4),
     "Pa*s": LocalUnit("dynamic viscosity", 1.0), "kJ/mol": LocalUnit("molar energy", 1000.0),
     "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic", suffix=" pH (7 is neutral)"),
@@ -326,6 +326,8 @@ TABLES = {
         "index": ("member_no", "parent_node_no", "slot"),
         "Msun": ("mass_solar",),
         "au": ("radius_au",),
+        "g_cm3": ("density_g_cm3",),
+        "J": ("binding_energy_j",),
     },
     "designations": {
         "id": ("id", "object_row_id"),
@@ -484,7 +486,7 @@ TABLES = {
         "1/s": ("water_production_1au_per_s",),
         "km": ("nucleus_diameter_km",),
         "km_s": ("velocity_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "coma_outflow_1au_kms"),
-        "flag": ("is_active",),
+        "flag": ("is_active", "carbon_chain_depleted"),
         "Gyr": ("galactic_orbital_period_gy",),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years",),
@@ -531,6 +533,12 @@ TABLES = {
         "id": ("id", "moon_id"),
         "index": ("entry_number", "grade"),
         "row-defined": ("demand",),        # in the unit of the row's axis (K, umol m-2 s-1, hours, m, a water activity)
+    },
+    "moon_exosphere": {
+        "id": ("id", "moon_id"),
+        "index": ("entry_number",),
+        "cm-2": ("column_cm2",),
+        "km": ("scale_height_km",),
     },
     "moon_life_ages": {
         "id": ("id", "moon_id"),
@@ -683,7 +691,7 @@ TABLES = {
         "flag": ("window_capped", "focusing_radius_used", "borderline", "already_overlapping", "numeric_warning"),
     },
     "phenomenon_scatter": {
-        "id": ("id",),
+        "id": ("id", "cluster_id"),
         "index": ("shell_index", "band_index", "wedge_index"),
         "mpc": ("position_x_mpc", "position_y_mpc", "position_z_mpc"),
         "key": ("cell_key",),
@@ -724,10 +732,24 @@ TABLES = {
         "id": ("id", "planet_id"),
         "score9": ("score",),
     },
+    "sector_directives": {
+        "id": ("sector_id",),
+        "count": ("attempts",),
+    },
+    "sector_directive_minimums": {
+        "id": ("sector_id",),
+        "count": ("wanted", "got"),
+    },
     "planet_adaptations": {
         "id": ("id", "planet_id"),
         "index": ("entry_number", "grade"),
         "row-defined": ("demand",),        # in the unit of the row's axis (K, umol m-2 s-1, hours, m, a water activity)
+    },
+    "planet_exosphere": {
+        "id": ("id", "planet_id"),
+        "index": ("entry_number",),
+        "cm-2": ("column_cm2",),
+        "km": ("scale_height_km",),
     },
     "planet_life_ages": {
         "id": ("id", "planet_id"),

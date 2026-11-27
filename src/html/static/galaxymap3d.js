@@ -4153,6 +4153,8 @@ function initGalaxyMap3d(canvasEl, data) {
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
+    openWhole: !!data.openWhole,
+    openingRegion: data.openingRegion || null,        // MAP.189: the largest charted region, which the first frame frames
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
     // NAV.21: with a course, the view opens fitted round every point of it (the route, the direct line and the adjusted lines).
     courseFit: courseFitPoints.length >= 6 ? function () { return courseFitPoints; } : null,
@@ -4252,6 +4254,8 @@ function initGalaxyMap3d(canvasEl, data) {
     clearSelection: function () { selectionRing.hide(); if (planeView) planeView.select(null); if (sideStrip) sideStrip.setSelected(null); },
     restingHint: restingHint,
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
+    // MAP.435: the page of a system by its id (null where the map has no system pages).
+    systemHref: function (id) { return sceneData.systemUrl ? String(sceneData.systemUrl).replace("{id}", encodeURIComponent(id)) : null; },
     // A sector page's map is locked to its sector (MAP.68): {shell, band,
     // wedge}; another sector's click goes to that sector's page.
     pinned: data.pinned || null,

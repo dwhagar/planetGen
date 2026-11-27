@@ -116,7 +116,7 @@ def _scatter_unit(extra=None):
 @pytest.fixture
 def skeleton(monkeypatch):
     shape = types.SimpleNamespace()
-    monkeypatch.setattr(store, "get_galaxy_shape", lambda conn: types.SimpleNamespace(shape=shape, edge_pc=10.0, expected_system_count_at_density_1=1000.0))
+    monkeypatch.setattr(store, "get_galaxy_shape", lambda conn: types.SimpleNamespace(shape=shape, edge_pc=10.0, expected_system_count_at_density_1=1000.0, core_min_luminosity_sol=None, core_mass_limit_sol=None, halo_min_luminosity_sol=1.0))
     return shape
 
 

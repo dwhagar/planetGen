@@ -58,6 +58,37 @@ def test_only_the_spiral_family_and_the_six_options_exist():
         shape_draw.draw_galaxy(_seed(1), bar_angle_deg=27.0)
 
 
+def test_the_dwarf_size_law_meets_the_late_type_law_at_its_edge():
+    """GEN.612: under 10^8.5 solar masses of stars the median is [R0655]'s field law (scaled 1.018); it meets [R4048]'s there and a spiral of the Scale dial's
+    floor, 281 solar masses (half of Segue 1), is 25 pc across its half-light radius, not the 220 pc the late-type power law read far under its fit."""
+    edge = shape_draw.DWARF_SIZE_EDGE_SOLAR
+    assert shape_draw.size_median_kpc(edge * 0.999999) == pytest.approx(shape_draw.size_median_kpc(edge), rel=1e-4)
+    assert shape_draw.DWARF_SIZE_ANCHOR == pytest.approx(1.018, abs=0.001)
+    assert 1000.0 * shape_draw.size_median_kpc(281.0) == pytest.approx(25.1, abs=0.5)
+    assert 1000.0 * shape_draw.size_median_kpc(1e7) == pytest.approx(558.0, rel=0.02)
+    assert shape_draw.size_median_kpc(5e10) == pytest.approx(3.9, abs=0.05)
+
+
+def test_every_law_of_the_shape_returns_a_finite_ordered_value_from_the_dials_floor_to_its_ceiling():
+    """GEN.612: from 281 to 1.55e11 solar masses of stars (the Scale dial's range) the size median, the drawn disk and its height and the halo (none under
+    `mass_chain.HALO_MIN_STELLAR_MASS_SOLAR`) are finite and positive, and the size median, the median halo and the drawn scale length of the median
+    galaxy rise with the mass."""
+    floor, ceiling = dials.lever("mass").minimum, dials.lever("mass").maximum
+    masses = [floor * (ceiling / floor) ** (i / 59.0) for i in range(60)]
+    sizes = [shape_draw.size_median_kpc(m) for m in masses]
+    assert sizes == sorted(sizes) and len(set(sizes)) == len(sizes) and all(math.isfinite(x) and x > 0.0 for x in sizes)
+    halos = [mass_chain.median_halo_mass(m) for m in masses if mass_chain.has_halo(m)]
+    assert halos == sorted(halos) and all(math.isfinite(x) and x > 0.0 for x in halos)
+    assert any(mass_chain.has_halo(m) for m in masses) and not all(mass_chain.has_halo(m) for m in masses)
+    for mass in masses:
+        drawn = shape_draw.draw_galaxy(_seed(5), stellar_mass_solar=mass, compactness=0.0)
+        assert math.isfinite(drawn.disk_scale_length_pc) and drawn.disk_scale_length_pc > 0.0
+        assert math.isfinite(drawn.disk_scale_height_pc) and drawn.disk_scale_height_pc > 0.0
+        assert drawn.disk_scale_length_pc == pytest.approx(
+            shape_draw.size_median_kpc(mass) / shape_draw.EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0, rel=1e-9)
+        assert (drawn.chain.halo_mass_solar is None) is (not mass_chain.has_halo(mass))
+
+
 def test_the_disk_length_follows_the_size_mass_relation_of_shen_2003(size_draws):
     """`ln(R50 / median)` over its mass-dependent width is a standard normal; and 3.9 kpc at 5e10 solar masses."""
     assert shape_draw.size_median_kpc(5e10) == pytest.approx(3.9, abs=0.05)

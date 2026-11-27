@@ -905,16 +905,6 @@ save the setting through the same writer, so they are backed up and audited. The
 <td>How many workers run the cache warm-up, the node prefetch and the database check while a generation run is live. Upkeep never takes more than this many places from the run; if the host runs short of memory the supervisor holds upkeep back first (the memory controller); with no generation run live they may use the whole count.</td>
 </tr>
 <tr>
-<td><code>queue.max_host_workers</code></td>
-<td>Most workers on this host</td>
-<td>whole number (workers)</td>
-<td>0</td>
-<td>at once</td>
-<td>any admin</td>
-<td>none</td>
-<td>The most worker processes planetgen may run on this host at once, every queue and command together: a start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a burst of requests, or several commands starting workers together, from filling the memory and getting MySQL killed.</td>
-</tr>
-<tr>
 <td><code>queue.long_workers</code></td>
 <td>Workers for long jobs</td>
 <td>whole number (workers)</td>

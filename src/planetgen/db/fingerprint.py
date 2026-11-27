@@ -73,9 +73,11 @@ CHILD_TABLES = (
     ("planet_life", "planet_id", "planets"),
     ("planet_life_ages", "planet_id", "planets"),
     ("planet_adaptations", "planet_id", "planets"),
+    ("planet_exosphere", "planet_id", "planets"),
     ("moon_life", "moon_id", "moons"),
     ("moon_life_ages", "moon_id", "moons"),
     ("moon_adaptations", "moon_id", "moons"),
+    ("moon_exosphere", "moon_id", "moons"),
     ("rogue_planet_reflection_spectrum", "rogue_planet_id", "rogue_planets"),
     ("rogue_planet_interior_layers", "rogue_planet_id", "rogue_planets"),
     ("rogue_planet_deposit_types", "rogue_planet_id", "rogue_planets"),
@@ -118,9 +120,9 @@ SECTIONS = {
     "sector": ("sectors",),
     "system": ("star_systems", "orbit_nodes", "dark_members"),
     "star": ("stars", *STAR_TABLES),
-    "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_deposit_types", "planet_isotopes", "planet_gases", "planet_life_class_scores", "planet_life", "planet_life_ages", "planet_adaptations", "irregular_sets", "irregular_moons",
+    "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_deposit_types", "planet_isotopes", "planet_gases", "planet_life_class_scores", "planet_life", "planet_life_ages", "planet_adaptations", "planet_exosphere", "irregular_sets", "irregular_moons",
                "rogue_planets", "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_deposit_types", "rogue_planet_isotopes", "rogue_planet_gases", "rogue_planet_life_class_scores"),
-    "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life", "moon_life_ages", "moon_adaptations"),
+    "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life", "moon_life_ages", "moon_adaptations", "moon_exosphere"),
     "belt": ("asteroid_belts", "asteroid_belt_composition", "belt_members", "asteroid_fields", "asteroid_field_composition", "field_members"),
     "comet": ("comets", "comet_composition", "comet_coma", "interstellar_comets", "interstellar_comet_composition", "interstellar_comet_coma"),
     "phenomenon": ("nebulae", "supernova_remnants", "quasars", "bright_stars",
@@ -139,6 +141,7 @@ LEFT_OUT_TABLES = frozenset({
     "body_numbers",    # the number each slot of a system has had (DB.75): the ID of a body, kept so it is stable, decides no result
     "body_history",    # the numbers a body's history left, kept for the stored galaxy (GEN.1497); the fingerprint reads the results they produced
     "lost_moons",    # the moons a planet's history took away, kept so that history can run again for a restored planet (GEN.1753); the fingerprint reads the results it produced
+    "sector_directives", "sector_directive_minimums",    # what a run asked of a sector and how the draw came out (GEN.179): a record of the run's directive, which changes no result, so a fingerprint reads the sector it made
     "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
     "system_summary", "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
@@ -156,9 +159,9 @@ _PARENT_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems"
 A `node` parent is the `node_no` of the row's own system and a `free` one has no id; neither is a row id, so both are
 written as they are."""
 
-ROW_ID_COLUMNS = {("planets", "lagrange_host_id"): "planets"}
+ROW_ID_COLUMNS = {("planets", "lagrange_host_id"): "planets", ("phenomenon_scatter", "cluster_id"): "galaxy_components"}
 """dict: `(table, column)` to the table it names a row of, for a column that holds another row's id but is no declared foreign key (GEN.1827): `planets.lagrange_host_id`
-(GEN.1151) is the giant a trojan planet shares its orbit with. Left as the raw id it carried the id the row got in that
+(GEN.1151) is the giant a trojan planet shares its orbit with and `phenomenon_scatter.cluster_id` (GEN.163) the globular cluster a scattered object was drawn in (a plain column, not a foreign key: a cluster row may be replaced). Left as the raw id it carried the id the row got in that
 run, so two runs that charted the same sectors in another order read as two galaxies."""
 
 LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
