@@ -80,12 +80,6 @@ def generated_sectors(conn, cell):
     return _generated(conn, cell)[0]
 
 
-def generated_mass_kg(conn, cell):
-    """The summed mass, in kilograms, of the generated sectors of the region `cell` (`sector_stats.total_mass_kg`; 0 for a
-    sector with no figure)."""
-    return _generated(conn, cell)[1]
-
-
 def _row(cell, addresses, edge_pc, mass_kg):
     extent = named_regions.region_extent(cell, addresses, edge_pc)
     x, y, z = extent.center_pc
