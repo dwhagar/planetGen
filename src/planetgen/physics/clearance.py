@@ -365,7 +365,8 @@ def _audit_planets(planets, tree):
         e = planet.get("eccentricity") or 0.0
         peri = a_au * (1.0 - e)
         host_key = (host[0], host[1]["id"] if host[0] == "star" else host[1]["node_no"])
-        by_host.setdefault(host_key, []).append((planet, a_au, e, host))
+        if planet.get("lagrange_point") is None:         # GEN.1150, GEN.1151: a trojan planet stands on its giant's orbit by design, so the giant stands for it in the crossing and spacing rules
+            by_host.setdefault(host_key, []).append((planet, a_au, e, host))
         host_radius = _host_radius_km(host, tree) / AU_KM
         if peri < host_radius:
             out.append(Violation("planet-in-star", where, peri, host_radius, "AU", detail="closest approach inside the host star"))
@@ -486,13 +487,20 @@ def _of_one_belt(first, second):
     return order is not None and order == second.get("belt_order")
 
 
+def _shares_orbit_with(planet, belt):
+    """True when `planet` stands on the orbit `belt` is a swarm of by design (GEN.1150, GEN.1151): the giant a trojan region (`lagrange_point`) is the L4 or L5 swarm of (`parent_type` `planet`, `parent_id`), and a trojan planet (`lagrange_point`), which is on its giant's orbit as that giant is. Every other planet is held to the region as to any belt, and a trojan region is no belt of the ring `belt_order` counts."""
+    if planet.get("lagrange_point") is not None:
+        return True
+    return belt.get("lagrange_point") is not None and belt.get("parent_type") == "planet" and belt.get("parent_id") == planet["id"]
+
+
 def _came_from(planet, belt, belts, tree):
     """True when `planet` was promoted from `belt` (GEN.1510): its `belt_order` is the belt's place, nearest first, among the belts of its host, so the planet is a member of that ring and is allowed to reach into it. A planet that came from another belt, or from none, still must stay out."""
     order = planet.get("belt_order")
     if order is None:
         return False
     host = _host_of(belt, tree)
-    ring = sorted((other for other in belts if _host_of(other, tree) == host), key=lambda other: other.get("distance_km", other["lower_limit_km"]))
+    ring = sorted((other for other in belts if _host_of(other, tree) == host and other.get("lagrange_point") is None), key=lambda other: other.get("distance_km", other["lower_limit_km"]))
     return 0 <= order < len(ring) and ring[order] is belt
 
 
@@ -506,7 +514,7 @@ def _audit_belts(belts, planets, tree):
             out.append(Violation("belt-planet", where, lower, upper, "AU", detail="an empty annulus"))
             continue
         for planet in planets:
-            if _host_of(planet, tree) != host or _came_from(planet, belt, belts, tree):
+            if _host_of(planet, tree) != host or _came_from(planet, belt, belts, tree) or _shares_orbit_with(planet, belt):
                 continue
             a_au = planet["distance_km"] / AU_KM
             e = planet.get("eccentricity") or 0.0
@@ -531,8 +539,8 @@ def audit(rows):
     Args:
         rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`; a dark member of the tree, GEN.1013, is a row
             too, with `dark` true: it weighs in the tree and takes up room, and no planet goes round it), `nodes` (the `orbit_nodes` columns),
-            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, `host_node_id` for a planet about an inner pair node, GEN.332, and `belt_order` for a planet promoted from an asteroid belt, GEN.1510, which may be left out), `moons` (`id`, `planet_id`,
-            `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `host_node_id` as for a planet, `lower_limit_km`,
+            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, `lagrange_point` for a trojan planet, GEN.1150, `host_node_id` for a planet about an inner pair node, GEN.332, and `belt_order` for a planet promoted from an asteroid belt, GEN.1510, which may be left out), `moons` (`id`, `planet_id`,
+            `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `host_node_id` as for a planet, `parent_type`, `parent_id` and `lagrange_point` for a trojan region, `lower_limit_km`,
             `upper_limit_km`, and `distance_km` to order a star's belts nearest first, else the lower limit does) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
 
     Returns:
@@ -561,13 +569,13 @@ def stored_rows(conn, system_id):
         " arg_periapsis_deg, mean_anomaly_deg, period_years, kind, interaction, flags FROM orbit_nodes WHERE star_system_id = ?"
         " ORDER BY node_no", (system_id,)).fetchall()]
     planets = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, host_node_id, distance_km, eccentricity, radius_km, mass_kg, belt_order FROM planets WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, host_node_id, distance_km, eccentricity, radius_km, mass_kg, belt_order, lagrange_point, lagrange_host_id FROM planets WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     moons = [dict(row) for row in conn.execute(
         "SELECT id, planet_id, distance_km, eccentricity, radius_km, mass_kg FROM moons WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     belts = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, host_node_id, distance_km, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, host_node_id, distance_km, lower_limit_km, upper_limit_km, parent_type, parent_id, lagrange_point FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     irregular_moons = [dict(row) for row in conn.execute(
         "SELECT i.planet_id, i.moon_rank, i.distance_km, i.eccentricity, i.inclination_deg FROM irregular_moons i JOIN planets p ON p.id = i.planet_id"

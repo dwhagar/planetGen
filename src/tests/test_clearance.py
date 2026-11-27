@@ -246,6 +246,24 @@ def test_a_limit_outside_the_fit_is_applied_at_its_edge_and_says_so():
     assert found and all(item.extrapolated for item in found if item.kind == "s-type")
 
 
+def test_a_trojan_planet_and_a_trojan_region_stand_on_their_giants_orbit_by_design():
+    """GEN.1150, GEN.1151: a trojan planet shares its giant's orbit and a trojan region is the giant's L4 or L5 swarm on it, so neither crosses the giant or reaches into its own region; a planet that is not the giant's
+    is held to the region as to any belt, and a region is no belt of the ring a promoted planet's `belt_order` counts (GEN.1885)."""
+    base = _pair(axis_au=300.0)
+    giant = {"id": 1, "distance_km": 3.0 * AU_KM, "eccentricity": 0.27, "mass_kg": 1.0e27}
+    trojan = {"id": 2, "distance_km": 3.0 * AU_KM, "eccentricity": 0.27, "mass_kg": 5.0e24, "lagrange_point": "L5", "lagrange_host_id": 1}
+    region = {"id": 1, "star_id": 1, "distance_km": 3.0 * AU_KM, "lower_limit_km": 2.8 * AU_KM, "upper_limit_km": 3.2 * AU_KM, "parent_type": "planet", "parent_id": 1, "lagrange_point": "L4"}
+    assert not {"planet-crossing", "planet-spacing"} & set(_kinds(_with_planets(base, giant, trojan)))
+    assert "planet-crossing" in _kinds(_with_planets(base, giant, dict(trojan, lagrange_point=None, lagrange_host_id=None)))
+    assert clearance.hard_violations(dict(_with_planets(base, giant, trojan), belts=[region])) == []
+    stranger = {"id": 3, "distance_km": 3.05 * AU_KM, "eccentricity": 0.0, "mass_kg": 1.0e24}
+    assert "belt-planet" in _kinds(dict(_with_planets(base, giant, stranger), belts=[region]))
+    ring = {"id": 2, "star_id": 1, "distance_km": 1.5 * AU_KM, "lower_limit_km": 1.4 * AU_KM, "upper_limit_km": 1.6 * AU_KM}
+    far_ring = {"id": 3, "star_id": 1, "distance_km": 9.0 * AU_KM, "lower_limit_km": 8.5 * AU_KM, "upper_limit_km": 9.5 * AU_KM}
+    promoted = {"id": 4, "distance_km": 9.0 * AU_KM, "eccentricity": 0.0, "mass_kg": 1.0e22, "belt_order": 1}
+    assert clearance.hard_violations(dict(_with_planets(base, giant, promoted), belts=[ring, region, far_ring])) == []
+
+
 # --- the sweep over generated, stored systems -------------------------------------------------------------------------
 
 SCALE = int(os.environ.get("PLANETGEN_CLEARANCE_SCALE", "1"))
