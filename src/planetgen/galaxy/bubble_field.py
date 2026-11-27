@@ -22,9 +22,9 @@ The factor is smooth in the depth `d` (the distance from the center over the rad
 rising to the shell's peak across the inner edge of the shell, flat over its thickness, and falling to 1 across its outer edge. At
 every depth it is a mix of 1, the interior factor and the peak, so it never goes beyond the peak: that is the certificate.
 
-A bubble's age comes from its radius by Weaver's ([R5374]) expansion law at one driving power for all (Boss, 2026-11-26): the
+A bubble's age comes from its radius by Weaver's [R5374] expansion law at one driving power for all (Boss, 2026-11-26): the
 law's radius `0.76 * (power * age ** 3 / density) ** (1 / 5)` solved for the age, no more than the 40 Myr the cluster's winds and
-supernovae drive it for ([R5373]). No real bubble is the anchor. The bubbles' own placement reads the
+supernovae drive it for [R5373]. No real bubble is the anchor. The bubbles' own placement reads the
 density with no bubbles in it (`bubble_free`, `superbubble_field.bubble_free`), so the factor never feeds back into where the
 bubbles are.
 """
@@ -40,7 +40,7 @@ from planetgen.util import detmath
 
 def age_myr(bubble):
     """
-    A bubble's age, Myr, from its radius by Weaver's ([R5374]) law at the one driving power and ambient density of every bubble
+    A bubble's age, Myr, from its radius by Weaver's [R5374] law at the one driving power and ambient density of every bubble
     (`radius = coefficient * (power * age ** 3 / density) ** (1 / 5)`, solved for the age), no more than the driving power's lifetime.
     A small bubble is young: about 2 Myr at 75 pc, 40 Myr from about 400 pc.
     """

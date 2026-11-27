@@ -3915,10 +3915,10 @@ stall radius and luminosity. A stand-in of the row SB1 (GEN.725): the size law o
 
 SUPERBUBBLE_MEAN_MASS_PER_PARTICLE = 1.25
 """float: The mean mass of a particle of the ambient gas, in hydrogen masses (GEN.392): [R5373]'s mu, which turns
-`SUPERBUBBLE_DRIVING_DENSITY_CM3` into the mass density Weaver's ([R5374]) law is written in."""
+`SUPERBUBBLE_DRIVING_DENSITY_CM3` into the mass density Weaver's [R5374] law is written in."""
 
 SUPERBUBBLE_WEAVER_COEFFICIENT = (250.0 / (308.0 * 3.141592653589793)) ** 0.2
-"""float: The coefficient of Weaver's ([R5374]) radius of a wind-blown bubble in a uniform medium, `radius = coefficient * (power *
+"""float: The coefficient of Weaver's [R5374] radius of a wind-blown bubble in a uniform medium, `radius = coefficient * (power *
 age ** 3 / mass density) ** (1 / 5)` in cgs units, 0.76 (GEN.392, derived: `(250 / (308 pi)) ** (1 / 5)`, eq. 24 of [R5373])."""
 
 SUPERBUBBLE_EXPANSION_LIFETIME_MYR = 40.0
@@ -3927,7 +3927,7 @@ until its lowest-mass supernova progenitors, about 8 solar masses, expire at abo
 universal lifetime for all shells"). Row SB2 of GEN.725, tier T2, tweak L0."""
 
 SUPERBUBBLE_SCHMIDT_EXPONENT = 1.5
-"""float: The power of the gas density that the rate of star formation goes as, in a volume (Schmidt 1959; GEN.392). Row SB4 of GEN.725, tier T3, tweak L0; the disk's surface law is `STAR_FORMATION_LAW_EXPONENT`, 1.4 +/- 0.15, and the two agree inside that range."""
+"""float: The power of the gas density that the rate of star formation goes as, in a volume (the Schmidt law; GEN.392). Row SB4 of GEN.725, tier T3, tweak L0; the disk's surface law is `STAR_FORMATION_LAW_EXPONENT`, 1.4 +/- 0.15, and the two agree inside that range."""
 
 SUPERBUBBLE_SHELL_THICKNESS = 0.06
 """float: The cooled shell's thickness over the bubble's radius, a number (GEN.392). A shell cooled to the temperature of the
