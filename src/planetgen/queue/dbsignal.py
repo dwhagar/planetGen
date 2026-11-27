@@ -107,16 +107,28 @@ class Prober:
     def probe(self, conn):
         """Sends the statement once and records how long it took."""
         self.sent_at = self.clock()
-        conn.execute(self.sql).fetchone()
-        self.last_ms = (self.clock() - self.sent_at) * 1000.0
-        self.sent_at = None
-        self.completed += 1
+        try:
+            conn.execute(self.sql).fetchone()
+            self.last_ms = (self.clock() - self.sent_at) * 1000.0
+            self.sent_at = None
+            self.completed += 1
+        finally:
+            conn.rollback()     # OPS.323: the connection lives as long as the supervisor and does not autocommit, so a read left its transaction open: a shared metadata lock on `engine_jobs` that blocked every ALTER and DROP of it (a test's teardown waited 81 minutes) and a snapshot that kept the purge from old row versions. Nothing was written, so ending it is a rollback; it is outside the time that was measured.
 
     def latest(self):
         out_ms = None if self.sent_at is None else (self.clock() - self.sent_at) * 1000.0
         if out_ms is not None and (self.last_ms is None or out_ms > self.last_ms):
             return out_ms
         return self.last_ms
+
+    @staticmethod
+    def _drop(conn):
+        """Closes a connection the probe is done with (OPS.323): a dropped one left its transaction open until the garbage collector found it."""
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception as exc:  # noqa: BLE001 -- a connection that cannot even close is gone with the server
+                log.swallowed("queue/dbsignal", "close", exc)
 
     def run(self):
         conn = None
@@ -126,9 +138,11 @@ class Prober:
                 self.probe(conn)
             except Exception as exc:  # noqa: BLE001 -- a database that cannot answer is what is measured: the probe stays out (it reads as slow by the time it has been out) until a new connection answers
                 log.swallowed("queue/dbsignal", "probe", exc)
+                self._drop(conn)
                 conn = None
                 self.sent_at = self.sent_at if self.sent_at is not None else self.clock()
             self.stop.wait(PROBE_SECONDS)
+        self._drop(conn)        # OPS.323: the thread's own connection ends with it
 
     def start(self):
         self.thread = threading.Thread(target=self.run, name="dbsignal-probe", daemon=True)
