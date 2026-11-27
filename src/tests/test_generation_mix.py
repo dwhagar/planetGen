@@ -61,7 +61,7 @@ HSU_2019 = (
     (128.0, 256.0, ((0.0390, 0.0240), (0.0250, 0.0240), (0.0620, 0.0290), (0.0750, 0.0240), (0.0300, 0.0190)), 0.098),
     (256.0, 500.0, ((0.1660, 0.1190), (0.1590, 0.1020), (0.0590, 0.0540), (0.1000, 0.0590), (0.0340, 0.0240)), 0.230),
 )
-"""tuple: Hsu, Ford, Ragozzine and Ashby 2019, AJ 158, 109 ([R2020]), Table 2 (combined detection and vetting efficiency), the planets of 1.25 to 4 Earth radii that
+"""tuple: Hsu, Ford, Ragozzine and Ashby 2019, AJ 158, 109 [R2020: Table 2] (combined detection and vetting efficiency), the planets of 1.25 to 4 Earth radii that
 a Kepler FGK star holds, by period bin of a factor of 2: `(first day, last day, ((median, error), ...) of the radius cells 1.25 to 1.5, 1.5 to 1.75, 1.75 to 2, 2 to 2.5, 2.5 to 3 and
 3 to 4 Earth radii, upper limit of the 1.25 to 1.5 cell)`. A cell with no more than one candidate is given by the paper as an upper limit (84.13th percentile) only, so the
 limit stands apart: the true count of the bin lies between the medians' sum and that sum plus the limit. The error of a cell is the larger of its two published differences."""
@@ -128,7 +128,7 @@ def test_the_zones_all_occur(systems):
 
 def test_the_planets_per_fgk_star_follow_kepler(systems):
     """
-    TEST.838: the planets of 1.25 to 4 Earth radii that an FGK dwarf holds from 8 to 256 days, per star, against Hsu et al. 2019 Table 2 ([R2020]): the generated count N/n (N planets
+    TEST.838: the planets of 1.25 to 4 Earth radii that an FGK dwarf holds from 8 to 256 days, per star, against Hsu et al. 2019 Table 2 [R2020]: the generated count N/n (N planets
     of n stars, Poisson error sqrt(N)/n) and Kepler's (`_kepler_count`) differ by at most 3 standard errors of both together. 0.79 +- 0.14 generated against 0.92 +- 0.09 observed in
     the 250 systems of the seed. The window's last bin, 256 to 500 days, runs 0.14 against 0.52 (2 sigma low) and is GEN.1871's, not held here.
     """
