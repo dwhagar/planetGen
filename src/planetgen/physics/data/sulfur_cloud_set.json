@@ -131,7 +131,7 @@
    "value": 0.5,
    "tier": "T9",
    "tweak": "L3",
-   "basis": "The least ultraviolet-C flux (100 to 280 nm, `energy_flux_w_m2` times the star's `uv_c_share`) that photolyses sulfur dioxide (190 to 220 nm, section 10.2 gate 3) in enough quantity to make the lower sulfur oxides; from needed output: a young active star at Venus's distance passes (some watts per m2) and a quiet M dwarf at its warm edge (hundredths) does not. No source gives the number"
+   "basis": "The least ultraviolet-C flux at the body (100 to 280 nm: the bolometric flux times the blackbody share of that band at the star's temperature times the star's `uv_c_share`, which is the star's UV-C power as a multiple of its blackbody's and not a share of the light, `sulfur_cloud_set.uv_c_flux_w_m2`, GEN.1872) that photolyses sulfur dioxide (190 to 220 nm, section 10.2 gate 3) in enough quantity to make the lower sulfur oxides; from needed output: a young active star at Venus's distance passes (some watts per m2) and a quiet M dwarf at its warm edge (hundredths) does not. No source gives the number"
   },
   "reductant_min_share": {
    "value": 1e-07,
