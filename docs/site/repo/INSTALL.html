@@ -163,8 +163,7 @@ with status 15. <code>install.sh</code> and <code>update.sh</code> say when one 
 meanwhile. Every ended work process is also written, with its signal, unit and run, to <code>error.log</code> in the log folder
 (<code>/var/log/planetgen/error.log</code>), so the cause is on record. What to do about it, in this order: keep swap on (above), because a guard acts when swap is
 nearly used up as well as memory; give the guard something to protect, for example <code>earlyoom</code> started with <code>--avoid '(^|/)(mysqld|redis-server|apache2|httpd)$'</code> so
-it picks a work unit before the database, the queue or the web server; and, if the host is small, lower <code>queue.max_host_workers</code> in <code>config.json</code> (0 sizes it from memory; see <code>docs/reference/config.md</code>) so fewer
-units run at once.</p>
+it picks a work unit before the database, the queue or the web server; and know that how many units run at once is not a setting: the job engine's memory gate and controller size it from the host's memory, so a small host runs fewer.</p>
 <p>On a 16 GB host that also generates, <code>innodb_buffer_pool_size = 4G</code> in <code>/etc/mysql/mysql.conf.d/mysqld.cnf</code> keeps
 MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
 Generate page) and the web app.</p>
@@ -481,8 +480,7 @@ right, with commands for each platform.</p>
 <p>It pulls the latest code (a <code>git reset --hard</code> to the tracked
 branch; <code>config.json</code> and other untracked files are kept), checks the
 Python libraries and installs only a missing or too-old one, checks the
-NLTK corpus, runs the generator's math check (a failure only warns, and
-bulk generation refuses to start until it passes), migrates the database
+NLTK corpus, migrates the database
 and records the version key, re-applies folders, permissions and the
 logs, checks that the site imports, and checks Redis as the installer
 does. It never reinstalls what is already there. Last, it builds

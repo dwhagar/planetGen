@@ -71,7 +71,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td><strong>Backfill</strong></td>
-<td>around generated sectors only. The bright-star backfill adds the stars the scatter left out by initial mass in rings (1, 2, 5 and 8 solar masses, GEN.187) and the luminosity bands (GEN.44); the phenomena backfill is the below-cut draw: the neutron stars and black holes under 14 solar masses, Poisson per sector from the sector's own stream (GEN.168). Neither stores anything before the sector is filled</td>
+<td>around generated sectors only. The bright-star backfill adds the stars the scatter left out by initial mass in rings (1, 2, 5 and 8 solar masses, GEN.187) and the luminosity bands (GEN.44); the phenomena backfill is the below-cut draw: the neutron stars and black holes under 14 solar masses, Poisson per sector from the sector's own stream (GEN.168). The star backfill stores its stars at once; the below-cut remnants of a ring sector are stored with it as scatter rows (GEN.1682, <code>ring_remnants.rows_for</code>, the fill's own draw at stored points), so a ring sector is not short of them before it is filled; a sector that is filled with no backfill draws them at the fill, as before</td>
 <td><code>bright_stars.backfill_mass_cells</code>, <code>phenomenon_scatter.below_cut_draws</code></td>
 </tr>
 <tr>

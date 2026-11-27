@@ -65,32 +65,18 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td>Science (the default)</td>
+<td>Science (the box &quot;More Habitable Worlds&quot; unticked)</td>
 <td>none</td>
-<td>Only the laws. Nothing is moved.</td>
+<td>Only the laws. Nothing is moved: about 1 in 2,800 on 2,800 Sun-like systems (<code>reports/train28-census-2026-11-14/meter2800.md</code>).</td>
 </tr>
 <tr>
-<td>Sparse</td>
-<td>1 in 500</td>
-<td>The bottom rung (Boss, 9:28 PM EST 2026-11-14): the laws alone measured 1 in 2,800 on 2,800 Sun-like systems (<code>reports/train28-census-2026-11-14/meter2800.md</code>).</td>
-</tr>
-<tr>
-<td>Scattered</td>
-<td>1 in 135</td>
-<td></td>
-</tr>
-<tr>
-<td>Plentiful</td>
-<td>1 in 37</td>
-<td></td>
-</tr>
-<tr>
-<td>Abundant</td>
+<td>Abundant (the box ticked, the default of a galaxy that was told nothing)</td>
 <td>1 in 10</td>
-<td>The top rung. The two between are split evenly on a log scale from Sparse to Abundant, each step about 3.7 times (Boss, 9:30 PM EST 2026-11-14). The first set was 1 in 1,000, 100, 30 and 10 (cards of 11:19 PM EST 2026-11-13).</td>
+<td>The top rung (Boss, 9:30 PM EST 2026-11-14).</td>
 </tr>
 </tbody>
 </table></div>
+<p>GEN.1832 (Boss, 3:26 PM EST 2026-11-22: &quot;change the Class M planet box in generation with a checkbox for More Habitable Worlds that is on by default and will be the highest abundance we discussed, when unchecked it's scientific&quot;) took out Sparse (1 in 500), Scattered (1 in 135) and Plentiful (1 in 37), and their rows of dial values. The first set had been 1 in 1,000, 100, 30 and 10 (cards of 11:19 PM EST 2026-11-13), then 500, 135, 37 and 10 (9:28 and 9:30 PM EST 2026-11-14). A galaxy that was told nothing is ticked; one outside any galaxy (a stand-alone system, a test) stays on Science. A galaxy planned before GEN.1832 under a removed tier is refused in words (&quot;plan it again&quot;: testing mode).</p>
 <p>A Sun-like system is one whose primary is a main-sequence star of type F7 to K2 (the sample of the report and of the meter).</p>
 <p>The target is what the dial values are calibrated to. The generator never checks a galaxy against it and never adds or removes a world to meet it.</p>
 <h2 id="3-the-six-dials">3. The six dials</h2>
@@ -136,11 +122,11 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>A <strong>candidate</strong> is a rocky planet, not a moon, whose orbit lies in its star's ecosphere (<code>abundance_tier.candidate</code>).</p>
+<p>A <strong>candidate</strong> is a rocky planet, not a moon, whose orbit lies in the zone the effort goes to: its star's habitable zone widened by half its width on each side, so the span doubles (<code>abundance_tier.candidate</code>, <code>orbits.candidate_zone</code>, <code>orbits.CANDIDATE_ZONE_WIDENING</code>, GEN.1807, registry row PA20; for the Sun 0.59 to 2.04 AU against the habitable zone's 0.95 to 1.68). The habitable zone, a body's zone letter and the pages keep the [R2447] edges, and the class of a body still comes last, from its own conditions: the zone only decides where the water, envelope, interior and cycle dials and the request for a habitable world are tried.</p>
 <p>How each dial acts, as built:</p>
 <ul>
 <li><strong>Water.</strong> One extra draw per candidate. A dialed planet takes the <code>low</code> class, or the <code>dry</code> class when the draw falls in the dry part, and its air takes the same class's recipe row (b2, or b1 for the dry class). A candidate that formed beyond its star's snow line is icy by origin and is not reached: it keeps its icy water range. A candidate the law gave <code>low</code> by itself keeps the air the law draws. The air takes the row only where the pick could take it for that body (its weight in the pick table is above zero); otherwise the pick is drawn as usual.</li>
-<li><strong>Zone edges.</strong> The water and envelope dials read the zone a planet holds when its body is drawn. A planet that the system check later moves outward across a zone edge takes the new zone's name and nothing is drawn again, so some dialed planets end outside the ecosphere and some planets that end inside it were never candidates. This is not small: measured on 300 Sun-like systems at <code>abundant</code> (water share 1), of 276 candidates by final zone 96 were icy by origin (not reached), and of the 180 rocky ones 126 were dialed and 54 were not, because they were drawn in another zone and moved in afterwards. So a water share of 1 reaches about 70 percent of the rocky candidates and 46 percent of all candidates. The meter counts candidates by the final zone; the calibration (GEN.1706) sets the dials by the measured rate, which takes this in, and decides whether the dials should also act when a planet is moved into the ecosphere.</li>
+<li><strong>Zone edges.</strong> The water and envelope dials read whether a planet lies in the effort zone (GEN.1807, above) when its body is drawn. A planet that the system check later moves outward across a zone edge takes the new zone's name and nothing is drawn again, so some dialed planets end outside the ecosphere and some planets that end inside it were never candidates. This is not small: measured on 300 Sun-like systems at <code>abundant</code> (water share 1), of 276 candidates by final zone 96 were icy by origin (not reached), and of the 180 rocky ones 126 were dialed and 54 were not, because they were drawn in another zone and moved in afterwards. So a water share of 1 reaches about 70 percent of the rocky candidates and 46 percent of all candidates. The meter counts candidates by the final zone; the calibration (GEN.1706) sets the dials by the measured rate, which takes this in, and decides whether the dials should also act when a planet is moved into the ecosphere.</li>
 <li><strong>Desert worlds.</strong> A planet whose draw falls in the dry part takes its water inside <code>tuning.ABUNDANCE_DESERT_WATER_RANGE</code>, the part of the dry class that leaves a few small seas (about 5 to 20 percent of the surface on the planets measured). On any other world so little water holds Earth's salt in so little water that it is saturated with rock salt (GEN.1730: a halite-saturated sea, water activity 0.753 where it is liquid above 252 K; <code>hydrosphere.halite_sea</code>). Such a sea of real depth (ten metres or more) is a <code>surface ocean</code>: life can start in it (salt-loving oxygen-making algae live at 0.75), and the oxygen law counts it as a sunlit sea of its own area. A tier makes no exception for it: every sea of so little water is the same law. A sea is what gives Class H its groundwater condition as well.</li>
 <li><strong>Carbon cycle.</strong> One extra draw per candidate, made where the air's design constants are drawn (<code>surface_air.solve</code>); a candidate it reaches draws the two constants from the narrower ranges (<code>tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE</code>, <code>ABUNDANCE_CYCLE_LAMBDA_RANGE</code>) and records <code>cycle_nudged</code> in its design constants; one it does not reach draws over the published ranges. Science makes no draw.</li>
 <li><strong>Quiet interior.</strong> One extra draw per candidate, made once when the planet is first drawn, beside the envelope draw. The body holds the decision as a field only when the draw says yes.</li>
@@ -176,39 +162,12 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td>Sparse</td>
-<td>0.5</td>
-<td>0</td>
-<td>0</td>
-<td>0.2</td>
-<td>0</td>
-<td>0.5</td>
-</tr>
-<tr>
-<td>Scattered</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0.2</td>
-<td>0.5</td>
-<td>1</td>
-</tr>
-<tr>
-<td>Plentiful</td>
-<td>1</td>
-<td>1</td>
-<td>0.5</td>
-<td>0.2</td>
-<td>0.5</td>
-<td>1</td>
-</tr>
-<tr>
 <td>Abundant</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0.2</td>
-<td>0.5</td>
+<td>1</td>
 <td>1</td>
 </tr>
 </tbody>
@@ -253,7 +212,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td><code>quiet_share</code></td>
 <td>built (section 3)</td>
-<td>Quiet volcanoes: a third of the oxygen sink on half of the candidates (Boss, 9:43 PM EST 2026-11-14). It helps every class with a living sea and does nothing for a world without one.</td>
+<td>Quiet volcanoes: a third of the oxygen sink on half of the candidates (Boss, 9:43 PM EST 2026-11-14); GEN.1800 (Boss, 7:01 PM EST 2026-11-18) takes the share to all of the candidates at Plentiful and Abundant and keeps the sink at the published third, the 0.2 the lever run tried being under the published range. It helps every class with a living sea and does nothing for a world without one.</td>
 </tr>
 <tr>
 <td>early warm phase</td>

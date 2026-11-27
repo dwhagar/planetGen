@@ -233,7 +233,7 @@ class BlackHole(CompactRemnant):
     need no special-casing)."""
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
-                 galactic_orbital_phase_deg=None, mass_class=None, mass_range=None, mass_solar=None):
+                 galactic_orbital_phase_deg=None, mass_class=None, mass_range=None, mass_solar=None, mass_stretch=None):
         """
         Args:
             mass_class (str, optional): `"supermassive"` for a galaxy's
@@ -248,6 +248,8 @@ class BlackHole(CompactRemnant):
                 law truncated to it (the scatter's mass cut, GEN.166).
             mass_solar (float, optional): The mass itself, when the phenomenon
                 scatter already drew it (MAP.165); no mass is drawn then.
+            mass_stretch (float, optional): The span of a stellar-mass hole's law at its place
+                (`remnant_density.place_stretch`, GEN.554); `mass_range` is in the anchor law's masses.
         """
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
@@ -271,7 +273,7 @@ class BlackHole(CompactRemnant):
             elif mass_class == "intermediate":
                 self.mass_solar = log_uniform(*remnant_mass.within(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, mass_range))
             else:
-                self.mass_solar = remnant_mass.draw_mass_sol("black-hole", mass_range)
+                self.mass_solar = remnant_mass.draw_mass_sol("black-hole", mass_range, stretch=mass_stretch)
         self.mass = _msun_to_kg(self.mass_solar)
 
         # Schwarzschild radius: r_s = 2GM/c^2 (the non-rotating event
