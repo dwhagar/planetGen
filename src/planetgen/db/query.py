@@ -46,7 +46,7 @@ from planetgen.db import belt_names, chart_ledger, orbit_trees, compact_pairs, c
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import class_code, equipment, habitability, habitability_world, life_classes, life_scores, score_filters
+from planetgen.physics import class_code, equipment, planet_classes, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
 from planetgen.util import generator_epoch
 from planetgen.population import facility_ratings, facility_types, tech
@@ -89,7 +89,7 @@ from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
     NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
-    NAV_ISLAND_LINKS, PLANET_CLASSES,
+    NAV_ISLAND_LINKS,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.util import detmath
@@ -7267,9 +7267,10 @@ def _body_facet_rows(facet, conn):
 
 
 def _class_facet(conn, facet, word):
-    """The planet-class facet options of the stored `facet` counts (`class` or `moon_class`), labelled `Class X <word>`."""
+    """The planet-class facet options of the stored `facet` counts (`class` or `moon_class`), labelled `Class X <word>`; the tooltip is the class's own sentence (UX.150: GEN.1212 removed the stored `description` this read)."""
     return [{"value": row["v"], "label": f"Class {row['v']} {word}", "count": row["c"],
-             "tooltip": PLANET_CLASSES.get(row["v"], {}).get("description")} for row in _body_facet_rows(facet, conn)]
+             "tooltip": planet_classes.BY_LETTER[row["v"]].sentence if row["v"] in planet_classes.BY_LETTER else None}
+            for row in _body_facet_rows(facet, conn)]
 
 
 def _body_type_facet(conn, facet):
