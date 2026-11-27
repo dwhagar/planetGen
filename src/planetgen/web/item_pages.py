@@ -574,12 +574,23 @@ def _edit_post(kind, printed_id, system_id):
                                     after_delete={kind: page_url("system", system_id=system_id)})
 
 
+def _free_moon_piece(db, printed_id):
+    """The description section of a moon of a free planet (UX.138), or `None` when the API has none: the page does not wait on it."""
+    try:
+        document = apiclient.get_free_moon_description(db, printed_id)
+    except (apiclient.NotFoundError, apiclient.ApiError):
+        return None
+    return next(iter(sections(document)), None)
+
+
 def _free_moon_page(db, kind, printed_id, found, free_planet):
-    """The page of a moon of a free planet (DB.94): its sheet and places, with no system to read a description,
-    neighbours or admin actions from, and a link to the free planet instead of a system."""
+    """The page of a moon of a free planet (DB.94): its sheet and places and, from UX.138, its own description (a moon of a wanderer
+    has no system to read one from), with no neighbours or admin actions, and a link to the free planet instead of a system."""
     ref = f"{kind}:{printed_id}"
     name = found["name"]
     nav_ref = endpoint(kind, printed_id)
+    piece = _free_moon_piece(db, printed_id) if kind == "moon" else None
+    sheet = apiclient.get_object_sheet(db, ref)
     return render_page(
         "item.html",
         title=name,
@@ -591,8 +602,9 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
         habitability=found if kind in ("planet", "moon") else None,
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
-        facts=trusted_html(""),
-        **annotated_sheet(apiclient.get_object_sheet(db, ref), found),
+        facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
+        **annotated_sheet(sheet, found),
+        **({"planet": planet_sections(name, None, sheet, None, piece)} if kind == "moon" else {}),      # the sections a moon's page has: its words and its PHI-6 and property groups
         tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
         location=location(found["parents"], None),
         owner_url=item_url(free_planet["ref"]),

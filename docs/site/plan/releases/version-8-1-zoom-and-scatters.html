@@ -72,12 +72,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td></td>
 <td>Research: ledger size at full galaxy.</td>
 </tr>
-<tr>
-<td>PERF.147</td>
-<td>A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds</td>
-<td></td>
-<td>Boss, 8:46 PM EDT 2026-10-21 (relayed).</td>
-</tr>
 </tbody>
 </table></div>
 <h3 id="reproducible-galaxies">Reproducible galaxies</h3>
@@ -161,34 +155,10 @@ This file gives the version's goal, its phases and each phase's build threads wi
 </thead>
 <tbody>
 <tr>
-<td>TEST.344</td>
-<td>Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>TEST.237</td>
-<td>The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td>GEN.396</td>
 <td>Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants</td>
 <td></td>
 <td>Lane 16 finding, 2026-10-16 10:00 PM EDT; any Core lane.</td>
-</tr>
-<tr>
-<td>GEN.1403</td>
-<td>Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)</td>
-<td></td>
-<td>Class M rarity report, 2026-11-08.</td>
-</tr>
-<tr>
-<td>TEST.696</td>
-<td>Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug)</td>
-<td></td>
-<td>Bug Hunt first pass, 2026-11-07.</td>
 </tr>
 <tr>
 <td>DOC.114</td>
@@ -291,12 +261,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)</td>
 <td></td>
 <td></td>
-</tr>
-<tr>
-<td>PERF.200</td>
-<td>Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion</td>
-<td></td>
-<td>optional until a lag sighting; Lane 15</td>
 </tr>
 <tr>
 <td>TEST.135</td>
@@ -1020,12 +984,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td></td>
 </tr>
 <tr>
-<td>PERF.136</td>
-<td>Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default</td>
-<td>GEN.558</td>
-<td></td>
-</tr>
-<tr>
 <td>UX.138</td>
 <td>Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets</td>
 <td>GEN.558</td>
@@ -1130,26 +1088,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td></td>
 </tr>
 <tr>
-<td>GEN.1447</td>
-<td>Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system</td>
-<td>none</td>
-<td>Boss, 2026-11-08.</td>
-</tr>
-<tr>
-<td>GEN.1464</td>
-<td>Belts, asteroids and comets as tiny gravity sources: counted in the secular and tide terms of the planets, and a large asteroid or dwarf planet raising tides on its own moons</td>
-<td></td>
-<td>Boss, 2026-11-08, approved for Train 21.</td>
-</tr>
-<tr>
 <td>GEN.1466</td>
 <td>Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions</td>
-<td></td>
-<td>Boss, 2026-11-08, approved for Train 21.</td>
-</tr>
-<tr>
-<td>GEN.1468</td>
-<td>An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only)</td>
 <td></td>
 <td>Boss, 2026-11-08, approved for Train 21.</td>
 </tr>
@@ -1166,24 +1106,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Split from GEN.1492 at Lane 06's request, 2026-11-09.</td>
 </tr>
 <tr>
-<td>GEN.1520</td>
-<td>The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)</td>
-<td>GEN.1514</td>
-<td>Lane 03, 2026-11-11.</td>
-</tr>
-<tr>
-<td>GEN.1539</td>
-<td>Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size</td>
-<td>GEN.1520</td>
-<td>Lane 03, 2026-11-11.</td>
-</tr>
-<tr>
-<td>GEN.1549</td>
-<td>Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved</td>
-<td>GEN.1548</td>
-<td>Boss, 2026-11-11.</td>
-</tr>
-<tr>
 <td>GEN.1552</td>
 <td>Bodies appear only once the star's own disk is gone: the fixed 10 Myr planet cut becomes the star's own dispersal time, with belts as the debris that follows</td>
 <td>GEN.1551, GEN.1546</td>
@@ -1196,58 +1118,10 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Boss, 2026-11-11, Class M fixes.</td>
 </tr>
 <tr>
-<td>GEN.1558</td>
-<td>Retire the stepped pressure caps (recipe row d6: d3 = 1 kPa and d4 = 10 kPa) so supply, sinks and escape set the air pressure, with the built energy-limited loss added to the escape subtraction in the same single pass</td>
-<td>GEN.1546, GEN.1547</td>
-<td>Boss, 2026-11-11, class census.</td>
-</tr>
-<tr>
-<td>GEN.1569</td>
-<td>One-off check of the class mix against Kepler: gas dwarfs are 30 percent of bodies and 37 percent of planets, T tripled while V and E fell; compare with the observed planet-radius mix</td>
-<td>GEN.1549</td>
-<td>Census thread, 2026-11-11.</td>
-</tr>
-<tr>
-<td>GEN.1571</td>
-<td>Re-run the ocean cover histogram after the water-law decision and check that O is rarer than M</td>
-<td>GEN.1566</td>
-<td>Boss, 2026-11-11, water-land research.</td>
-</tr>
-<tr>
-<td>GEN.1572</td>
-<td>Optional ice-capped flag when sea ice plus land ice exceeds 25 percent of the surface (not counted in liquid cover)</td>
-<td>GEN.1567</td>
-<td>Boss, 2026-11-11, water-land research.</td>
-</tr>
-<tr>
 <td>GEN.1574</td>
 <td>Mantle water partition as a seafloor-pressure feedback instead of the log-uniform 1 to 8 ocean mantle buffer (MANTLE_CAP_OCEANS), so the mantle takes up less when the seafloor pressure is high</td>
 <td>GEN.1566</td>
 <td>Boss, 2026-11-11, water-law research.</td>
-</tr>
-<tr>
-<td>GEN.1577</td>
-<td>Upper-atmosphere temperature-pressure profile of a hot giant (1e-6 to 1e3 bar), so the cloud decks and trace-gas ceilings of GEN.994 (hot_condensates) have a profile to read</td>
-<td>GEN.994</td>
-<td>Lane 03 triage finding, 2026-11-11.</td>
-</tr>
-<tr>
-<td>GEN.1583</td>
-<td>Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give</td>
-<td>none</td>
-<td>Class M audit.</td>
-</tr>
-<tr>
-<td>GEN.1585</td>
-<td>Re-check that classes H and P are reachable after GEN.1581 and GEN.1584 (0 in 4,800 Earth-analog trials today); if still 0, look at the brine-seep rule and P's oxygen need</td>
-<td>GEN.1581, GEN.1584</td>
-<td>Class M audit.</td>
-</tr>
-<tr>
-<td>DB.126</td>
-<td>legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step</td>
-<td>none</td>
-<td>Lane 03, 2026-11-12.</td>
 </tr>
 <tr>
 <td>UX.305</td>
@@ -1256,196 +1130,16 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 13, 2026-11-12.</td>
 </tr>
 <tr>
-<td>GEN.1621</td>
-<td>(bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N<sub>2</sub>O at 0.033 Pa or O<sub>3</sub> at 0.03 Pa each add 21 K in the table against 1 K in the model</td>
-<td>none</td>
-<td>Lane 02, 2026-11-12, deferred.</td>
-</tr>
-<tr>
 <td>GEN.1622</td>
 <td>(bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs</td>
 <td>none</td>
 <td>Lane 02, 2026-11-12, deferred.</td>
 </tr>
 <tr>
-<td>GEN.1629</td>
-<td>(bug) 52 of 124 gases have ir null, and the null is handled two different ways</td>
-<td>none</td>
-<td>Lane 02, 2026-11-12, deferred.</td>
-</tr>
-<tr>
-<td>GEN.1630</td>
-<td>(bug) The HCl vapour-pressure curve runs 35 percent high above the triple point</td>
-<td>none</td>
-<td>Lane 02, 2026-11-12, deferred.</td>
-</tr>
-<tr>
-<td>OPS.133</td>
-<td>scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7)</td>
-<td></td>
-<td>Generation rescan audit, 2026-11-09.</td>
-</tr>
-<tr>
-<td>OPS.143</td>
-<td>Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine</td>
-<td>OPS.137, OPS.140, OPS.141</td>
-<td>Boss approved the heartbeat, 5:16 PM EST on 2026-11-09.</td>
-</tr>
-<tr>
-<td>OPS.146</td>
-<td>Heartbeat part 12: a restarted job runs in debug mode with its own debug log (config, on by default)</td>
-<td>OPS.140</td>
-<td>Boss, 5:29 PM EST on 2026-11-09.</td>
-</tr>
-<tr>
-<td>OPS.147</td>
-<td>Per-stage golden digests so a train's declared stages can be checked against what its golden moved</td>
-<td>OPS.133</td>
-<td>Lane 14 audit, 2026-11-11.</td>
-</tr>
-<tr>
-<td>OPS.149</td>
-<td>Apply the adaptive worker limit to the maintenance lane (warm-ups)</td>
-<td>OPS.148</td>
-<td>2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.150</td>
-<td>Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent)</td>
-<td>OPS.148</td>
-<td>2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.151</td>
-<td>Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log</td>
-<td>OPS.148</td>
-<td>2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.154</td>
-<td>Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB</td>
-<td>OPS.153</td>
-<td>Lane 16, 2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.172</td>
-<td>Per-sector saved line moves to debug, with a roll-up through the progress ticker</td>
-<td>OPS.169</td>
-<td>Lane 16, 2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.177</td>
-<td>A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else</td>
-<td>none</td>
-<td>Lane 03, 2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.179</td>
-<td>cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list</td>
-<td>none</td>
-<td>Scan thread, 2026-11-12.</td>
-</tr>
-<tr>
-<td>OPS.188</td>
-<td>(bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run</td>
-<td>none</td>
-<td>stage 2 of the job engine, closed by OPS.211, 2026-11-13.</td>
-</tr>
-<tr>
-<td>OPS.190</td>
-<td>(bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit</td>
-<td>none</td>
-<td>held for job-engine stage 3, 2026-11-13.</td>
-</tr>
-<tr>
-<td>OPS.225</td>
-<td>Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143</td>
-<td>none</td>
-<td>Lane 13, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.226</td>
-<td>Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side</td>
-<td>none</td>
-<td>Lane 13, 2026-11-15.</td>
-</tr>
-<tr>
-<td>OPS.235</td>
-<td>Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot</td>
-<td>none</td>
-<td>Lane 06, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.236</td>
-<td>Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill)</td>
-<td>none</td>
-<td>Lane 13, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.239</td>
-<td>Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle</td>
-<td>none</td>
-<td>Lane 16, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.240</td>
-<td>Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126</td>
-<td>none</td>
-<td>Lane 16, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.244</td>
-<td>Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203</td>
-<td>none</td>
-<td>Lane 15, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.245</td>
-<td>Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice)</td>
-<td>none</td>
-<td>Lane 13, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.246</td>
-<td>Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt)</td>
-<td>none</td>
-<td>Lane 13, 2026-11-14.</td>
-</tr>
-<tr>
 <td>OPS.247</td>
 <td>Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143</td>
 <td>none</td>
 <td>Lane 07, 2026-11-14</td>
-</tr>
-<tr>
-<td>OPS.249</td>
-<td>Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question</td>
-<td>none</td>
-<td>Lane 06, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.250</td>
-<td>Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160</td>
-<td>none</td>
-<td>Lane 06, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.251</td>
-<td>Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace</td>
-<td>none</td>
-<td>Lane 14, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.252</td>
-<td>Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes</td>
-<td>none</td>
-<td>Lane 15, 2026-11-14.</td>
-</tr>
-<tr>
-<td>OPS.160</td>
-<td>Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)</td>
-<td>OPS.157</td>
-<td>Lane 13, 2026-11-12.</td>
 </tr>
 <tr>
 <td>GEN.1434</td>
@@ -1563,12 +1257,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td></td>
 <td>Tunable gaps report: Tuned draw builder B15: host-star activity.</td>
 </tr>
-<tr>
-<td>GEN.524</td>
-<td>Tuned draw builder B16: halogens and trace gases</td>
-<td></td>
-<td>Tunable gaps report: Tuned draw builder B16: halogens and trace gases.</td>
-</tr>
 </tbody>
 </table></div>
 <h3 id="physics-rectification-boss-530-pm-edt-2026-10-24-belts-fields-irregular-moons-overlap-free-systems-and-the-oddity-table">Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table</h3>
@@ -1632,28 +1320,10 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td></td>
 </tr>
 <tr>
-<td>GEN.1509</td>
-<td>Design: belt bodies at or above the smallest planet class floor get full planet status</td>
-<td>GEN.1070</td>
-<td>Boss, 6:08 PM EST on 2026-11-09.</td>
-</tr>
-<tr>
-<td>GEN.1150</td>
-<td>Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule &quot;<host> L4 trojan region&quot;</td>
-<td>GEN.1006</td>
-<td>Trojans T2, epoch lock, train 8</td>
-</tr>
-<tr>
 <td>GEN.1151</td>
 <td>Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row</td>
 <td>GEN.1150</td>
 <td>Trojans T3, epoch lock, train 8 or 9</td>
-</tr>
-<tr>
-<td>MAP.354</td>
-<td>Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer</td>
-<td>GEN.1150</td>
-<td>Trojans T4, with T2</td>
 </tr>
 <tr>
 <td>TEST.492</td>
@@ -1674,12 +1344,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>TEST.417</td>
-<td>Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)</td>
-<td></td>
-<td>found by Aux 8</td>
-</tr>
 <tr>
 <td>GEN.922</td>
 <td>The star mass function is built right: initial mass function and present-day populations match the observed curve segment by segment, for every mass range and every star-like object type (parent, replaces the one-number GEN.914 tweak)</td>
@@ -1704,12 +1368,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism</td>
 <td></td>
 <td>Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28.</td>
-</tr>
-<tr>
-<td>GEN.1307</td>
-<td>Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug)</td>
-<td></td>
-<td></td>
 </tr>
 </tbody>
 </table></div>
@@ -1849,20 +1507,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <th>Note</th>
 </tr>
 </thead>
-<tbody>
-<tr>
-<td>GEN.1317</td>
-<td>Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed</td>
-<td>GEN.1313</td>
-<td></td>
-</tr>
-<tr>
-<td>OPS.118</td>
-<td>Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)</td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
 </table></div>
 <h3 id="physics-rectification-winds-and-ring-darkening">Physics rectification: winds and ring darkening</h3>
 <div class="table"><table>
@@ -1912,12 +1556,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td></td>
 </tr>
 <tr>
-<td>GEN.835</td>
-<td>The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td>GEN.805</td>
 <td>The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2)</td>
 <td>GEN.804</td>
@@ -1942,36 +1580,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>TEST.722</td>
-<td>Re-run only the failed files after a fix, and pick tests from the changed modules with a stated time limit per PR (the rest left to the end-of-version run)</td>
-<td>none</td>
-<td>Gate lane report, 2026-11-11.</td>
-</tr>
-<tr>
-<td>TEST.724</td>
-<td>Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json</td>
-<td>none</td>
-<td>Boss, 2026-11-11, train management.</td>
-</tr>
-<tr>
-<td>TEST.725</td>
-<td>Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train</td>
-<td>none</td>
-<td>Boss, 2026-11-11, train management.</td>
-</tr>
-<tr>
-<td>TEST.738</td>
-<td>Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale</td>
-<td>none</td>
-<td>Lane 01, 2026-11-12.</td>
-</tr>
-<tr>
-<td>TEST.740</td>
-<td>(bug) Main reds left after Train 26: fill_order, materials reachability, cli_edges, math lint in reproducible_draws, sql_portability, generation_stats, datasets_gaia_sources, web_generate_size and finish_run_generation</td>
-<td>none</td>
-<td>TODO thread, 2026-11-14.</td>
-</tr>
 <tr>
 <td>TEST.582</td>
 <td>Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census</td>
@@ -2031,18 +1639,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 02, 2026-11-12, deferred.</td>
 </tr>
 <tr>
-<td>GEN.1644</td>
-<td>Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)</td>
-<td>none</td>
-<td>Lane 13, 2026-11-12.</td>
-</tr>
-<tr>
-<td>GEN.1653</td>
-<td>apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)</td>
-<td>GEN.1652</td>
-<td>Lane 14, 2026-11-12.</td>
-</tr>
-<tr>
 <td>GEN.1654</td>
 <td>One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor</td>
 <td>none</td>
@@ -2055,46 +1651,10 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 02, 2026-11-12.</td>
 </tr>
 <tr>
-<td>GEN.1656</td>
-<td>StarSystem.<strong>init</strong>: one _build_host for primary, secondary and members, and one ceiling trim after the age settles</td>
-<td>GEN.1652</td>
-<td>Lane 14, 2026-11-12.</td>
-</tr>
-<tr>
 <td>GEN.1664</td>
 <td>StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once</td>
 <td>GEN.1656</td>
 <td>Lane 14, 2026-11-12.</td>
-</tr>
-<tr>
-<td>GEN.1671</td>
-<td>Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)</td>
-<td>none</td>
-<td>Fable thread, 2026-11-12.</td>
-</tr>
-<tr>
-<td>GEN.1674</td>
-<td>Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues)</td>
-<td>GEN.1510</td>
-<td>Lane 06, 2026-11-12.</td>
-</tr>
-<tr>
-<td>GEN.1677</td>
-<td>Design: remove the rest of the equipment-based habitability scoring: UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT</td>
-<td>none</td>
-<td>Kiamtochen thread, 2026-11-12.</td>
-</tr>
-<tr>
-<td>GEN.1682</td>
-<td>Phenomena rings drawn in the backfill as well</td>
-<td>GEN.1680</td>
-<td>generation-order thread, 2026-11-13.</td>
-</tr>
-<tr>
-<td>GEN.1698</td>
-<td>(bug) H<sub>2</sub>S and SO<sub>2</sub> have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S<sub>2</sub> condensation limit they still hold 3,240 to 13,300 kPa of H<sub>2</sub>S and 172 to 675 kPa of SO<sub>2</sub></td>
-<td>GEN.1562</td>
-<td>Lane 03, 2026-11-14.</td>
 </tr>
 <tr>
 <td>GEN.1706</td>
@@ -2103,28 +1663,10 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Class M and Blue thread, 2026-11-14.</td>
 </tr>
 <tr>
-<td>PERF.272</td>
-<td>Promote belt members only when they are read (15 percent of a system's time)</td>
-<td>none</td>
-<td>Lane 06, 2026-11-15.</td>
-</tr>
-<tr>
 <td>GEN.1727</td>
 <td>Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit</td>
 <td>none</td>
 <td>research thread, 2026-11-14</td>
-</tr>
-<tr>
-<td>GEN.1745</td>
-<td>A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts</td>
-<td>GEN.1743, GEN.1741</td>
-<td>Lane 02, 2026-11-15</td>
-</tr>
-<tr>
-<td>API.51</td>
-<td>The life-air API and the page chart read the stored air history, every gas</td>
-<td>GEN.1745</td>
-<td>Lane 16, 2026-11-15</td>
 </tr>
 <tr>
 <td>GEN.1746</td>
@@ -2133,94 +1675,52 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 03, 2026-11-15</td>
 </tr>
 <tr>
-<td>GEN.1767</td>
-<td>Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon</td>
-<td>GEN.1763</td>
-<td>Lane 03, 2026-11-16.</td>
-</tr>
-<tr>
-<td>GEN.1769</td>
-<td>Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw</td>
-<td>none</td>
-<td>Lane 02, 2026-11-16.</td>
-</tr>
-<tr>
-<td>TEST.786</td>
-<td>(bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean</td>
-<td>none</td>
-<td>Lane 14, 2026-11-16</td>
-</tr>
-<tr>
-<td>TEST.788</td>
-<td>Slow gate files: make each fit inside the hang guard without changing what it checks</td>
-<td>none</td>
-<td>Lane 16, 2026-11-16</td>
-</tr>
-<tr>
-<td>GEN.1771</td>
-<td>(bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more</td>
-<td>none</td>
-<td>Lane 03, 2026-11-16.</td>
-</tr>
-<tr>
-<td>GEN.1780</td>
-<td>The GEN.1732 haze loss ramp may have two branches</td>
-<td>none</td>
-<td>Lane 02, 2026-11-17</td>
-</tr>
-<tr>
 <td>GEN.1781</td>
 <td>Doubling methane cools hydrogen-rich airs</td>
 <td>none</td>
 <td>Lane 02, 2026-11-17</td>
 </tr>
 <tr>
-<td>GEN.1785</td>
-<td>Class census shifts explained, ranges renewed</td>
-<td>GEN.1777</td>
-<td>Lane 04, 2026-11-17</td>
+<td>GEN.1803</td>
+<td>Heavy trace gases warm by their real band strengths</td>
+<td>GEN.1621</td>
+<td>Lane 02, 2026-11-19</td>
 </tr>
 <tr>
-<td>GEN.1787</td>
-<td>Reproducible maths: detmath for hypot, dist and matmul</td>
+<td>TEST.822</td>
+<td>Job-engine tests red on main pass again</td>
 <td>none</td>
-<td>Lane 16, 2026-11-17</td>
+<td>TODO, 2026-11-22</td>
 </tr>
 <tr>
-<td>GEN.1788</td>
-<td>Giant scattering reviewed; comets follow</td>
+<td>PERF.282</td>
+<td>Stage 9 workers share the stellar-evolution tables</td>
+<td>OPS.247, OPS.279</td>
+<td>Lane 13, 2026-11-19</td>
+</tr>
+<tr>
+<td>GEN.1836</td>
+<td>A wet world's albedo centres on the Earth's 0.30</td>
 <td>none</td>
-<td>Lane 06, 2026-11-17</td>
+<td>TODO, 2026-11-23</td>
 </tr>
 <tr>
-<td>OPS.261</td>
-<td>Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in</td>
-<td>OPS.219, OPS.227</td>
-<td>Lane 14, 2026-11-15</td>
-</tr>
-<tr>
-<td>OPS.270</td>
-<td>(high) Only 3 of 16 sky shares of Stage 9 run at once</td>
+<td>OPS.296</td>
+<td>Find what removes a running job's row</td>
 <td>none</td>
-<td>Lane 13, 2026-11-16</td>
+<td>TODO, 2026-11-23</td>
 </tr>
 <tr>
-<td>OPS.271</td>
-<td>Ledgerless runs leave RQ; bulk RQ unit path deleted</td>
-<td>OPS.228</td>
-<td>Lane 13, 2026-11-17</td>
-</tr>
-<tr>
-<td>PERF.279</td>
-<td>Habitability seasonal solve per pre-placed system</td>
+<td>PERF.287</td>
+<td>The galaxy fingerprint keeps its output out of memory</td>
 <td>none</td>
-<td>Lane 16, 2026-11-17</td>
+<td>TODO, 2026-11-23</td>
 </tr>
 <tr>
-<td>PERF.280</td>
-<td>Stage 9 skips or batches near-empty sky cells</td>
+<td>OPS.276</td>
+<td>Sky jobs no longer stop on an out-of-range list</td>
 <td>none</td>
-<td>Lane 07, 2026-11-17</td>
+<td>Lane 16, 2026-11-18</td>
 </tr>
 </tbody>
 </table></div>

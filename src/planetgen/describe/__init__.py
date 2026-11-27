@@ -12,7 +12,7 @@ command line render that one Document.
 """
 
 from planetgen.describe import html, markdown, text
-from planetgen.describe.build import describe
+from planetgen.describe.build import describe, describe_free_moon
 from planetgen.describe.phenomena import describe_phenomenon
 
 DOCUMENT_FORMAT = "document"
@@ -30,4 +30,4 @@ def render(document, fmt):
     return RENDERERS[fmt](document)
 
 
-__all__ = ["DOCUMENT_FORMAT", "RENDERERS", "describe", "describe_phenomenon", "html", "render"]
+__all__ = ["DOCUMENT_FORMAT", "RENDERERS", "describe", "describe_free_moon", "describe_phenomenon", "html", "render"]

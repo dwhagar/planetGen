@@ -46,8 +46,7 @@ main{padding:16px 16px 60px}}
 <h1 id="the-atmosphere-mixture-of-a-body-from-regimes-to-mole-fractions-gen451-gen479-gen454-gen499">The atmosphere mixture of a body: from regimes to mole fractions (GEN.451, GEN.479, GEN.454, GEN.499)</h1><p class="meta">docs/design/composition/mixture-draw.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#the-split">The split</a></li><li style="margin-left:0px"><a href="#interface">Interface</a></li><li style="margin-left:0px"><a href="#the-subject-of-a-body-and-the-oceans-sinks-gen756-gen757">The subject of a body and the ocean's sinks (GEN.756, GEN.757)</a></li><li style="margin-left:0px"><a href="#where-the-degassed-sulfur-goes-gen815">Where the degassed sulfur goes (GEN.815)</a></li><li style="margin-left:0px"><a href="#where-the-carbon-of-a-world-with-no-land-goes-gen814">Where the carbon of a world with no land goes (GEN.814)</a></li><li style="margin-left:14px"><a href="#the-sinks-in-the-air-solve-gen830-gen823-gen837">The sinks in the air solve (GEN.830, GEN.823, GEN.837)</a></li><li style="margin-left:0px"><a href="#rocky-outgassing">Rocky outgassing</a></li><li style="margin-left:0px"><a href="#the-families">The families</a></li><li style="margin-left:0px"><a href="#stand-ins-and-limits">Stand-ins and limits</a></li></ul></details>
 <p>Status: every family implemented and tested (<code>physics/mixture_draw.py</code>, <code>draw_mixture</code>) and called by the generator since GEN.411 (the fixed point
 of <code>physics/surface_air.py</code> replays it at every step). Lane I stores the result and owns the pressure. The trace and minor gases of table <code>m</code> are drawn after the life stage by
-<code>physics/mixture_trace.py</code> (<code>draw_trace_gases</code>, which adds N<sub>2</sub>O, PH<sub>3</sub>, HCl, HF, NO<sub>2</sub> and CH<sub>3</sub>Cl at stand-in amounts where the rows draw them
-present); the ozone rows are lane F's.</p>
+<code>physics/mixture_trace.py</code> (<code>draw_trace_amounts</code>, which gives the N<sub>2</sub>O, PH<sub>3</sub>, NO<sub>2</sub> and CH<sub>3</sub>Cl the rows draw present at stand-in amounts, added to the air by <code>physics/trace_air.py</code>); the ozone rows are lane F's.</p>
 <h2 id="the-split">The split</h2>
 <div class="table"><table>
 <thead>
@@ -84,9 +83,9 @@ present); the ozone rows are lane F's.</p>
 <td><code>physics/mixture_subject.py</code>, <code>subject_of_body</code></td>
 </tr>
 <tr>
-<td>What an ocean takes out of the drawn air: the sulfur uptake (the water vapour cap is the air solve's saturation)</td>
-<td>GEN.757</td>
-<td><code>physics/mixture_sinks.py</code>, <code>sulfur_remaining_fraction</code></td>
+<td>What an ocean takes out of the drawn air: the sulfur and nitrogen uptake (the water vapour cap is the air solve's saturation)</td>
+<td>GEN.757, GEN.1834</td>
+<td><code>physics/mixture_sinks.py</code>, <code>remaining_fraction</code></td>
 </tr>
 <tr>
 <td>Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor</td>
@@ -128,7 +127,7 @@ its parent from the star. A quantity that cannot be built is refused by name. Li
 bound (<code>DAYSIDE_OVER_EQUILIBRIUM</code>, <code>(8/3)^(1/4)</code>: the generator has no redistribution model), the layer pressure of a giant is 0.1 bar
 (<code>PHOTOSPHERE_BAR</code>), a hot A, B or O star takes the F rows and a brown dwarf the M rows, and the snow ratio uses the body's present
 distance because no formation distance is stored.</p>
-<p><code>mixture_sinks.sulfur_remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)</code> keeps <code>1 / (1 + kH m g M / P0)</code> of each sulfur gas (SO<sub>2</sub>, H<sub>2</sub>S: Henry's law over <code>m</code> kg of ocean per square metre). The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's. A function that capped the whole drawn mixture in one call (<code>apply_ocean_sinks</code>) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside.</p>
+<p><code>mixture_sinks.remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)</code> keeps <code>1 / (1 + kH m g M / P0)</code> of each dissolved gas (SO<sub>2</sub>, H<sub>2</sub>S, and since GEN.1834 N<sub>2</sub>: Henry's law over <code>m</code> kg of ocean per square metre; the share is the same at every pressure). An Earth ocean holds 0.6 percent of the air's nitrogen. The nitrogen the crust, sediment, life and subduction keep is not in this function: it is inside the degassing efficiency of the nitrogen (NB3, GEN.1833), so a second subtraction would count it twice. The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon and water are GEN.726's. A function that capped the whole drawn mixture in one call (<code>apply_ocean_sinks</code>) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside. The nitrogen is taken by the open water only (<code>surface_air._dissolve</code>, <code>ICE_CUT_GASES</code>): the share of the sea the ice has not covered by the albedo's ice law (<code>climate_branches.IceAlbedoLaw.ice_fraction</code>), so a frozen water world keeps its air and no step at 273.15 K stands in the temperature solve; the sulfur gases keep the whole column.</p>
 <h2 id="where-the-degassed-sulfur-goes-gen815">Where the degassed sulfur goes (GEN.815)</h2>
 <p>The supply law brings sulfur to the surface; the sulfur sink decides how much of it the air keeps (<code>physics/sulfur_balance.py</code>). It
 replaced the stand-in <code>SULFUR_SURFACE_KEPT</code> (1e-5 to 1e-2 of the sulfur stayed in the air with an ocean; removed when <code>surface_air</code> called this
@@ -136,6 +135,11 @@ module), under which a wet world could hold hundreds of bar of S<sub>2</sub>. Tw
 and COS with iron as FeS and FeS<sub>2</sub>). Which one a mole goes to is the redox of the gas it arrived in: <code>oxidised_share_of</code> reads the share of
 the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.</p>
 <ul>
+<li><strong>A molten surface (GEN.1814).</strong> A body whose surface is over <code>mixture_lava.MELT_MIN_K</code> has a third sink, the melt (<code>physics/melt_sulfur.py</code>). Silicate melt dissolves sulfide up to the sulfur content
+at sulfide saturation, <code>ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T</code> ([R5340], fit to 1 atm to 40 GPa and 1,573 to 4,605 K); the molten layer reaches the pressure where the tidal heating's solidus
+(<code>tidal_heating.solidus_k</code>) meets the surface temperature, at most the base of the body's magma ocean (<code>magma_ocean_redox.base_pressure_gpa</code>), and its column mass is that pressure over the gravity.
+After the crust sinks have taken their capacity the melt takes the rest up to its own and keeps it; <code>SulfurBalance.melt_mol_m2</code> carries it. The sulfur gas was the lava world's greenhouse, so the
+air solve cools it as the melt takes sulfur (the 2,860 K world of seed 137 ends at 2,360 K with three quarters of its degassed sulfur in the melt). Stand-ins MS1 to MS4 (section 6.319).</li>
 <li><strong>Capacity.</strong> The crust the volcanism built holds the calcium and the iron: <code>crust_column_kg_m2(released_j, radius_m)</code> is the Earth
 twin's crust per processed mantle (<code>CRUST_PER_PROCESSED_MANTLE</code>) times the mantle <code>surface_pressure</code> says the interior has processed,
 over the area. One calcium binds one sulfur as sulfate, one iron one sulfur as sulfide. Sulfur beyond the capacity stays in the air whole,
@@ -370,7 +374,7 @@ elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mo
 </li>
 <li>
 <p>Design brackets this module added, each to be replaced by the research item named: <code>WATER_RESIDUAL</code>, <code>SULFUR_SINK</code>,
-<code>WATER_PHOTOLYSED</code>, <code>OCEAN_WATER_WT_PERCENT</code>, <code>CARBON_PER_OCEAN_WATER</code>, <code>OXYGEN_SINK</code>, <code>TITAN_HUMIDITY</code>, <code>TITAN_HYDROGEN</code>, <code>AMMONIA_OUTGASSED</code>, <code>AMMONIA_PER_WATER</code>, <code>AMMONIA_TO_N2</code>, <code>FROST_ICE</code>
+<code>WATER_PHOTOLYSED</code>, <code>OCEAN_WATER_WT_PERCENT</code>, <code>CARBON_PER_OCEAN_WATER</code>, <code>OXYGEN_ESCAPE</code>, <code>TITAN_HUMIDITY</code>, <code>TITAN_HYDROGEN</code>, <code>AMMONIA_OUTGASSED</code>, <code>AMMONIA_PER_WATER</code>, <code>AMMONIA_TO_N2</code>, <code>FROST_ICE</code>
 (<code>mixture_evolved</code>; GEN.481 and the ice composition item), <code>ALKALI_ACTIVITY_COEFFICIENT</code> and <code>COMPOSITION_SCATTER</code> (<code>mixture_lava</code>; the
 melt activity model of GEN.499 and the bulk composition of lane J), the k1 to k3 ordering rule of the coma.</p>
 </li>

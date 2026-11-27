@@ -160,7 +160,7 @@ first (TEST.79, PR #427).</p>
 </li>
 <li>
 <p><strong>Built (NAV.12).</strong> <code>route.hops</code> carries <code>{from, to, distance_ly, unknown_space}</code> per hop and <code>route.longest_hop_ly</code> the longest
-(<code>query.nav_between</code>, <code>corridor.unknown_space_flags</code>: a hop is flagged when
+(<code>query.nav_between</code>, <code>corridor.unknown_cells</code>: a hop is flagged when
 a cell on its line, other than the two holding its ends, has no <code>sectors</code>
 row). A same-sector pair with a galaxy placement is routed in the galaxy
 corridor and shifted back into the sector's frame. The NAV page states the
@@ -614,7 +614,7 @@ adds about 3 to 9 times the cells; make it a checkbox.</li>
 <li><strong>Cost, before offering.</strong> <code>generation.stats.estimate(sectors, stats, database, workers)</code> takes <code>(density, expected_systems)</code> per sector and returns
 seconds, bytes and a disk refusal; <code>run_galaxy.generate_sector_neighborhood</code>
 already does this for a sphere (<code>_neighborhood_candidates</code>,
-<code>_neighborhood_batch</code>, <code>estimate_only</code>), and NAV.48 needs the same with an
+<code>_Pending.of_candidates</code>, <code>estimate_only</code>), and NAV.48 needs the same with an
 explicit address list. A line in the disk plane crosses 0.26 to 0.32 cells
 per parsec, a random 3D direction about 0.4 [C]. At 6.3 systems per
 solar-density cell that is about 6 CPU-minutes per 1,000 pc at the PERF.3

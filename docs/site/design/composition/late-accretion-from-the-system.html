@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The air reads the system's late accretion (GEN.1493, design) - planetGen docs</title>
-<meta name="description" content="Status: design for review by TODO and Boss; nothing is built.">
+<meta name="description" content="Status: slices 0, 1 and 3 are built and on main (see &quot;What is on main&quot; below); slice 2 is built on claude/lane06-gen1493-slice2 (see &quot;Slice 2 result&quot; at the end).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
 @media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
@@ -43,8 +43,8 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="design/composition/late-accretion-from-the-system.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="the-air-reads-the-systems-late-accretion-gen1493-design">The air reads the system's late accretion (GEN.1493, design)</h1><p class="meta">docs/design/composition/late-accretion-from-the-system.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#the-question">The question</a></li><li style="margin-left:0px"><a href="#what-the-code-does-today-read-not-assumed">What the code does today (read, not assumed)</a></li><li style="margin-left:0px"><a href="#findings-that-shape-the-design">Findings that shape the design</a></li><li style="margin-left:0px"><a href="#options-for-the-order">Options for the order</a></li><li style="margin-left:0px"><a href="#build-in-slices-each-small-each-its-own-pr">Build in slices (each small, each its own PR)</a></li><li style="margin-left:0px"><a href="#done-when">Done when</a></li><li style="margin-left:0px"><a href="#questions-for-boss-plain-words">Questions for Boss (plain words)</a></li><li style="margin-left:0px"><a href="#slice-0-result-built-physicslate_supplypy-rows-ls1-to-ls4-of-section-6254-census-testsauditlate_supply_censuspy">Slice 0 result (built: physics/late_supply.py, rows LS1 to LS4 of section 6.254, census tests/audit/late_supply_census.py)</a></li><li style="margin-left:0px"><a href="#slice-1-result-built-generationlate_accretionpy-planetsremake_air-rows-la1-to-la3-of-section-6255-census-testsauditlate_accretion_censuspy">Slice 1 result (built: generation/late_accretion.py, planets.remake_air, rows LA1 to LA3 of section 6.255, census tests/audit/late_accretion_census.py)</a></li></ul></details>
-<p>Status: design for review by TODO and Boss; nothing is built. Written by Lane 22 on 2026-11-09. Slice A (GEN.1453, <code>physics/influx.py</code>) is merged.</p>
+<h1 id="the-air-reads-the-systems-late-accretion-gen1493-design">The air reads the system's late accretion (GEN.1493, design)</h1><p class="meta">docs/design/composition/late-accretion-from-the-system.md</p><details class="toc"><summary>On this page (17 headings)</summary><ul><li style="margin-left:0px"><a href="#the-question">The question</a></li><li style="margin-left:0px"><a href="#what-the-code-does-today-read-not-assumed">What the code does today (read, not assumed)</a></li><li style="margin-left:0px"><a href="#findings-that-shape-the-design">Findings that shape the design</a></li><li style="margin-left:0px"><a href="#options-for-the-order">Options for the order</a></li><li style="margin-left:0px"><a href="#build-in-slices-each-small-each-its-own-pr">Build in slices (each small, each its own PR)</a></li><li style="margin-left:0px"><a href="#done-when">Done when</a></li><li style="margin-left:0px"><a href="#questions-for-boss-plain-words">Questions for Boss (plain words)</a></li><li style="margin-left:0px"><a href="#slice-0-result-built-physicslate_supplypy-rows-ls1-to-ls4-of-section-6254-census-testsauditlate_supply_censuspy">Slice 0 result (built: physics/late_supply.py, rows LS1 to LS4 of section 6.254, census tests/audit/late_supply_census.py)</a></li><li style="margin-left:0px"><a href="#slice-1-result-built-generationlate_accretionpy-planetsremake_air-rows-la1-to-la3-of-section-6255-census-testsauditlate_accretion_censuspy">Slice 1 result (built: generation/late_accretion.py, planets.remake_air, rows LA1 to LA3 of section 6.255, census tests/audit/late_accretion_census.py)</a></li><li style="margin-left:0px"><a href="#what-is-on-main-read-2026-11-18">What is on main (read 2026-11-18)</a></li><li style="margin-left:0px"><a href="#slices-2-and-3-design-not-built">Slices 2 and 3 (design, not built)</a></li><li style="margin-left:14px"><a href="#slice-2-the-inward-share-reads-what-the-system-did-to-the-reservoir">Slice 2: the inward share reads what the system did to the reservoir</a></li><li style="margin-left:14px"><a href="#slice-3-census-and-report-by-architecture">Slice 3: census and report by architecture</a></li><li style="margin-left:14px"><a href="#questions-for-boss-plain-words-1">Questions for Boss (plain words)</a></li><li style="margin-left:0px"><a href="#slice-3-result-baseline-before-slice-2-testsauditlate_accretion_architecture_censuspy-report-reportsgen1493-veneer-by-architecture-2026-11-18md">Slice 3 result (baseline before slice 2; tests/audit/late_accretion_architecture_census.py, report reports/gen1493-veneer-by-architecture-2026-11-18.md)</a></li><li style="margin-left:0px"><a href="#slice-2-result-lane-06-2026-11-21-boss-answered-the-three-questions-above-yes-on-2026-11-20">Slice 2 result (Lane 06, 2026-11-21; Boss answered the three questions above yes on 2026-11-20)</a></li><li style="margin-left:0px"><a href="#slice-3-result-lane-06-2026-11-22-boss-answered-yes-on-2026-11-21-to-building-the-scattering-step-census-before-merge">Slice 3 result (Lane 06, 2026-11-22; Boss answered yes on 2026-11-21 to building the scattering step, census before merge)</a></li></ul></details>
+<p>Status: slices 0, 1 and 3 are built and on main (see &quot;What is on main&quot; below); slice 2 is built on <code>claude/lane06-gen1493-slice2</code> (see &quot;Slice 2 result&quot; at the end). Written by Lane 22 on 2026-11-09; the last section by Lane 06 on 2026-11-18. Slice A (GEN.1453, <code>physics/influx.py</code>) is merged.</p>
 <h2 id="the-question">The question</h2>
 <p>A rocky planet's air and ocean are drawn with one late-accretion number: <code>impact_history.late_accreted_fraction</code> gives 0.7 percent of the planet's mass times <code>mass^(-1/3)</code>, scattered
 log-normally, and <code>surface_air._late_accretion</code> feeds it to <code>impact_history.veneer_balance</code> (what the impactors bring, less what they erode; GEN.739, GEN.819). That is one Solar-System
@@ -122,6 +122,173 @@ magnitude in mass; slice 1 either accepts it or narrows it with a floor, a call 
 <li>Census (240 seeds, 246 planets of 0.3 to 3 Earth masses): 43 percent take the floor, 22 percent sit at the ceiling, the median is 0.13 of the law's mean (10th and 90th: 0.05 and 4.36). The pass is 18 percent of generation time (<code>reports/gen1493-late-accretion-census-2026-11-09.md</code>).</li>
 <li>Cost: the pass for every planet is 18 percent of generation time. Tried and dropped: a warm start of the air from the old solution (the fixed point has more than one answer for some planets, 3 of 10 trial planets landed elsewhere). Kept: a gate (<code>planets.LATE_ACCRETION_GATE</code>, row LA3): the air is left as it is when the new veneer moves the carbon and the nitrogen it left by less than half of what the volcanoes gave, and a planet with no air is not made again. The pass is then 8.8 percent; 201 of 246 planets are identical to the full replay, 13 differ by more than 1 percent (worst 99 percent in pressure, a climate branch). Gate 1.0 would be about 6 percent with a worst of 29 percent.</li>
 </ul>
+<h2 id="what-is-on-main-read-2026-11-18">What is on main (read 2026-11-18)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Where</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Early supply as a shared sink (rows LS1 to LS4)</td>
+<td><code>physics/late_supply.py</code></td>
+<td>built; every planet and giant is a sink, so a giant's ejection is the denominator</td>
+</tr>
+<tr>
+<td>End-of-making replay with the system's number (rows LA1 to LA3)</td>
+<td><code>generation/late_accretion.py</code> (<code>apply</code>, <code>give_first_air</code>), <code>planets.remake_air</code>, <code>build.air_replay</code></td>
+<td>built; private stream, no draw of the run's stream moves; gate <code>LATE_ACCRETION_GATE</code></td>
+</tr>
+<tr>
+<td>Present-day dust and comets on a sheet (rows IF1 to IF10)</td>
+<td><code>physics/influx.py</code>, <code>generation/cosmic_dust.py</code>, <code>describe/influx_row.py</code></td>
+<td>built; display only, not the veneer</td>
+</tr>
+<tr>
+<td>Giants' swept disk and companion stirring of belts</td>
+<td><code>physics/scatter.py</code> (<code>REACH_ZONE_WIDTHS</code> 3, GEN.1788), <code>physics/belt_forcing.py</code> (GEN.1492), <code>physics/belt_origin.py</code> (<code>stirred</code>, BG8)</td>
+<td>built for the belt's mass and orbit; <strong>not yet read by the veneer</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>So the veneer today is <code>INWARD_SHARE</code> (LS1, a constant 0.1, T6, L3) times each belt's <strong>primordial</strong> mass, shared among the bodies. Two things the system does to a reservoir never reach it:</p>
+<ol>
+<li>A giant beyond the belt does more than take a share. Its chaotic zone throws a part of the belt's mass onto crossing orbits (<code>scatter_shares</code>: the bound, scattered part) or out of the system (the ejected part). Today the belt's <code>scattered_mass_earth</code> and <code>cleared_mass_earth</code> are stored and drawn on the belt page, and the veneer ignores them.</li>
+<li>A companion star or a close giant stirs the belt (<code>stirred</code>, <code>belt_forcing.combined</code> raises its eccentricity). A stirred belt grinds faster and sends more inward; a quiet one sends less. LS1 is the same 0.1 for both.</li>
+</ol>
+<p>Comets are the other gap. <code>cosmic_dust</code> gives them a present-day dust rate, but <code>late_accretion.percent_for</code> builds its reservoirs from belts only, so an outer disk that made comets and no belt gives its planets only the floor.</p>
+<h2 id="slices-2-and-3-design-not-built">Slices 2 and 3 (design, not built)</h2>
+<h3 id="slice-2-the-inward-share-reads-what-the-system-did-to-the-reservoir">Slice 2: the inward share reads what the system did to the reservoir</h3>
+<p><strong>Change.</strong> Replace the constant in LS1 by a per-reservoir share, keeping the single row (the Boss tweak rule of 2026-11-16: modify the existing stand-in, no modifier layered on top):</p>
+<pre><code>inward_share(belt) = LS1_BASE + LS1_GAIN x scattered_share(belt) x (1 - ejected_share(belt)) + LS1_STIR x stirred(belt)
+</code></pre>
+<ul>
+<li><code>scattered_share</code> is <code>belt.scattered_mass_earth / belt.primordial_mass_earth</code>, the part the giants threw onto bound crossing orbits; <code>ejected_share</code> is already inside <code>scatter_shares</code> (<code>ejected / swept</code>), so a heavy giant (large Safronov number) sends most of what it scatters out of the system instead of in. That is the physical difference between a Jupiter and a Neptune: the lighter giant keeps what it scatters.</li>
+<li><code>stirred</code> is 0 or 1 today (BG8). The companion's stirring (<code>belt_forcing.combined</code>) already moves the belt's eccentricity, so a continuous form is possible: the stirring term goes as the belt's eccentricity over the unstirred width eccentricity. First build uses the stored flag, because it is already stored and a test can pin it.</li>
+<li><code>LS1_BASE</code> stays 0.1, so a quiet belt behind no giant gives what the census calibrated in slice 0 (median 0.105 of the law's mean). The two gains are new constants, registered next to LS1 as LS1a and LS1b, tier T6 (physics-shaped, no source prints the number), tweak L4 (fitted, no source), each with a range test so no gain can lift a Solar-System-like synthetic architecture out of 0.2 to 0.7 percent of an Earth's mass.</li>
+<li>Comets: add the comet reservoirs of the system to <code>percent_for</code> (<code>influx.Reservoir(&quot;comet&quot;, ...)</code>, mass as the comet bodies' summed mass, ring at the perihelion), scaled by the same <code>inward_share</code> of the disk that made them. A system whose outer disk made comets and no belt then stops being a floor-only system.</li>
+</ul>
+<p><strong>What it costs.</strong> No new air solve. The number only feeds the existing replay, so the cost stays the 8.8 percent the gate left (slice 1 result). The share is evaluated per planet per belt, a sum over a handful of rows.</p>
+<p><strong>Lock and epoch.</strong> The veneer moves for every system with a giant or a stirred belt, so the air, the water and the class of some rocky planets move: a lock item, <code>generation-affects: fill, population</code>. No draw of the run's stream moves (the replay is private), so no new epoch is needed beyond the merge-train golden. Pass <code>--affects plan, scatter, fill</code> only if the comet reservoirs are read from a stage that runs before the planet loop, which this design avoids by reading them in <code>late_accretion.apply</code>, after the system is whole.</p>
+<p><strong>Tests.</strong> Pure-function tests on the share (no giant gives base; a Neptune keeps more of what it scatters than a Jupiter; a stirred belt gives more than a quiet one), the Solar-System-like range test over the synthetic census, and the wiring test that the replay reads the new share.</p>
+<h3 id="slice-3-census-and-report-by-architecture">Slice 3: census and report by architecture</h3>
+<p><code>tests/audit/late_accretion_census.py</code> grows an architecture column (no giant, a Jupiter, a Neptune, a hot Jupiter, a companion star, a comet-only disk) and the report <code>reports/gen1493-veneer-by-architecture-&lt;date&gt;.md</code> gives, for each, the median veneer, the share of planets at the floor and at the ceiling (today 43 and 22 percent), the share of planets whose air changed, and the generation time with the pass. The done-when of this note then closes.</p>
+<h3 id="questions-for-boss-plain-words-1">Questions for Boss (plain words)</h3>
+<ol>
+<li>A belt behind a giant that throws things inward should feed the planets more, and a belt behind a very heavy giant should feed them less, because that giant throws most of what it scatters out of the system. No source prints how much more or less, so two new numbers would be tuned so a Solar-System-like system stays in 0.2 to 0.7 percent of an Earth's mass, and marked as fitted (L4). Is that acceptable? Recommended: yes.</li>
+<li>Should comets count as a source of the veneer, the same way belts do? Recommended: yes; today a system that made only comets leaves its planets at the floor.</li>
+<li>Today 43 percent of rocky planets sit at the floor and 22 percent at the ceiling, a wider spread than the single number gave. Slice 3 will report the spread by architecture; should the floor and ceiling stay as they are until that report is in? Recommended: yes, change nothing until the census is in front of you.</li>
+</ol>
+<h2 id="slice-3-result-baseline-before-slice-2-testsauditlate_accretion_architecture_censuspy-report-reportsgen1493-veneer-by-architecture-2026-11-18md">Slice 3 result (baseline before slice 2; <code>tests/audit/late_accretion_architecture_census.py</code>, report <code>reports/gen1493-veneer-by-architecture-2026-11-18.md</code>)</h2>
+<p>In 240 Sun-like systems 71 percent of rocky planets sit on the floor (51 percent for default stars), 65 points of it because no belt lies outside the planet; every planet of a system with a giant (14) is at the floor. The median veneer is 0.04 percent of the planet's mass against the published 0.2 to 0.7 percent. So the design of slice 2 above changes: the reservoir to read is the one the system <strong>had</strong> (the belt's primordial mass, what the giants cleared and scattered, the outer disk that made comets), not only the belts that remain, or a giant that cleared its belt leaves the planets inside it at the floor. If the primordial mass of a fully cleared belt is not stored, storing it is the first step of slice 2. No comet-only system appears in 480 seeds (GEN.1788 rates), so the comet source needs a forced fixture.</p>
+<h2 id="slice-2-result-lane-06-2026-11-21-boss-answered-the-three-questions-above-yes-on-2026-11-20">Slice 2 result (Lane 06, 2026-11-21; Boss answered the three questions above yes on 2026-11-20)</h2>
+<p><strong>What was built.</strong> <code>late_supply.inward_share_of(fates, stirred, gone)</code> gives the share of a reservoir's primordial mass sent inward: <code>INWARD_SHARE</code> (0.1) of the part no giant swept, <code>CROSSING_GAIN</code> (0.3, row LS1a) of the part a giant threw onto crossing orbits, and <code>STIRRED_GAIN</code> (0.1, row LS1b) more for a stirred ring. &quot;Crossing&quot; is read from the scatter step's own populations (<code>scatter_disk</code> plus <code>centaurs</code>: bound, not ejected), so a heavy giant that throws most of its sweep out of the system (large Safronov number: more <code>ejected</code>) sends less inward than a light one, with no new constant for the ejected part. <code>late_supply.Early</code> carries the share on the reservoir; <code>late_accretion.early_of_belt</code> and <code>early_of_origin</code> build it.</p>
+<p><strong>The reservoir the system had.</strong> <code>belt_birth.build(..., lost=[])</code> hands on each stretch the star's orbits held that no belt is left of; <code>StarSystem.lost_reservoirs</code> keeps them by star for the end-of-making pass. A lost stretch counts only for what the giants threw onto crossing orbits (nothing stays in a ring to be ground or stirred, and what the planets took is not a leftover); a stretch no giant threw anything from is left out. Nothing is stored: the pass runs once at generation.</p>
+<p><strong>Comets.</strong> Comets come from the scattered outer disk (GEN.1765), so the source of the veneer that the comets stand for is that disk's crossing share, counted above whether or not a belt remains of it. The few sampled nuclei (<code>influx.Reservoir(&quot;comet&quot;, ...)</code>) are 1e12 to 1e15 kg each and would add nothing next to a disk of Earth masses, and counting them as well would count the same mass twice. A star with no outer disk has none (Boss, 2026-11-20: only stars with an outer disk).</p>
+<p><strong>Tuning (row LS1a, LS1b).</strong> A synthetic Sun-like system (an Earth inside four giants, an outer disk of 10 to 20 Earth masses swept by a Neptune-class giant) keeps 0.2 to 0.7 percent of the Earth's mass (test). The scale is fitted and marked L4.</p>
+<p><strong>Census (240 G2V systems, seeds 5000 to 5239, <code>tests/audit/late_accretion_architecture_census.py</code>).</strong> The 2026-11-18 baseline above is out of date: main has moved. On current main (gains set to zero) and with slice 2 the groups are:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>Planets</th>
+<th>Floor</th>
+<th>Ceiling</th>
+<th>Median percent</th>
+<th>Median ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>no giant</td>
+<td>409</td>
+<td>16 percent</td>
+<td>47 percent</td>
+<td>2.47</td>
+<td>3.11</td>
+</tr>
+<tr>
+<td>giant inside the belt zone</td>
+<td>28</td>
+<td>89 percent</td>
+<td>0 percent</td>
+<td>0.035</td>
+<td>0.05</td>
+</tr>
+<tr>
+<td>giant beyond 10 AU</td>
+<td>34</td>
+<td>94 percent</td>
+<td>0 percent</td>
+<td>0.035</td>
+<td>0.05</td>
+</tr>
+<tr>
+<td>with a companion star</td>
+<td>173</td>
+<td>53 percent</td>
+<td>22 to 23 percent</td>
+<td>0.041</td>
+<td>0.05</td>
+</tr>
+</tbody>
+</table></div>
+<p>Slice 2 moves almost nothing in these groups (the companion group's ceiling share goes from 22 to 23 percent). The census reads: the veneer is set by the sinks and by whether a belt is left outside the planet, not by the share. Planets of a system with a giant sit on the floor because the giant takes the sink (a Jupiter-class sink weighs 70 times an Earth's), and planets of a giant-free system with a belt sit at the ceiling because nothing else takes it. Both ends are far from the published 0.2 to 0.7 percent for the Earth.</p>
+<p><strong>Floor and ceiling (Boss: keep, change only in slice 2 from what it measures).</strong> They are kept: the measurement does not isolate them. A lower ceiling would only move the giant-free planets from 3 percent to the new cap and a higher floor would only lift the giant systems, and neither gives the system the sink geometry it lacks. What the numbers do say is that the next step is the sink weight (rows LS2 and LS3, slice 3 of the scattering integration), not these two caps. That is a call for Boss with the table in hand.</p>
+<h2 id="slice-3-result-lane-06-2026-11-22-boss-answered-yes-on-2026-11-21-to-building-the-scattering-step-census-before-merge">Slice 3 result (Lane 06, 2026-11-22; Boss answered yes on 2026-11-21 to building the scattering step, census before merge)</h2>
+<p><strong>What was built.</strong> The reservoirs of a star are followed past its bodies from the farthest in (<code>late_supply.fates</code>): each body takes the share its focused cross-section gives over <code>RESIDENCE_YR</code> (<code>hit_share</code>, the Opik per-revolution probability <code>R^2 (1 + v_esc^2 / v_rel^2) / (2 pi a^2 sin i)</code>, row LS3 <code>SCATTER_INCLINATION_RAD</code> 0.1, LS5 <code>RESIDENCE_YR</code> 1e8), then throws <code>1 - exp(-Theta / THETA_EJECT)</code> of what is left out of the system (<code>eject_share</code>, the Safronov rule of <code>scatter</code>), and what is left past the innermost body falls to the star. This replaces the <code>OUTER_REACH</code> shortcut (row LS3 before). Because a giant is passed first and ejects, planets inside it see what it did not throw out, with no new weight for the giant. The rocky zone's own leftover planetesimals are a reservoir (<code>late_accretion.leftover_of</code>: <code>LEFTOVER_SHARE</code> 0.007 of the rocky planets' mass, row LA4, in <code>LEFTOVER_ZONE</code> (0.8, 1.2) times the innermost and outermost rocky planet's distance, row LA5): they lie inside the giants, so no giant takes them. Floor 0.05 and ceiling 3 percent are kept.</p>
+<p><strong>Census (same 240 G2V seeds, 5000 to 5239; report <code>reports/gen1493-slice3-census-2026-11-22.md</code>).</strong> Slice 2 against slice 3:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>Planets</th>
+<th>Floor before and after</th>
+<th>Ceiling before and after</th>
+<th>Median percent before and after</th>
+<th>Median ratio before and after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>no giant</td>
+<td>409</td>
+<td>16 and 27 percent</td>
+<td>47 and 17 percent</td>
+<td>2.47 and 0.137</td>
+<td>3.11 and 0.199</td>
+</tr>
+<tr>
+<td>giant inside the belt zone</td>
+<td>28</td>
+<td>89 and 96 percent</td>
+<td>0 and 0</td>
+<td>0.035 and 0.034</td>
+<td>0.05 and 0.05</td>
+</tr>
+<tr>
+<td>giant beyond 10 AU</td>
+<td>34 and 38</td>
+<td>94 and 82 percent</td>
+<td>0 and 0</td>
+<td>0.035 and 0.037</td>
+<td>0.05 and 0.05</td>
+</tr>
+<tr>
+<td>with a companion star</td>
+<td>173</td>
+<td>53 and 47 percent</td>
+<td>22 and 5 percent</td>
+<td>0.041 and 0.049</td>
+<td>0.05 and 0.069</td>
+</tr>
+</tbody>
+</table></div>
+<p>Planets still touching either bound: about 328 of 648 (51 percent), down from about 445 of 644 (69 percent). The giant-free ceiling cases fall from 47 to 17 percent because the sink geometry now takes what the share alone sent them; the giant-free median (0.137 percent, ratio 0.2) is now at the lower end of the published 0.2 to 0.7 percent instead of far above it. The giant groups stay at the floor, but not where the leftovers are: GEN.1828 split the 66 rocky planets of 0.3 to 3 Earth masses of the 24 Sun-like systems with a giant by where they stand. The 7 planets inside the snow line and inside the innermost giant are not at the floor (median ratio 0.70, about 0.4 percent of the planet's mass, inside the published 0.2 to 0.7). The floor holds 58 of the other 59, rocky bodies beyond the snow line (11 to 160 AU) that have no rocky zone around them: the leftovers lie in the zone the inner planets grew in, and a body there has none of its own. Report <code>reports/gen1828-giant-groups-at-the-floor-2026-11-22.md</code>.</p>
+<p><strong>Registry.</strong> New rows LS3 (rewritten), LS4 (rewritten), LS5, LA4 and LA5 in section 6.254 and 6.255; LS5 and LA4 are L4 (fitted, no source) with burn-down lines.</p>
 
 </main>
 </div>

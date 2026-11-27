@@ -60,6 +60,7 @@ API_CLAIMS = {
     "planetgen.api.edits:delete_sector_job": (700, 0.5),
     "planetgen.api.edits:edit_body_job": (700, 0.5),
     "planetgen.api.edits:regenerate_phenomenon_job": (700, 0.5),
+    "planetgen.api.lookup:name_search_job": (700, 1.0),     # a read-only search of the sectors: the figure of the other read-only light job, `pagejobs:build_answer`
     "planetgen.api.routes:create_system_job": (workers.BULK_WORKER_MEMORY_MB, 1.0),
     "planetgen.api.routes:generate_uncharted_system_job": (workers.BULK_WORKER_MEMORY_MB, 1.0),
     "planetgen.api.routes:update_system_job": (workers.BULK_WORKER_MEMORY_MB, 1.0),

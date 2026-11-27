@@ -285,6 +285,23 @@ def test_compact_pairs_never_have_merged_by_gravitational_waves(monkeypatch):
     assert pairs > 300
 
 
+@pytest.mark.parametrize("placed_kind, mass", [("neutron-star", 1.4), ("black-hole", 8.0)])
+def test_a_white_dwarf_with_a_neutron_star_or_a_hole_never_has_merged_by_gravitational_waves(monkeypatch, placed_kind, mass):
+    """GEN.1851: a white dwarf paired with a neutron star or a black hole went through no Peters screen, so about 3 in 100 of
+    such pairs (a neutron star, a 10 Gy system) were tighter than a merged pair can be; every degenerate pair meets the rule now."""
+    _force(monkeypatch, "white-dwarf")
+    placed = multistar.Placed(placed_kind, mass, 10.0)
+    pairs = 0
+    for seed in range(1500):
+        tree = _tree(placed, 10.0e9, seed)
+        if tree.member_count >= 2 and tree.members[1].kind == "white-dwarf":
+            pairs += 1
+            node = tree.nodes[0]
+            assert stability.peters_merger_time_yr(
+                tree.members[0].mass_solar, tree.members[1].mass_solar, node.separation_au, node.eccentricity) > 10.0e9, (seed, node)
+    assert pairs > 500
+
+
 def test_a_young_compact_pair_may_be_as_tight_as_the_double_pulsar(monkeypatch):
     _force(monkeypatch, "neutron-star")
     placed = multistar.Placed("neutron-star", 1.4, 10.0)
