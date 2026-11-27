@@ -1560,7 +1560,7 @@ class StarSystem:
             return
         with log.timed_phase("trojan planets"):
             for star, bodies in ((host.star, host.orbiters) for host in self.hosts):
-                if self._holds_its_disk(star):
+                if self._holds_its_disk(star) or self._too_massive_for_planets(star):
                     continue
                 made = trojan_planet.build(self, star, bodies)
                 if made:
@@ -1647,7 +1647,7 @@ class StarSystem:
             return
         with log.timed_phase("belt planets"):
             for star, bodies in self.hosts:
-                if self._holds_its_disk(star):      # a star that still holds its disk holds no bodies (`_apply_star_history`); a round member of its debris is not one either
+                if self._holds_its_disk(star) or self._too_massive_for_planets(star):      # a star that still holds its disk holds no bodies (`_apply_star_history`); a round member of its debris is not one either
                     continue
                 promoted = belt_planets.promote(self, star, bodies)
                 if promoted:
@@ -1900,12 +1900,21 @@ class StarSystem:
         holder = star.stars[0] if isinstance(star, PairHost) else star
         return getattr(holder, "disk_kind", None) in pre_main_sequence.DISK_KINDS and not self._explicit_request()
 
+    def _too_massive_for_planets(self, star):
+        """
+        Whether `star` is at or above `tuning.PLANET_HOST_MAX_MASS_SOLAR` at birth (GEN.1866): such a star (a Wolf-Rayet, O or heavy B star) keeps no planets, though its disk is gone by its age (`_holds_its_disk`), and no round
+        belt member is promoted to one; its belts stand. A close pair's mass is its primary's. A config that asks for a class or lists its slots overrides it.
+        """
+        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star
+        mass_sol = getattr(holder, "initial_mass_sol", None) or _kg_to_msun(holder.mass)
+        return mass_sol >= tuning.PLANET_HOST_MAX_MASS_SOLAR and not self._explicit_request()
+
     def _apply_star_history(self, planets, star):
         """
         Removes, in place, the bodies `star`'s age and history rule out: a
         star that still holds its own disk (`_holds_its_disk`, GEN.1552) has no
         planets and no belts yet, and every body whose inner edge lies
-        inside `_engulfment_radius_au` is gone (a belt that reaches past it keeps the part outside, `remnant_orbits.engulf_belt`). An explicitly required
+        inside `_engulfment_radius_au` is gone, and so is every planet of a star too massive to hold any (`_too_massive_for_planets`, GEN.1866; its belts stand) (a belt that reaches past it keeps the part outside, `remnant_orbits.engulf_belt`). An explicitly required
         habitable world or `SLOTS` list overrides the age rule: a random
         star is never that young when a habitable world is required
         (`stellarEvolution.sample_living_star`), so this only lets a
@@ -1914,12 +1923,13 @@ class StarSystem:
         explicit_request = self._explicit_request()
         engulfed_au = self._engulfment_radius_au(star, explicit_request)
         holds_disk = self._holds_its_disk(star)
+        too_massive = self._too_massive_for_planets(star)
         kept = []
         for body in planets:
             if body.body_type == 'a':
                 remnant_orbits.engulf_belt(body, engulfed_au)    # GEN.1072: the part of a belt outside the envelope's reach survives
             inner_edge = body.lower_limit if body.body_type == 'a' else body.distance
-            if inner_edge < engulfed_au or holds_disk:
+            if inner_edge < engulfed_au or holds_disk or (too_massive and body.body_type != 'a'):
                 continue
             kept.append(body)
         if len(kept) != len(planets):
