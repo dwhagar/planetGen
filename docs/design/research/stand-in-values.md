@@ -51,14 +51,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 233 | 23 | 12 | 1 | 0 | 269 |
 | T2 | 190 | 78 | 5 | 0 | 0 | 273 |
-| T3 | 137 | 71 | 12 | 10 | 0 | 230 |
+| T3 | 137 | 72 | 12 | 10 | 0 | 231 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 258 | 146 | 42 | 86 | 8 | 540 |
+| T6 | 258 | 146 | 42 | 85 | 8 | 539 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1168 | 434 | 108 | 280 | 66 | 2056 |
+| All | 1168 | 435 | 108 | 279 | 66 | 2056 |
 
 ## How the labels were given
 
@@ -3665,4 +3665,4 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| PH1 | P | T6 | L3 | `tuning.PLANET_HOST_MAX_MASS_SOLAR` 10: a star of 10 solar masses at birth or more holds no planet | 6 to 15 solar masses | stars with a birth mass at and above the cut, single or the primary of a pair | a planet found around a single star over 10 solar masses (b Cen (AB), 6 to 10 solar masses, is the heaviest host known), or a disk survey of O stars with disks past 1 Myr | a formation model of giants in the disks of the O and early B stars, and a planet census that reaches them | the disks of O and early B stars photoevaporate within a few tenths of a Myr (`physics/disk_dispersal.py`, GEN.1551) so no giant core grows; b Cen (AB)b is the most massive host known (6 to 10 solar masses, one giant at 556 AU); the cut itself is hand-chosen (DESIGN) | predicted only | - | - |
+| PH1 | B | T3 | L1 | `tuning.PLANET_HOST_MAX_MASS_SOLAR` 10: a star of 10 solar masses at birth or more holds no planet; below it the generator is unchanged | 6 to 15 solar masses | stars with a birth mass at and above the cut, single or the primary of a pair | a planet found around a single star over 10 solar masses, or a disk survey of O stars with disks past 1 Myr | a smooth decline of the share of stars that hold giants from 3 to 10 solar masses (the radial-velocity occurrence falls off above about 2.5 to 3), and a formation-time model of the disks of the O and early B stars | b Cen (AB)b: host 6 to 10 solar masses, one giant at 556 AU [R5369]; mu2 Sco b: host about 9 solar masses [R5370]; the occurrence of giants falls above 2.5 to 3 solar masses [R2172, R5368]; all second hand, the papers not read; the generator holds no giant-core growth time and the disk law is flat above 1.3 solar masses, so the cut cannot be derived from them | predicted only | - | - |
