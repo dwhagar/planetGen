@@ -595,14 +595,6 @@ def grow(conn, kind, job_id, claimed_mb, peak_mb=0.0):
     return bigger
 
 
-def kill_note(conn, name):
-    """What the worker `name` held when it was killed, for a message: its claim, the peak seen and what is held now, or `None`."""
-    row = _claim_row(conn, name)
-    if row is None:
-        return None
-    return {"kind": row["kind"], "claimed_mb": float(row["mb"]), "peak_mb": float(row.get("peak", 0.0)), "job": row.get("job", "")}
-
-
 @contextlib.contextmanager
 def hold(conn, claim, name=None, **options):
     """

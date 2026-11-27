@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4843+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The life-air API test now says what the route documents: a lifeless world with a stored air history answers from that record.
+
+### Fixed
+
+- GEN.1878: `tests/test_api_life_air.py` expected `life_air` to be `null` for every planet with no living class. The route (`planet_life_air`, API.51) documents `null` only for a world with no living class and no stored history; since GEN.1745 slice 2 a lifeless world with air of 500 Pa or more keeps an air history record, and the route answers from it (its gases, shocks and temperatures, no classes and no stages of life). The API was right and the test stale; the test now pins both cases. No change to the route or to any world.
+
+generation-output: unchanged
+
+## [8.0.4842+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Queue page's "What the queue has learned" table lists only the job kinds the code still emits, and folds the retired ones away where they can still be forgotten.
+
+### Fixed
+
+- The table listed every job kind the job profile had ever seen, including `cut:` and `stage:` kinds from a run weeks ago whose command or stage no longer exists. A kind is now current while its command is still registered (a `unit:` or `cut:` kind), while it has a typed claim (an `api:` or `fn:` kind), while an admin has fixed its figure, or, for a `stage:` kind or any other name, while it had a sample in the last fortnight. Every other kind is retired.
+- The retired kinds sit under a folded "Retired kinds" line below the table, with the same Forget control, so none is lost from view and the admin can still delete its samples.
+- `GET /api/admin/work/tuning` gives each kind a `current` flag.
+
+## [8.0.4841+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Galaxy Map has a mini map showing the whole galaxy and where you are looking from
+
+### Added
+- The Galaxy Map has a mini map (MAP.75): a small square in the bottom right corner showing the whole galaxy from the direction you are looking, with a cross where the view is centered and a line to your eye. It is a second, locked camera on the map's own renderer, so it never zooms and costs no second WebGL context. It is left out on a canvas too small for it and on the Sector Map.
+
+generation-output: unchanged
+
+## [8.0.4840+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A bare local name's search job now has a memory claim, and six functions nothing called are gone.
+
+### Fixed
+
+- OPS.321: `planetgen.api.lookup:name_search_job` (API.38) had no line in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed and the job ran on the default 1000 MB figure. It now claims 700 MB and one core, the figure of the other read-only light job.
+
+### Removed
+
+- GEN.1873: `memorygate.kill_note`, `units.open_job_id`, `wrapper.run_kind`, `region_stats.generated_mass_kg`, `corridor.unknown_space_flags` and `run_galaxy._neighborhood_batch`, which had no caller, test or wiring-register line.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4839+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The warm-up log test expects the start-times line, so it passes on main again
+
+### Changed
+
+- TEST.845: the warm-up log test (`test_warm_once_keeps_a_record_of_the_run_and_the_reason_a_change_gave`) expects the start-times line OPS.300 added between the run's start and its own lines, and checks the whole four-line record.
+
+generation-output: unchanged
+
+## [8.0.4838+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Kepler zone mix test cites its paper by registry id only
+
+### Fixed
+
+- TEST.838: `src/tests/test_generation_mix.py` named its source by author and year in four places as well as by [R2020], which `test_citations_outside_the_registry` rejects. The names are gone and every mention reads [R2020] with its table or section. No product change.
+
+generation-output: unchanged
+
 ## [8.0.4837+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The zone mix test now holds the generated planets against Kepler's counts instead of the model's own old output
