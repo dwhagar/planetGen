@@ -91,6 +91,8 @@ class PhaseTally:
         self.families = [family for family in FAMILIES if family in families]
         self.totals = {family: {"built": 0, "cached": 0, "warmed": 0, "left_out": 0, "seconds": 0.0}
                        for family in self.families}
+        self.failed = {family: [] for family in self.families}
+        """dict: The pages of each family that did not answer, each as `path answered status (what it said)` (OPS.312)."""
         self._done = set()
         self._reported = set()
         self.ended = []
@@ -102,6 +104,19 @@ class PhaseTally:
         for key in ("built", "cached", "warmed", "left_out"):
             total[key] += int(result.get(key) or 0)
         total["seconds"] += float(result.get("seconds") or 0.0)
+        self.failed[family].extend(result.get("failed") or ())
+
+    def _failed(self, name):
+        """The pages of phase `name` that did not answer."""
+        return [page for family in self.failed if phase_of(family) == name for page in self.failed[family]]
+
+    def _said(self, name):
+        """The sentence that names the pages of phase `name` that did not answer (the first few of them), or an empty one."""
+        pages = self._failed(name)
+        if not pages:
+            return ""
+        more = f"; and {len(pages) - 5} more" if len(pages) > 5 else ""
+        return f" {len(pages):,} page{'s' if len(pages) != 1 else ''} did not answer: {'; '.join(pages[:5])}{more}."
 
     def _sums(self, name):
         """`(built, cached, warmed, left_out, seconds)` added up over phase `name`'s families, or `None` when none of them ran."""
@@ -126,7 +141,7 @@ class PhaseTally:
             state = "stopped" if left_out else "built"
         return {"state": state, "built": built, "cached": cached, "left_out": left_out,
                 "seconds": round(self._wall.get(name, seconds), 1), "worker_seconds": round(seconds, 1),
-                "line": self.line(name)}
+                "failed": len(self._failed(name)), "line": self.line(name)}
 
     def line(self, name):
         """The one line for phase `name`: `Phase 2 of 5, built-levels: ...` (`None` when none of its families ran)."""
@@ -137,12 +152,13 @@ class PhaseTally:
         built, cached, warmed, left_out, seconds = sums
         head = f"{logrecord.counting_text('Phase', number, len(PHASES))}, {name}"
         seconds = self._wall.get(name, seconds)         # the time the phase took, not its units' own seconds added up
+        said = self._said(name)
         if not warmed and not left_out:
-            return f"{head}: nothing to warm."
+            return f"{head}: nothing to warm.{said}"
         if not built and not left_out:
-            return f"{head}: unchanged, nothing built ({cached:,} already stored) in {format_duration_seconds(seconds)}."
+            return f"{head}: unchanged, nothing built ({cached:,} already stored) in {format_duration_seconds(seconds)}.{said}"
         return (f"{head}: {built:,} built, {cached:,} already stored, {left_out:,} left out in {format_duration_seconds(seconds)}"
-                f"{'; stopped at the cache budget' if left_out and name in ('built-levels', 'deep-nodes') else ''}.")
+                f"{'; stopped at the cache budget' if left_out and name in ('built-levels', 'deep-nodes') else ''}.{said}")
 
     def _ready(self):
         lines, ended = [], []
@@ -408,15 +424,11 @@ class _Visitor:
 
 def _said(response):
     """What a page that did not answer said, a few words of it (its error message, the page's text without its markup), for the line that names it."""
-    text = re.sub(r"<[^>]*>", " ", response.get_data(as_text=True))
-    text = " ".join(text.split())[:100]
+    body = response.get_data(as_text=True)
+    title = re.search(r"<title>(.*?)</title>", body, re.S)
+    text = title.group(1) if title else re.sub(r"<[^>]*>", " ", body)       # an error page's title says what it is; any other body, its text
+    text = " ".join(text.replace(" - planetGen", "").split())[:100]
     return f" ({text})" if text else ""
-
-
-FAILED_PAGE_SHARE = 0.05
-FAILED_PAGES_ALLOWED = 3
-"""float, int: How many of a unit's pages may fail to answer before the unit fails (OPS.312): up to `FAILED_PAGES_ALLOWED` pages or `FAILED_PAGE_SHARE` of them, whichever is more. A few pages of thousands (a listed object
-that has no page, a server error) are recorded in the unit's line and the activity log and the warm-up goes on to its next phases; more than that means something is wrong with the site or the data, and the unit fails as it did."""
 
 
 def _cap(cap):
@@ -621,9 +633,9 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None, report
     if visitor.failed:
         shown = "; ".join(visitor.failed[:5]) + (f"; and {len(visitor.failed) - 5} more" if len(visitor.failed) > 5 else "")
         message = f"{family}: {len(visitor.failed)} of {visitor.pages} pages did not answer: {shown}"
-        if len(visitor.failed) > max(FAILED_PAGES_ALLOWED, FAILED_PAGE_SHARE * visitor.pages):
-            raise WarmupFailed(message)
-        # OPS.312: a few pages that do not answer are recorded and the warm-up goes on.
+        if len(visitor.failed) >= visitor.pages:
+            raise WarmupFailed(message)          # nothing answered: the site or its data is down, and the unit fails
+        # OPS.312: a page that does not answer is shown (the phase's line on the Queue page names it) and the warm-up goes on; only a unit in which no page answered fails.
         activity_log.event("GEN", "warm.pages_failed", db=db, family=family, failed=len(visitor.failed), pages=visitor.pages, first=shown[:300])
         result["failed"] = list(visitor.failed)
         result["line"] += f"; {message}"
@@ -734,8 +746,9 @@ def _gather_objects(family, args, results):
     built, left_out = sum(r.get("built", 0) for r in results), sum(r.get("left_out", 0) for r in results)
     seconds = sum(r.get("seconds", 0.0) for r in results)
     noun = results[0].get("noun", _OBJECT_NOUNS[family]) if results else _OBJECT_NOUNS[family]
+    failed = [page for r in results for page in r.get("failed", ())]
     return {"family": family, "warmed": warmed, "noun": noun, "left_out": left_out, "chunk": sum(r.get("chunk", 0) for r in results),
-            "cached": cached, "built": built, "seconds": seconds,
+            "cached": cached, "built": built, "seconds": seconds, "failed": failed,
             "line": f"{family}: {warmed} {noun} warmed ({built} answers built, {cached} already cached, {left_out} left out by the cap) in {format_duration_seconds(seconds)}"}
 
 
