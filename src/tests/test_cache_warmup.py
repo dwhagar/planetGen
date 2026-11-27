@@ -184,17 +184,35 @@ def test_a_cap_leaves_the_rest_and_says_so(galaxy):
     assert "1 left out by the cap" in result["line"]
 
 
-def test_a_page_that_does_not_answer_fails_the_family(galaxy, monkeypatch):
+def test_pages_that_do_not_answer_fail_the_family_when_there_are_more_than_a_few(galaxy, monkeypatch):
     real = apiclient.get_system
 
     def broken(db, system_id):
-        if system_id == galaxy.system_pids[0]:
-            raise apiclient.ApiError("boom", status_code=500)
-        return real(db, system_id)
+        raise apiclient.ApiError("boom", status_code=500)
     monkeypatch.setattr(apiclient, "get_system", broken)
+    monkeypatch.setattr(warmup, "FAILED_PAGES_ALLOWED", 0)
+    monkeypatch.setattr(warmup, "FAILED_PAGE_SHARE", 0)
     with pytest.raises(warmup.WarmupFailed) as failure:
         _warm(galaxy, "systems")
     assert "did not answer" in str(failure.value) and galaxy.system_pids[0] in str(failure.value)
+    assert real is not None
+
+
+def test_a_page_that_does_not_answer_is_named_and_the_warm_up_goes_on(galaxy, monkeypatch):
+    """OPS.312: one page that does not answer (a listed object with no page, a server error) is asked again, then named in the family's line with what it said, and the family does not fail."""
+    real = apiclient.get_system
+    asked = []
+
+    def broken(db, system_id):
+        if system_id == galaxy.system_pids[0]:
+            asked.append(system_id)
+            raise apiclient.ApiError("boom", status_code=500)
+        return real(db, system_id)
+    monkeypatch.setattr(apiclient, "get_system", broken)
+    result = _warm(galaxy, "systems")
+    assert len(asked) >= 2, "the page was asked for again"
+    assert len(result["failed"]) == 1 and galaxy.system_pids[0] in result["failed"][0]
+    assert "did not answer" in result["line"] and galaxy.system_pids[0] in result["line"]
 
 
 def test_an_unknown_family_is_refused(galaxy):

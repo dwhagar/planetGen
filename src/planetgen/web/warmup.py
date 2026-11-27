@@ -21,6 +21,7 @@ the `/galaxy` page asks for exactly them. `planetgen warm` runs it all.
 import contextlib
 import hashlib
 import json
+import re
 import time
 
 from planetgen.admin import activity_log
@@ -390,7 +391,10 @@ class _Visitor:
         response = self.client.get(path)
         self.pages += 1
         if response.status_code != 200:
-            self.failed.append(f"{path} answered {response.status_code}")
+            # OPS.312: a page that does not answer is asked once more (a server or database hiccup that passes), and one that still does not is named with what it said.
+            response = self.client.get(path)
+            if response.status_code != 200:
+                self.failed.append(f"{path} answered {response.status_code}{_said(response)}")
         return response
 
     @property
@@ -400,6 +404,19 @@ class _Visitor:
     @property
     def built(self):
         return apiclient.cache_stats["misses"] - self._misses
+
+
+def _said(response):
+    """What a page that did not answer said, a few words of it (its error message, the page's text without its markup), for the line that names it."""
+    text = re.sub(r"<[^>]*>", " ", response.get_data(as_text=True))
+    text = " ".join(text.split())[:100]
+    return f" ({text})" if text else ""
+
+
+FAILED_PAGE_SHARE = 0.05
+FAILED_PAGES_ALLOWED = 3
+"""float, int: How many of a unit's pages may fail to answer before the unit fails (OPS.312): up to `FAILED_PAGES_ALLOWED` pages or `FAILED_PAGE_SHARE` of them, whichever is more. A few pages of thousands (a listed object
+that has no page, a server error) are recorded in the unit's line and the activity log and the warm-up goes on to its next phases; more than that means something is wrong with the site or the data, and the unit fails as it did."""
 
 
 def _cap(cap):
@@ -603,7 +620,13 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None, report
                       f"{visitor.cached} already cached, {result['left_out']} left out by the cap) in {format_duration_seconds(seconds)}")
     if visitor.failed:
         shown = "; ".join(visitor.failed[:5]) + (f"; and {len(visitor.failed) - 5} more" if len(visitor.failed) > 5 else "")
-        raise WarmupFailed(f"{family}: {len(visitor.failed)} of {visitor.pages} pages did not answer: {shown}")
+        message = f"{family}: {len(visitor.failed)} of {visitor.pages} pages did not answer: {shown}"
+        if len(visitor.failed) > max(FAILED_PAGES_ALLOWED, FAILED_PAGE_SHARE * visitor.pages):
+            raise WarmupFailed(message)
+        # OPS.312: a few pages that do not answer are recorded and the warm-up goes on.
+        activity_log.event("GEN", "warm.pages_failed", db=db, family=family, failed=len(visitor.failed), pages=visitor.pages, first=shown[:300])
+        result["failed"] = list(visitor.failed)
+        result["line"] += f"; {message}"
     return result
 
 
