@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4829+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A planet or moon with a solid ground and no air at all now has an exosphere: the sodium, potassium, calcium, magnesium, iron, silicon monoxide and ices its surface lets go of, with a column for each, from the light and the wind of its own star
+
+### Added
+
+- GEN.455 part B: `physics/exosphere` gives a body whose stored pressure is exactly zero the species its surface supplies. Four sources, each read from the rock and the ices the body has: thermal release of the ices (`saturation`), photon-stimulated desorption of Na and K (the star's light in 250 to 400 nm, `life_classes.band_fraction`), micrometeoroid impact vaporisation of the rock (falling off with distance from the star) and ion sputtering (the wind's pressure at the body from `magnetism.wind_pressure_at`, cut for a body whose field holds the wind off). A species is in the exosphere only where a source supplies it, never from a list by class.
+- The loss: a share of each source leaves at once (the Weibull tail of the desorbed, the effusing Maxwell tail, the Thompson tail of the sputtered), the rest fly an arc of `2 v / g` and are ionised by the star's light on the way (Na from the three rates of part 04 by host temperature, a molecule from the photolysis table), so the column is the flux times the time spent up. A thermal column over 1e15 cm-2 is held at it (past that the gas is an air), and a species whose scale height is over the body's radius is not recorded.
+- Stored as `planet_exosphere` and `moon_exosphere` (migration 0276): the species, its column in atoms per cm2, the source that gives most of it and the scale height; `exosphere` on a body. A body with any air, a giant and a rogue planet have none.
+- Stand-ins EX1 to EX9 in section 6.328. Sodium of a Moon-like and a Mercury-like body comes out at 2.7e10 and 4e11 cm-2 against the 1e9 to 1e12 of the test points.
+- A lock item with no epoch bump.
+
 ## [8.0.4828+db280.gen150.api14] - 2026-11-27
 
 **Headline:** Each globular cluster now has blue stragglers in its core, their number following the core mass.
