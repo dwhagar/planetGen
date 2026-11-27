@@ -2,7 +2,7 @@
 //
 // MAP.75: the Galaxy Map's mini map, a second camera on the same renderer rather than a renderer of its own (docs/design/interface/
 // map-ui-and-frontend-libraries.md section 5.5). It is the whole galaxy seen from outside, from the direction the main camera looks
-// along, with a cross where the main view is centred and a line to where its eye is: the picture that says "you are here".
+// along, with a cross where the main view is centered and a line to where its eye is: the picture that says "you are here".
 //
 // One WebGL context: the main pass draws the whole canvas, then this draws a small square in a corner of it with the scissor test on,
 // the depth buffer cleared inside the square, and its own scene and camera, so nothing of the main scene (its shaders read the main
