@@ -114,7 +114,11 @@ def _stored(fields, obj, context):
 
 
 def _same(stored, loaded):
-    if isinstance(stored, (list, tuple)):
+    if isinstance(stored, dict):        # an irregular set: its moons keep the units they are stored in (km, g/cm3), so a value reads back within one rounding of the float it was
+        assert stored.keys() == loaded.keys()
+        for key in stored:
+            _same(stored[key], loaded[key])
+    elif isinstance(stored, (list, tuple)):
         assert len(stored) == len(loaded)
         for a, b in zip(stored, loaded):
             _same(a, b)
@@ -247,6 +251,11 @@ def test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_wri
         _check_bodies(_system(seed), checked)
         if checked == wanted:
             break
+    if "comet" not in checked:                      # GEN.1765: the physics gives few stars comets, so a run of seeds may hold none; ask for one
+        config = SystemConfig()
+        config.COMETS = True
+        draw.set_run_seed(1)
+        _check_bodies(StarSystem(system_config=config), checked)
     assert checked == wanted
 
 
