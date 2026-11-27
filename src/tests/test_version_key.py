@@ -16,11 +16,21 @@ from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen.generation import generator_battery
-from planetgen.util import fingerprint_encoding, generator_epoch
+from planetgen.util import fingerprint_encoding, generator_epoch, log
 from planetgen._version import __version__
 from tests.test_galaxy_gen import _mysql_argv, _seed_skeleton
 
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
+
+
+@pytest.fixture(autouse=True)
+def _console_log_at_normal():
+    """TEST.854: a run configures the process's logger (`generate.main` -> `log.configure`), and the one that asked for `--debug` leaves the console at debug
+    severity with the SQL trace on. The next test of the same worker then read a SQL line where the run line should be first (the lines written before the run's
+    own `configure`, such as the control schema's, come out at debug severity). Each test starts and ends with the console at normal severity."""
+    log.configure(log.NORMAL)
+    yield
+    log.configure(log.NORMAL)
 
 
 # ---------------------------------------------------------------------------
