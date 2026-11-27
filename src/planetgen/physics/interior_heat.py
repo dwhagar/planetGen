@@ -428,9 +428,9 @@ def _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w)
 
 
 _RUN_SNAPSHOT_EVERY = 16
-"""int: The steps between two states of the box a `_Run` keeps to take the run up from (PERF.289). Not physical: the memory a run costs against the steps it makes again; it changes no result."""
+"""int: The steps between two states of the box a `_Run` keeps to take the run up from (PERF.289). Not physical: an engineering size defined here, the memory a run costs against the steps it makes again; it changes no result."""
 _RUN_MEMORY = 64
-"""int: How many bodies' runs a thread remembers (PERF.289). Not physical: a cache size; it changes no result."""
+"""int: How many bodies' runs a thread remembers (PERF.289). Not physical: a cache size defined here; it changes no result."""
 
 
 class _Run:
