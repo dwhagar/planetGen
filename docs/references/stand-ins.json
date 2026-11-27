@@ -5725,7 +5725,7 @@
           "fields": [
             [
               "Evidence",
-              "TUNED (the integration of the hydro-based rate of [R2512] starts at this age; from the 10 Myr of disc dispersal every core under 15 Earth masses strips inside 30 days and no valley comes out, so the start that puts the radius valley at 1.84 Earth radii and its slope at -0.11 is taken; the loss before it is folded into the starting envelope); source tier 9, tweak level 3"
+              "TUNED (the integration of the hydro-based rate of [R2512] starts at this age; from the 10 Myr of disc dispersal every core under 15 Earth masses strips inside 30 days and no valley comes out, so the start that puts the radius valley at 1.84 Earth radii and its slope at -0.11 is taken; the loss before it is folded into the starting envelope; GEN.1860 measured it again, with the core-powered loss of [R1734] as the alternative, and kept 1 Gyr: the later starts that flatten the slope at the generator's own core-mass spread (-0.200 at 1 Gyr, -0.180 at 2 Gyr) lower the valley below its target (1.84 at 2 Gyr, 1.73 at 3 Gyr) and fail the slope and Berger mass-slope tests at the tuned width); source tier 9, tweak level 3"
             ],
             [
               "What it is",
@@ -7163,7 +7163,7 @@
           "fields": [
             [
               "What it is",
-              "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
+              "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; the width of the generator's own inner planets is about 0.65 and at it the survey gives slope -0.20 and valley 1.91 Earth radii (GEN.1860), so the slope target holds only at this tuned width; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
             ],
             [
               "The range it moves in",
@@ -7194,7 +7194,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": "by design",
-          "what": "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
+          "what": "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; the width of the generator's own inner planets is about 0.65 and at it the survey gives slope -0.20 and valley 1.91 Earth radii (GEN.1860), so the slope target holds only at this tuned width; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
         },
         {
           "burn_down": [
