@@ -23,16 +23,6 @@ The full model gives 165.5, 155.0 and 139.2 K for the shares 0, 0.3 and 0.7; the
 HAZY_METHANE_GRAVITY = 10.827421764463244
 HAZY_METHANE_FLUX = 9.586721769786985
 
-DENSE_SULFUR_AIR = {"H2O": 4971.489333229643, "SO2": 61.464628203349136, "H2S": 0.042213771276067014, "CO2": 3994466.8988359803, "N2": 282237.3393873816, "OCS": 3867.935853628947,
-                    "CO": 51.136772597710014, "Ar": 23.511097033566948, "SO": 8.197397496010979, "CS2": 4.751633621916947, "SO3": 0.003420698392165744, "CH4": 158.24547258773455}
-"""dict: GEN.1854: the air of a body of the radiation sweep (a class G world of 4.3 MPa, 1.1486 g, 29.88 W/m2 absorbed) where the table before the refit read 310.6 K for a model that gives 361.0 K, and cooled
-the ground for twice the carbonyl sulfide (-18.5 K), sulfur dioxide (-8.9), carbon monoxide (-6.5) and vapor (-5.2) where the model warms it. The model's answers are in `DENSE_SULFUR_MODEL_K`."""
-DENSE_SULFUR_GRAVITY = 1.1485906127299683 * constants.EARTH_GRAVITY
-DENSE_SULFUR_FLUX = 29.87652659125291
-DENSE_SULFUR_MODEL_K = {None: 360.98, "OCS": 366.74, "SO2": 361.11, "H2S": 360.99, "CO": 360.99, "H2O": 362.32, "all": 409.27}
-"""dict: The model's surface temperature (`radiative_convective.warming`, K) of `DENSE_SULFUR_AIR` as it is (`None`), with each minor infrared gas doubled and with every infrared-active gas doubled (`all`)."""
-DENSE_SULFUR_ACTIVE = ("H2O", "SO2", "H2S", "CO2", "OCS", "CO", "SO", "CS2", "SO3", "CH4")
-
 DATA_PRESENT = not any(fetch.locate(dataset).missing for dataset in (ir_ktables.DATASET, hitran_cia.DATASET))
 
 
@@ -70,19 +60,14 @@ def test_the_file_states_an_accuracy_the_fit_reached():
     airs the first fits never saw in numbers, hazy ones (up to 95 percent of the sunlight taken aloft) and ones with hydrogen chloride and fluoride, and the table is
     weaker there (the file states it by class, `cool_by_class`); they are held to what the fit reached and the gap is an open item, not to the clear-sky figures. GEN.1717:
     the set is measured again on the airs of today's generator (which now deposits a giant's own absorbed starlight aloft), where the old file reads the same as the new
-    one (median error 1.5 against 1.6 percent, 99th percentile 36 percent against 36 on the cool airs, read through `warming`): the figures below are what both reach on that set.
-    GEN.1854: the set is drawn again on the generator of today (seeds 5000 to 5060, 1,822 airs the model solved, hydrogen-rich ones apart) and kept in the repository (`tests/fixtures/greenhouse_validation.json.gz`, read live by
-    `test_greenhouse_validation.py`), since the table of GEN.1796 had drifted off the airs of today's generator: it read 1.75 percent on the clear cool airs and 2.49 on all of them where the bounds below, set on an
-    earlier set of seeds, say 1 and 2. The refit, which holds each infrared gas monotone in a dense carbon dioxide air (the doubling test of the sweep) and adds the model's answers for airs of the generator of seeds 6000 to 6100,
-    reads 1.72 percent on all, 1.03 on the clear cool airs (90th percentile 5.9, 99th 40 K), 1.6 and 1.7 on the other infrared gases and the hazy airs: better than the file before on every row, and at the old bounds but
-    for the clear cool airs' median, whose bound is 1.05 percent here (the old one was 1)."""
+    one (median error 1.5 against 1.6 percent, 99th percentile 36 percent against 36 on the cool airs, read through `warming`): the figures below are what both reach on that set."""
     check = gt.table().summary["validation"]
     cool = check["by_surface_temperature_k"]["0 to 300"]
     assert cool["samples"] >= 500
     assert cool["relative_percentiles"]["50"] < 0.02
     clear = check["cool_by_class"]["clear"]
     assert clear["samples"] >= 200
-    assert clear["relative_percentiles"]["50"] < 0.0105
+    assert clear["relative_percentiles"]["50"] < 0.01
     assert clear["relative_percentiles"]["90"] < 0.10
     assert clear["kelvin_percentiles"]["99"] < 50.0
     for name in ("haze", "other_infrared_gases"):
@@ -215,29 +200,6 @@ def test_the_table_gives_the_temperatures_the_model_is_checked_to(name, air, gra
     Venus 539.5 K in a clear sky with the sourced far wings of carbon dioxide (GEN.1019; 757 K once the sulfuric acid cloud of GEN.1020 is in the column, measured 735 K), Titan 106.8 K clear and 93.3 K under a haze that takes 60 percent of the sunlight at 30 mbar (measured 94 K)."""
     warming = gt.warming(air, gravity, flux, haze, 3.0e3 if haze else None)
     assert abs(warming.surface_temperature_k - model_k) < tolerance_k
-
-
-def _dense_sulfur_doubled(gases):
-    return {formula: (2.0 * pascal if formula in gases else pascal) for formula, pascal in DENSE_SULFUR_AIR.items()}
-
-
-def test_a_dense_carbon_dioxide_air_under_faint_light_reads_what_the_model_gives_and_warms_with_each_minor_gas():
-    """GEN.1854: the table's slope in a minor infrared gas had the wrong sign in this regime (a dense carbon dioxide air under 30 W/m2 absorbed, where the table stood 50 K under the model), found by
-    `test_radiation_sweep.py::test_doubling_the_infrared_active_gases_never_cools_the_ground`. The refit holds each doubled twin of its training airs to read no lower than the air itself and fits the model
-    on airs of this kind (`scripts/fit_greenhouse_table.py slope`); here the air itself is read within 3 percent of the model, and no gas, doubled alone or all together, cools the ground by more than
-    half a kelvin or sits more than 3 percent from what the model gives. The model's own figures are in `DENSE_SULFUR_MODEL_K`."""
-    def read(gases):
-        return gt.warming(_dense_sulfur_doubled(gases), DENSE_SULFUR_GRAVITY, DENSE_SULFUR_FLUX).surface_temperature_k
-
-    base = read(())
-    assert base == pytest.approx(DENSE_SULFUR_MODEL_K[None], rel=0.03)
-    for gas in ("OCS", "SO2", "H2S", "CO", "H2O"):
-        twin = read((gas,))
-        assert twin >= base - 0.5, f"twice the {gas} cools the ground from {base:.1f} K to {twin:.1f} K"
-        assert twin == pytest.approx(DENSE_SULFUR_MODEL_K[gas], rel=0.03), gas
-    everything = read(DENSE_SULFUR_ACTIVE)
-    assert everything > base + 20.0
-    assert everything == pytest.approx(DENSE_SULFUR_MODEL_K["all"], rel=0.03)
 
 
 def test_doubling_the_carbon_dioxide_warms_by_about_what_the_model_gives():

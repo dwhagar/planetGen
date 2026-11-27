@@ -456,8 +456,8 @@ def test_the_swing_of_a_fixed_point_is_told_from_a_creep_and_from_a_settling():
     assert not sa._swings([5.0, -4.0, 6.0])                                          # too few steps to say
 
 
-SWING_KEYS = (75, 77, 169, 198, 62, 202)
-"""tuple: Seeded keys of `_first_air_of` whose first air takes many steps to settle (30 or more) and has a steady state, on the star table and the thermosphere of the day. Key 20 (a K2V planet of 0.62 Earth masses, on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate, GEN.1718) is the first; it lost its air to the exobase of GEN.1784, which sits where the profile puts it and not 6 percent low, so the test takes the first of the list that still has the air and fails if none does (a scan of keys 0 to 500 lists them by `steps`; after GEN.1796's round 14 table, 126, 201, 223, 329, 371 and 468 are over 60 steps, `CREEP_KEYS` take two of them, and 62, 202, 45, 77, 107 settle in 30 or more steps from every start to the same temperature; with the table of GEN.1854 and Train 62's draws a scan of keys 0 to 200 lists 75, 77, 169 and 198, which do, and 45, 186 and 196, which reach a hot and a cool steady state by the start, as key 45 did on the file before: the list is of the first kind)."""
+SWING_KEYS = (62, 202, 45, 77, 107)
+"""tuple: Seeded keys of `_first_air_of` whose first air takes many steps to settle (30 or more) and has a steady state, on the star table and the thermosphere of the day. Key 20 (a K2V planet of 0.62 Earth masses, on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate, GEN.1718) is the first; it lost its air to the exobase of GEN.1784, which sits where the profile puts it and not 6 percent low, so the test takes the first of the list that still has the air and fails if none does (a scan of keys 0 to 500 lists them by `steps`; after GEN.1796's round 14 table, 126, 201, 223, 329, 371 and 468 are over 60 steps, `CREEP_KEYS` take two of them, and 62, 202, 45, 77, 107 settle in 30 or more steps from every start to the same temperature)."""
 
 
 def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the_start(monkeypatch):
@@ -476,8 +476,8 @@ def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the
         assert again.converged and again.temperature_k == pytest.approx(first.temperature_k, abs=0.5), (key, start)
 
 
-NO_STEADY_STATE_KEYS = (126, 130, 156, 260, 298, 81)
-"""tuple: Seeded keys of `_first_air_of` whose first air has no steady state on the star table of the day (GEN.1718). A change of the star draws (GEN.1623's star table) moves which keys these are, as it moved key 49 and key 156 before them, and keys 96, 121 and 159 with the slope of the greenhouse table in the minor infrared gases (GEN.1854): the test takes the first of the list that is one and fails if none is, so the
+NO_STEADY_STATE_KEYS = (96, 121, 159, 206, 298, 81)
+"""tuple: Seeded keys of `_first_air_of` whose first air has no steady state on the star table of the day (GEN.1718). A change of the star draws (GEN.1623's star table) moves which keys these are, as it moved key 49 and key 156 before them: the test takes the first of the list that is one and fails if none is, so the
 list is the thing to refresh then (a scan of keys 0 to 500 lists them, `jump` True)."""
 
 
@@ -492,9 +492,9 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-CREEP_KEYS = (299, 314)
+CREEP_KEYS = (270,)
 """tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
-these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732, keys 156 and 63 before the dissolved nitrogen of the ocean, GEN.1834, key 270 before the greenhouse table's slope in the minor infrared gases, GEN.1854; a scan of keys 0 to 400 lists keys 299, 314, 345 and 349 on Train 62's draws and the table of GEN.1854; the test takes 299 and 314); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
+these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732, keys 156 and 63 before the dissolved nitrogen of the ocean, GEN.1834, key 86 before Train 62; a scan of keys 0 to 299 lists key 270 and no other); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
 
 
 def test_an_air_still_creeping_when_its_steps_run_out_is_given_more_and_settles(monkeypatch):
