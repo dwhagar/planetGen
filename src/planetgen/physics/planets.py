@@ -350,6 +350,8 @@ def settle_orbit(planet):
     for moon in getattr(planet, "moons", ()):
         moon.host_eccentricity = eccentricity
     update_orbital_position(planet)
+    if planet.is_moon:
+        return True     # a moon's light is its host's: its exposure follows the host's own orbit (the loop below, run when the host's eccentricity moves), never the moon's distance from the host
     # the star's XUV and flares at the mean light of the new orbit (no draws), so the stored flux follows the stored ellipse; the air waits for the re-finish
     light_au = orbit_elements.flux_distance_au(planet.distance, eccentricity)
     for body in (planet, *getattr(planet, "moons", ())):
