@@ -925,6 +925,13 @@ MIST_REIMERS_ETA = 0.1
 # to 7,600 K, red edge 6,100 to 6,250 K); red horizontal-branch stars fill the
 # 4,600 to 6,100 K below it; 20,000 K is the usual extreme boundary [P].
 HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (35.0, 50.0)
+CLUSTER_BRIGHT_FLOOR_SOL = HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL[0]
+"""float: The luminosity floor of a globular cluster's own pre-placed stars, solar luminosities (GEN.161): the faint edge of the horizontal branch, 35. The
+scatter's floor (18,000 by default) would leave every cluster entirely to its sectors' fill, which is 1e5 to 6e5 systems a sector; a floor at the horizontal branch places each
+cluster's giants and its whole horizontal branch (about 150 giants and as many branch stars in a 2e5 solar mass cluster) at plan time for the cost of a few hundred rows,
+and the fill takes them off its count and caps its own stars under it. Applies to the `cluster` population in a pass that has no upper limit and no mass range
+(`star_population.population_floor`); no cluster star is brighter than the floor of a white dwarf (the oldest cluster's white dwarfs are far fainter than 35).
+[Stand-in 6.336 HB1, tier T9, tweak L0]"""
 HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
     "red": (4600.0, 6100.0), "rr-lyrae": (6100.0, 7500.0),
     "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
@@ -2261,6 +2268,24 @@ WHITE_DWARF_MERGER_FLOOR_SOL = 0.7
 """float: The lightest white dwarf that can be a merger product, solar masses: the lower edge of the secondary peak of [R5354] (stars of
 0.7 to 1 solar mass); no source gives the edge itself. Tier T4, tweak level L0 (registry row WM3)."""
 
+# The blue stragglers of the globular clusters (GEN.326, docs/design/research/gap-filling-plan.md 6.331, rows BN1 to BN4).
+CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT = 0.38
+"""float: The exponent of the number of blue stragglers in a cluster core against the mass in the core, N_BSS ~ M_core^0.38 ([R2397], a
+power-law fit to 56 clusters, 0.38 +- 0.04; [R5367] has 0.40 +- 0.05 for the same law). Read in the paper. Tier T1, tweak level L0 (registry row BN1)."""
+CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS = 30.0
+"""float: The number of blue stragglers in the core of a cluster whose core holds 1e4 solar masses: the normalization of the law, which [R2397]
+does not give (the fit's intercept is in a figure, and the per-cluster counts are in a table of a later paper). 30 is a number inside the 'tens
+to a few hundred' a cluster holds (docs/design/galaxy/globular-clusters.md): 12 at 1e3 solar masses, 72 at 1e5. Tier T9 (the output
+needed), tweak level L0 (registry row BN2)."""
+BLUE_STRAGGLER_LIFETIME_GY = 1.5
+"""float: How long a blue straggler stays one, Gy: the time a merger product takes to lose the light of its extra mass ([R2397] takes 1.5 Gy from
+the works it cites). The age of a drawn blue straggler is uniform up to it, or to its main-sequence life when that is shorter. Tier T2, tweak
+level L0 (registry row BN3)."""
+BLUE_STRAGGLER_MASS_RANGE_SOL = (1.0, 1.7)
+"""tuple: The mass of a blue straggler, solar masses, drawn from the initial mass function between them: the merger of two stars under the turn-off
+of a cluster (0.85 solar masses) is under 1.7 (docs/design/galaxy/globular-clusters.md). Tier T6, tweak level L0 (registry row BN4)."""
+
+
 # Accreting compact binaries (GEN.272, docs/design/systems/multi-star-systems.md 13.4). Every figure below is a stand-in
 # unless it names a source; the shares of the registry rows (`high-mass-xray-binary`, `low-mass-xray-binary`,
 # `microquasar`, `millisecond-pulsar-companion`) are in `generation/phenomena/system_types.py`.
@@ -2628,6 +2653,12 @@ MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
 # stellar-mass black holes now follow the stars' metallicity, but these are not remnants of failed supernovae, so
 # they keep the rate they had, 3e-6 of 7e-5 per pc^3 over `REFERENCE_STELLAR_DENSITY_PC3`.
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
+BLACK_HOLE_MASS_TOP_SOLAR = 50.0
+"""float: The heaviest stellar-mass hole a metal-poor place makes, solar masses (GEN.554, stand-in BHM1, L2): the law of
+`BLACK_HOLE_MASS_RANGE_SOLAR` is the solar anchor, and its span above 5 solar masses grows with the metals falling
+(`physics.fryer_remnants.mass_trend`, the mean hole mass of [R1466]'s delayed engine over the stars that fail, relative to the sun's) up to this top.
+50 is inside [R5365]'s lower edge of the pair-instability mass gap, 45 solar masses (40 to 56 for the carbon-oxygen
+reaction rate's one-sigma range): the pulsations that gap comes from strip the heavier stars before they collapse."""
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
 BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR = BLACK_HOLE_INTERMEDIATE_MASS_CHANCE * 7.0e-5 / 0.14

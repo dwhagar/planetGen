@@ -26746,10 +26746,20 @@
       "label": "Reylé et al. 2021",
       "title": "The 10 parsec sample in the Gaia era"
     },
+    "R5365": {
+      "kind": "paper",
+      "label": "Farmer et al. 2019",
+      "title": "Mind the Gap: The Location of the Lower Edge of the Pair-instability Supernova Black Hole Mass Gap"
+    },
     "R5366": {
       "kind": "paper",
       "label": "Kruijssen et al. 2019",
       "title": "The E-MOSAICS project: tracing galaxy formation and assembly with the age–metallicity distribution of globular clusters"
+    },
+    "R5367": {
+      "kind": "paper",
+      "label": "Leigh et al. 2012",
+      "title": "The origins of blue stragglers and binarity in globular clusters"
     },
     "R5371": {
       "kind": "paper",

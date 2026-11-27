@@ -7549,6 +7549,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design note 13.2 and 13.7, GEN.270, GEN.1855: the weight on the density of periods under a day for a star under the massive limit, tuned until the Algol share of a disk of constant star formation (0.05 to 10 Gy, living stars, any semi-detached pair) reaches the registry's lower limit of 0.1 percent (the algol row, \"a lower limit\"); measured over 1.5 million such systems (sigma 0.0025 percent): 6.0 gives 0.0881 percent, 7.0 0.0952 percent, 8.0 0.1002 percent; the contact share of FGK dwarfs goes 0.165 to 0.181 percent over the same two weights, inside its 0.2 to 0.77 percent window at 4 sigma"
+            ],
+            [
+              "What it is",
+              "system_types.TUNING_KNOBS"
+            ],
+            [
+              "The range it moves in",
+              "tight_tail_weight 8.0 (6.0 at GEN.270; 1.0 is the plain draw)"
+            ],
+            [
+              "Where it holds",
+              "primaries under the massive limit, periods under a day"
+            ],
+            [
+              "What would show it wrong",
+              "test_system_type_rates::test_the_tuning_knobs_are_the_calibrated_defaults"
+            ],
+            [
+              "What replaces it",
+              "a period law that carries its own tight tail, or a measured share of solar-type pairs under a day that this weight misses"
+            ]
+          ],
+          "id": "MS8",
+          "key": "6.11:MS8",
+          "kind": "P",
+          "slug": "6-11-ms8",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L2",
+          "unread": null,
+          "what": "system_types.TUNING_KNOBS"
         }
       ],
       "slug": "6-11-stand-ins-of-the-young-group-draw",
@@ -57043,6 +57081,52 @@
       "title": "Stand-ins of the halo globular clusters' radial law (GEN.297)"
     },
     {
+      "key": "6.336",
+      "number": "6.336",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_BRIGHT_FLOOR_SOL 35, the faint edge of HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL: the luminosity a globular cluster's stars are pre-placed from, whatever the galaxy's floor, applied in one place (star_population.population_floor) to the pass, the fill's share of placed stars and the fill's luminosity cap"
+            ],
+            [
+              "The range it moves in",
+              "30 to 50 (the branch's range; a floor over 50 leaves the branch to the fill)"
+            ],
+            [
+              "Where it holds",
+              "the cluster population in a pass with no upper limit and no mass range"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster whose white dwarfs are brighter than 35 solar luminosities (none in a 10 Gy old population: a white dwarf of 35 is under half a million years old)"
+            ],
+            [
+              "What replaces it",
+              "none: a choice of where placed stars end, needed so the branch is placed"
+            ],
+            [
+              "Evidence",
+              "chosen from the model's own range so the output (a cluster's giants and horizontal branch) exists at plan time; no source gives a floor, the shares are the model's; the pass and the fill read it in one function so no star is drawn twice"
+            ]
+          ],
+          "id": "HB1",
+          "key": "6.336:HB1",
+          "kind": "B",
+          "slug": "6-336-hb1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BRIGHT_FLOOR_SOL 35, the faint edge of HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL: the luminosity a globular cluster's stars are pre-placed from, whatever the galaxy's floor, applied in one place (star_population.population_floor) to the pass, the fill's share of placed stars and the fill's luminosity cap"
+        }
+      ],
+      "slug": "6-336-stand-ins-of-the-globular-clusters-own-bright-floor-gen-161",
+      "title": "Stand-ins of the globular clusters' own bright floor (GEN.161)"
+    },
+    {
       "key": "6.95",
       "number": "6.95",
       "rows": [
@@ -79255,6 +79339,356 @@
       "title": "Stand-ins of a comet's coma (GEN.455)"
     },
     {
+      "key": "6.328",
+      "number": "6.328",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.PSD_PHOTON_FLUX_REFERENCE_CM2_S 2e15: the 250 to 400 nm photon flux at 1 AU from the Sun, scaled to another star by its light at the body and its blackbody share in that band"
+            ],
+            [
+              "The range it moves in",
+              "1e15 to 4e15 cm-2 s-1"
+            ],
+            [
+              "Where it holds",
+              "a body of any star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Na source of the Moon or Mercury outside a factor 3 of the one the flux and the 3e-20 cm2 cross section give"
+            ],
+            [
+              "What replaces it",
+              "a measured near-ultraviolet flux for the stars of other types and the band the desorption uses"
+            ],
+            [
+              "Evidence",
+              "the Moon's 5e10 and Mercury's 8e11 cm-2 of sodium; the flux is the paper's, the scaling to another star is a blackbody share"
+            ]
+          ],
+          "id": "EX1",
+          "key": "6.328:EX1",
+          "kind": "P",
+          "slug": "6-328-ex1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.PSD_PHOTON_FLUX_REFERENCE_CM2_S 2e15: the 250 to 400 nm photon flux at 1 AU from the Sun, scaled to another star by its light at the body and its blackbody share in that band"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.MIV_DISTANCE_EXPONENT 1.5: the micrometeoroid flux falls as the distance from the star to this power"
+            ],
+            [
+              "The range it moves in",
+              "1 to 2"
+            ],
+            [
+              "Where it holds",
+              "a body of any star, in a system with dust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust flux at Mercury and the Moon whose ratio is not 2 to 8"
+            ],
+            [
+              "What replaces it",
+              "a dust flux from the system's own belts and comets"
+            ],
+            [
+              "Evidence",
+              "the ratio of Mercury's (1.66 to 3.56)e-16 g cm-2 s-1 to the Moon's (5.1 to 8.4)e-17, a factor of 2 to 7 over a distance ratio of 2.6"
+            ]
+          ],
+          "id": "EX2",
+          "key": "6.328:EX2",
+          "kind": "P",
+          "slug": "6-328-ex2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.MIV_DISTANCE_EXPONENT 1.5: the micrometeoroid flux falls as the distance from the star to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.VAPOR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4"
+            ],
+            [
+              "Where it holds",
+              "an airless rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour yield of the dust outside a factor of 4"
+            ],
+            [
+              "What replaces it",
+              "an impact-speed law of the vapour yield"
+            ],
+            [
+              "Evidence",
+              "the vapour of impacts at the speeds of the inner Solar System, a few times the impactor's mass"
+            ]
+          ],
+          "id": "EX3",
+          "key": "6.328:EX3",
+          "kind": "P",
+          "slug": "6-328-ex3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.VAPOR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.SHIELDED_SPUTTER_SHARE 0.05: the share of the wind that reaches the surface of a body whose own field stands the wind off (the cusps)"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "a body with a magnetopause above its surface"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sputter source at a magnetised airless body outside 0.5 to 10 percent of the unshielded one"
+            ],
+            [
+              "What replaces it",
+              "a cusp area from the field's geometry"
+            ],
+            [
+              "Evidence",
+              "the polar cusps of a dipole cover a few percent of the surface"
+            ]
+          ],
+          "id": "EX4",
+          "key": "6.328:EX4",
+          "kind": "P",
+          "slug": "6-328-ex4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.SHIELDED_SPUTTER_SHARE 0.05: the share of the wind that reaches the surface of a body whose own field stands the wind off (the cusps)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.RETAINED_SPEED_SHARE 0.5: a sputtered or vapourised atom that stays flies its arc at this share of the escape speed (or the thermal speed if lower)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "an airless body"
+            ],
+            [
+              "What would show it wrong",
+              "a measured scale height of a refractory exosphere inconsistent with a launch at a third to seven tenths of the escape speed"
+            ],
+            [
+              "What replaces it",
+              "a launch speed integrated over the Thompson law and the Maxwell tail"
+            ],
+            [
+              "Evidence",
+              "between the thermal speed and the escape speed, which the two tails of the speed laws bracket"
+            ]
+          ],
+          "id": "EX5",
+          "key": "6.328:EX5",
+          "kind": "P",
+          "slug": "6-328-ex5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.RETAINED_SPEED_SHARE 0.5: a sputtered or vapourised atom that stays flies its arc at this share of the escape speed (or the thermal speed if lower)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.WIND_FLUX_1AU_CM2_S 3.2e8: the ions of the wind on a square centimetre a second at 1 AU from the Sun, scaled to another star by its wind pressure at the body"
+            ],
+            [
+              "The range it moves in",
+              "1e8 to 1e9 cm-2 s-1"
+            ],
+            [
+              "Where it holds",
+              "a body of any star with a wind"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind particle flux that does not follow the pressure"
+            ],
+            [
+              "What replaces it",
+              "the star's own mass loss over its wind speed"
+            ],
+            [
+              "Evidence",
+              "the Moon's solar wind flux of 3.2e8 cm-2 s-1; the pressure scales a flux only when the speed is the Sun's"
+            ]
+          ],
+          "id": "EX6",
+          "key": "6.328:EX6",
+          "kind": "P",
+          "slug": "6-328-ex6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.WIND_FLUX_1AU_CM2_S 3.2e8: the ions of the wind on a square centimetre a second at 1 AU from the Sun, scaled to another star by its wind pressure at the body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.NA_IONISATION_RATE_1AU ((4500, 9.5e-7), (5772, 5.92e-6), (6800, 1.3e-5)): the rate of the photoionisation of Na at 1 AU for a K, a G and an F star, read in the logarithm of the temperature"
+            ],
+            [
+              "The range it moves in",
+              "the rows' own range"
+            ],
+            [
+              "Where it holds",
+              "a body of a star of 3,500 to 8,000 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Na rate of a star of another type off the line"
+            ],
+            [
+              "What replaces it",
+              "a spectrum-integrated rate"
+            ],
+            [
+              "Evidence",
+              "the three rates of Oza et al. (part 04 section 5.2); the interpolation between them is the stand-in"
+            ]
+          ],
+          "id": "EX7",
+          "key": "6.328:EX7",
+          "kind": "P",
+          "slug": "6-328-ex7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "exosphere.NA_IONISATION_RATE_1AU ((4500, 9.5e-7), (5772, 5.92e-6), (6800, 1.3e-5)): the rate of the photoionisation of Na at 1 AU for a K, a G and an F star, read in the logarithm of the temperature"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded; exosphere.MAX_SPECIES 8: the most species a record holds"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any exosphere"
+            ],
+            [
+              "What would show it wrong",
+              "a measured exospheric column under 1e4 cm-2 that matters to a count"
+            ],
+            [
+              "What replaces it",
+              "a detection limit"
+            ],
+            [
+              "Evidence",
+              "a presentation floor: nothing above a body's ground is measured under it"
+            ]
+          ],
+          "id": "EX8",
+          "key": "6.328:EX8",
+          "kind": "P",
+          "slug": "6-328-ex8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded; exosphere.MAX_SPECIES 8: the most species a record holds"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.COLLISIONAL_COLUMN_CM2 1e15: the most a thermally released gas holds above the ground and stays an exosphere, atoms per cm2 (a gas-kinetic cross section of 1e-15 cm2)"
+            ],
+            [
+              "The range it moves in",
+              "3e14 to 3e15 cm-2"
+            ],
+            [
+              "Where it holds",
+              "a body with ice at the surface and no air"
+            ],
+            [
+              "What would show it wrong",
+              "a measured exosphere that holds a thermal column of 1e16 cm-2 or more with no collisions"
+            ],
+            [
+              "What replaces it",
+              "the air's own condition for the body: a stored pressure over zero"
+            ],
+            [
+              "Evidence",
+              "the gas-kinetic cross section of a molecule (a few 1e-15 cm2) over the scale height; Callisto's CO2 of 8e14 cm-2 sits at the edge"
+            ]
+          ],
+          "id": "EX9",
+          "key": "6.328:EX9",
+          "kind": "P",
+          "slug": "6-328-ex9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "exosphere.COLLISIONAL_COLUMN_CM2 1e15: the most a thermally released gas holds above the ground and stays an exosphere, atoms per cm2 (a gas-kinetic cross section of 1e-15 cm2)"
+        }
+      ],
+      "slug": "6-328-stand-ins-of-an-airless-body-s-exosphere-gen-455",
+      "title": "Stand-ins of an airless body's exosphere (GEN.455)"
+    },
+    {
       "key": "6.329",
       "number": "6.329",
       "rows": [
@@ -79651,6 +80085,166 @@
       "title": "Stand-ins of the white dwarf merger products (GEN.708)"
     },
     {
+      "key": "6.331",
+      "number": "6.331",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "[R2397]: \"a power law fit suggests N_BSS ~ M^0.38 +- 0.04\" of the number of blue stragglers in the core against the total stellar mass in the core, 56 clusters (Spearman 0.71, p 4e-10; 34 dense-core clusters 0.84); [R5367] has 0.40 +- 0.05 for the same law (Table 1, its last row), and the text of [R2397] later writes 0.4 to 0.5; the slope is taken from the first"
+            ],
+            [
+              "What it is",
+              "tuning.CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT"
+            ],
+            [
+              "The range it moves in",
+              "0.38 (0.33 to 0.50)"
+            ],
+            [
+              "Where it holds",
+              "globular clusters, the core mass from the King model inside its scale radius"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_the_count_goes_as_the_core_mass_to_the_exponent_and_is_the_normalization_at_1e4"
+            ],
+            [
+              "What replaces it",
+              "the same fit on the clusters of a larger sample with its core masses from the same King model"
+            ]
+          ],
+          "id": "BN1",
+          "key": "6.331:BN1",
+          "kind": "B",
+          "slug": "6-331-bn1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "not in the sources reached: [R2397] gives the slope only (the intercept is in a figure) and [R5367] none; the number is chosen for the output the design note asks for, 'tens to a few hundred' blue stragglers in a typical cluster (12 at a core of 1e3 solar masses, 30 at 1e4, 72 at 1e5, 37 for a cluster of 2e5 solar masses with a half-mass radius of 5 pc)"
+            ],
+            [
+              "What it is",
+              "tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS"
+            ],
+            [
+              "The range it moves in",
+              "30 at a core mass of 1e4 solar masses (10 to 100)"
+            ],
+            [
+              "Where it holds",
+              "globular clusters"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_a_clusters_blue_stragglers_are_tens_to_a_few_hundred"
+            ],
+            [
+              "What replaces it",
+              "the per-cluster counts of the HST sample of the Leigh, Sills and Knigge work with the core masses of its King models: a fit of the intercept at the slope of BN1"
+            ]
+          ],
+          "id": "BN2",
+          "key": "6.331:BN2",
+          "kind": "B",
+          "slug": "6-331-bn2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLUE_STRAGGLERS_AT_1E4_CORE_MASS"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "[R2397] takes 1.5 Gy for how long a blue straggler stays one (from the works it cites; only the number is read, not those works); the age drawn is uniform from 0 to it or to the main-sequence life of the mass when that is shorter"
+            ],
+            [
+              "What it is",
+              "tuning.BLUE_STRAGGLER_LIFETIME_GY"
+            ],
+            [
+              "The range it moves in",
+              "1.5 Gy (1 to 2)"
+            ],
+            [
+              "Where it holds",
+              "blue stragglers of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_a_blue_straggler_is_a_young_main_sequence_star_of_the_mass_range_brighter_than_the_turn_off"
+            ],
+            [
+              "What replaces it",
+              "the lifetimes of blue straggler models of mergers and mass transfer"
+            ]
+          ],
+          "id": "BN3",
+          "key": "6.331:BN3",
+          "kind": "B",
+          "slug": "6-331-bn3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.BLUE_STRAGGLER_LIFETIME_GY"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "physics: a merger or a mass transfer of two stars under the turn-off of a cluster (0.85 solar masses) gives under 1.7 solar masses, and the lightest that is brighter than the turn-off is 1.0 (the item's 1 to 1.7); the mass is drawn from the initial mass function in that range, not from a measured blue straggler mass distribution"
+            ],
+            [
+              "What it is",
+              "tuning.BLUE_STRAGGLER_MASS_RANGE_SOL"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 1.7 solar masses, initial mass function"
+            ],
+            [
+              "Where it holds",
+              "blue stragglers of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "test_cluster_blue_stragglers::test_a_blue_straggler_is_a_young_main_sequence_star_of_the_mass_range_brighter_than_the_turn_off"
+            ],
+            [
+              "What replaces it",
+              "the masses measured for blue stragglers"
+            ]
+          ],
+          "id": "BN4",
+          "key": "6.331:BN4",
+          "kind": "B",
+          "slug": "6-331-bn4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.BLUE_STRAGGLER_MASS_RANGE_SOL"
+        }
+      ],
+      "slug": "6-331-stand-ins-of-the-blue-stragglers-gen-326",
+      "title": "Stand-ins of the blue stragglers (GEN.326)"
+    },
+    {
       "key": "6.332",
       "number": "6.332",
       "rows": [
@@ -79775,6 +80369,52 @@
       ],
       "slug": "6-332-stand-ins-of-the-size-of-a-dwarf-galaxy-gen-612",
       "title": "Stand-ins of the size of a dwarf galaxy (GEN.612)"
+    },
+    {
+      "key": "6.337",
+      "number": "6.337",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "fryer_remnants.mass_trend over the stars of remnant_progenitors.kind_windows(\"black-hole\") at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and tuning.BLACK_HOLE_MASS_TOP_SOLAR 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50"
+            ],
+            [
+              "The range it moves in",
+              "the top 40 to 56 (the lower edge of the pair-instability gap 45, the carbon-oxygen reaction rate's one-sigma range, [R5365]); the windows' shape (the failed share)"
+            ],
+            [
+              "Where it holds",
+              "stellar-mass black holes of any place with a metallicity (members, composition, scattered and filled holes); not the intermediate-mass or supermassive holes"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mass distribution of the holes of a metal-poor population (a dwarf galaxy, the halo) with no hole heavier than 20 solar masses, or the disk's holes as heavy as the halo's"
+            ],
+            [
+              "What replaces it",
+              "a mass from the progenitor itself once the progenitor is drawn before the mass (the standalone remnants draw the mass first, docs/design/systems/black-hole-mass-by-metals.md)"
+            ],
+            [
+              "Evidence",
+              "[R1466]'s fits are of the delayed engine's baryonic masses at the paper's grid of metallicities, and at the sun they leave the wind-stripped stars of the top of the failure windows at 2 to 3 solar masses, below any observed hole, so only their trend is used; the anchor holds the observed holes of the disk (the X-ray binaries of [R3397], 7.8 +- 1.2 chosen by flux, and the 5 to 28 of [R1328]) and the simulated 14.2 and 11.7 of [R3348]; observed in the Galaxy's X-ray binaries and in gravitational waves (the heavy holes of the metal-poor places, tens of solar masses)"
+            ]
+          ],
+          "id": "BHM1",
+          "key": "6.337:BHM1",
+          "kind": "P",
+          "slug": "6-337-bhm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "fryer_remnants.mass_trend over the stars of remnant_progenitors.kind_windows(\"black-hole\") at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and tuning.BLACK_HOLE_MASS_TOP_SOLAR 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50"
+        }
+      ],
+      "slug": "6-337-stand-ins-of-the-black-hole-mass-trend-gen-554",
+      "title": "Stand-ins of the black hole mass trend (GEN.554)"
     }
   ]
 }

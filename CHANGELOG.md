@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4822+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Galaxy Map: the wheel reaches any star you can pick, and opens its system
+
+### Fixed
+
+- MAP.434: the wheel stalled short of the star it was aimed at. At the floor of the zoom range (the view's distance cannot shrink any more) a step moved nothing, because the camera was carried toward the pointed-at thing only by the share the zoom shrank. The share the floor takes from a step is now made up by moving the camera along the ray to that thing (it stays under the pointer), so the wheel arrives at the star. A faint, drawn, pickable star stopped the wheel 9.4 pc short of it before.
+- MAP.435: the wheel could not open the system of a drawn star that lies in a block next to the open sector (the open sector held none of its stars, so there was nothing to enter). The wheel now enters the system of the drawn star under the pointer when the open sector has none near it (`drawnSystemNear`, and `host.systemHref` for its page).
+
+### Changed
+
+- `test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system` aims at a star the map draws and can pick (`galaxyPickableStars`), followed by its system's id as the camera comes in, and skips with its reason when the map never draws that star; the system-handover tests wait for the camera to rest between ticks, as the wheel's steps now carry on at the floor and ticks sent faster than the camera outrun the system scene's load.
+- `test_web_browser_fixture_maps.py` reads the address without `whole=1` (the flag the tests add to open the whole galaxy, MAP.189, which the address keeps): four tests of the address (`window_stage_zooms_in_and_back_out`, `opens_a_sector_in_place`, `opens_an_uncharted_sector...`, `back_forward_and_url_state`) were red on main since MAP.189 for that one flag.
+
+## [8.0.4821+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Cache warm-up: a few pages that do not answer are named and the warm-up goes on
+
+### Fixed
+
+- OPS.312: the cache warm-up held at Warm phenomena for good because two pages did not answer (a black hole page answered 404, a rogue planet page 502), the family failed and the search phase never ran. A page that does not answer is now asked once more, then named, with what it said, in the line of its phase on the Queue page's warm-up (and in the activity log, `warm.pages_failed`), and the warm-up goes on to its next phases. Only a unit in which no page answered at all fails, as before.
+- Probing a generated galaxy for the cause: every listed phenomenon page answered except a neutron star filed without an ID of its own (the list prints its row number, which the page cannot read); the two pages of the Queue page's warm-up are not reproduced on generated data, so the line now says what the page said.
+
+## [8.0.4820+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The giant-tilt test reads Sun-like stars, so it finds its four gas giants again.
+
+### Fixed
+- `test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only` searched seeds 7100 to 7400 of random stars and ran out of seeds with one gas giant (a random star is mostly a red dwarf, and the star mix moved with the Train 62 mass function). The sweep now asks for a Sun-like star (G2V, no companion): 100 systems hold 10 gas giants and 29 giants (8 and 28 before Train 62), so the giant rate did not fall, and the test passes in 24 minutes under load instead of reading 300 systems for 50. The clause and the four giants of each kind it needs are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4819+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The planet physics tests' host star no longer changes with the test order
+
+### Fixed
+
+- TEST.839: `test_surface_temperature_never_drops_below_the_cosmic_background[20.0]` failed under `pytest-randomly` for some orders (seeds 17 and others on main). The cause was the module's `host_star` fixture: it drew the star outside any stream, so it took whatever the process run stream held when the first test of the file asked for it. A different age and luminosity changed the heat a 20 Earth-mass planet radiates (326 K for a young star against 43 to 85 K for an older one) and whether the draw is a giant ("g") or a smaller body with an envelope ("t"). The star is now drawn on its own named stream at the Sun's age and mass. No product change, no bound loosened, no retry.
+
+generation-output: unchanged
+
 ## [8.0.4818+db279.gen150.api14] - 2026-11-26
 
 **Headline:** The zone mix test counts planets, not the belt members promoted to planets

@@ -549,7 +549,7 @@ other inputs as above (<code>place_terms</code>, &lt;M^2&gt; / <M> in solar mass
 </tr>
 </tbody>
 </table></div>
-<p>The stars alone give 0.57 (Jiang and Tremaine's observed 0.64). So the black holes carry 0.2 to 0.6 of the
+<p>The stars alone give 0.58 (0.57 before GEN.922 moved the centre of the mass function; Jiang and Tremaine's observed 0.64). So the black holes carry 0.2 to 0.6 of the
 second moment depending on which published mass function and count is taken, and the generator's default sits at the top
 of that range because its count is about twice Olejak et al.'s and its mean mass is above the X-ray binaries'. A galaxy of
 that many holes does hide them in <code>rho_2</code>; the observed stars-only figure does not, which is why <code>remnants=False</code> stays
@@ -565,7 +565,7 @@ mass density (1.9 pc for 0.1 solar masses per pc^3 [C]) and serves as the check.
 <p>The widest axis a wide pair may keep is the smaller of the two (answer 4: a <strong>sharp cut</strong> at a_1/2, a pair wider than that does not exist). It takes the
 place of the fixed 10,000 AU cap (<code>WIDE_BINARY_SEPARATION_MAX_AU</code>, answer 5), as section 6.6 now says: the axis is drawn from the companion lines of Moe and Di Stefano (GEN.448, 3.1) from the 0.25 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 0.25 AU keeps no wide pair: the wide roll then gives the primary alone
 (the pair dissolved), which is the whole effect at the very centre. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (<code>companion_classes.odds</code>). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
-model's <code>relative_density</code> times <code>E / edge^3</code> times the cell's mean system mass (<code>galaxy.system_mass</code>, GEN.545; the rows below are worked out at the derived mean, about 0.52, GEN.928), the default perturber mass of 1.19 (GEN.927; 1.01 on the Kroupa mass function, 1.44 before the black holes followed the failed share) and the one-dimensional sigma [C]:</p>
+model's <code>relative_density</code> times <code>E / edge^3</code> times the cell's mean system mass (<code>galaxy.system_mass</code>, GEN.545; the rows below are worked out at the derived mean, about 0.52, GEN.928), the default perturber mass of 1.32 (GEN.922; 1.19 on the GEN.927 centre of the mass function, 1.01 on the Kroupa mass function, 1.44 before the black holes followed the failed share) and the one-dimensional sigma [C]:</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -582,33 +582,33 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 <td>8.2 kpc out, in the plane</td>
 <td>0.048</td>
 <td>30</td>
-<td>13,900 AU</td>
+<td>12,600 AU</td>
 <td>496,000 AU</td>
-<td>13,900 AU</td>
+<td>12,600 AU</td>
 </tr>
 <tr>
 <td>bulge, 500 pc from the centre</td>
 <td>6.9</td>
 <td>120</td>
-<td>387 AU</td>
+<td>350 AU</td>
 <td>94,600 AU</td>
-<td>387 AU</td>
+<td>350 AU</td>
 </tr>
 <tr>
 <td>bulge, 100 pc from the centre</td>
 <td>77</td>
 <td>120</td>
-<td>35 AU</td>
+<td>31 AU</td>
 <td>42,400 AU</td>
-<td>35 AU</td>
+<td>31 AU</td>
 </tr>
 <tr>
 <td>10 pc from the centre</td>
 <td>660</td>
 <td>120</td>
-<td>4 AU</td>
+<td>3.7 AU</td>
 <td>20,700 AU</td>
-<td>4 AU</td>
+<td>3.7 AU</td>
 </tr>
 <tr>
 <td>2 pc from the centre</td>
@@ -621,7 +621,7 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 </tbody>
 </table></div>
 <p>So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disc's limit
-(13,900 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
+(12,600 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector holds only tight pairs. The reference density <code>rho_2</code> and sigma come from the profile (<code>gas.mass_solar</code>
 and <code>dark_matter</code> are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
 cell's populations (<code>profile._dispersion_kms</code>: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest the one-axis <code>tuning.STELLAR_POPULATION_DISPERSION_KMS</code> times root 3, so every value the profile holds is a three-axis total, and <code>place_terms.from_profile</code> divides by root 3 again, GEN.284). The age is the star's own, so a young pair keeps a wider axis than an old one.</p>
@@ -630,7 +630,7 @@ cell's populations (<code>profile._dispersion_kms</code>: the disc's, bulge's an
 The wide-pair limit needs the cell's density and dispersion: <code>place_terms.from_profile(profile)</code> builds a <code>PlaceTerms</code> once per
 cell (<code>FillContext.place_terms</code>), <code>FillContext.apply</code> and the pre-placed bright stars put it on <code>SystemConfig.PLACE_TERMS</code>, and a
 system with none takes the Sun's neighbourhood (<code>tuning.SOLAR_NEIGHBOURHOOD_*</code>). <code>StarSystem._companion</code> rolls none, close or wide
-in one draw and <code>WideBinaryPair</code> draws its axis up to <code>wide_pair_limit_au</code>. It is a function of the cell, so the same seed gives
+in one draw and the wide pair draws its axis up to <code>wide_pair_limit_au</code>. It is a function of the cell, so the same seed gives
 the same stars wherever a run lands (the GEN.39 rule), and it stays out of the stellar evolution constants. Section 3.2 would need
 the same record to carry the young-share prevalence.</p>
 <h2 id="5-what-closes-gen103">5. What closes GEN.103</h2>

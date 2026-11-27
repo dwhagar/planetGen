@@ -460,7 +460,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/wide_binary.py"><code>wide_binary.py</code></a></td>
-<td><code>WideBinaryPair</code>: a wide (S-type) binary where each star keeps its own planets.</td>
+<td>The draws of a wide (S-type) binary where each star keeps its own planets (its orbit is a tree node, read by <a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/pair_orbit.py"><code>pair_orbit.py</code></a>).</td>
 </tr>
 </tbody>
 </table></div>
@@ -1314,10 +1314,6 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/warm.py"><code>warm.py</code></a></td>
 <td><code>planetgen warm</code> (PERF.127): builds the list of the cache-warming commands (one per family) for the wrapper to run, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for the Galaxy Map, the lists, the pages and the search.</td>
 </tr>
-<tr>
-<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/worker.py"><code>worker.py</code></a></td>
-<td>One RQ worker for planetGen's queues, at the lowered priority generation workers always run at.</td>
-</tr>
 </tbody>
 </table></div>
 <h4 id="srcplanetgenapi">src/planetgen/api/</h4>
@@ -1680,7 +1676,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/phenomenonrender.py"><code>phenomenonrender.py</code></a></td>
-<td>The phenomenon page's View panel: which view suits each type (<code>view_kind</code>), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view.</td>
+<td>The phenomenon page's View panel: which view suits each type (<code>view_kind</code>), the numbers for the three.js render, and a static SVG still for no JavaScript. An asteroid field's view is its own bodies at the places <code>field_dispersal.member_position_m</code> gives them at its age (GEN.361).</td>
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/starmap.py"><code>starmap.py</code></a></td>

@@ -106,7 +106,19 @@ def sample_star_age_gy(age_bias=None, rng=draw, population=None, age_law=None):
     """A star's age over its population's age range (`population_age_range_gy`), biased by `age_bias`: uniform, or with
     the density of `age_law` (a `galaxy.age_law.AgeLaw` over that range, GEN.546) when given."""
     low, high = age_window_gy(*population_age_range_gy(population), age_bias)
+    return draw_age_gy(low, high, rng, age_law)
+
+
+def draw_age_gy(low, high, rng=draw, age_law=None):
+    """A birth age between `low` and `high` Gy: uniform, or with the density of `age_law` (GEN.546) when given. The one place a star's
+    birth age is drawn inside a window (GEN.553)."""
     return rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
+
+
+def birth_age_gy(fe_h, population, low, high, rng=draw, age_law=None):
+    """A star's birth age inside `low` to `high` Gy, drawn by `draw_age_gy` and kept in proportion to the age-metallicity relation's
+    density at the birth [Fe/H] `fe_h` (`age_metallicity.tilted_age`)."""
+    return age_metallicity.tilted_age(fe_h, population, lambda: draw_age_gy(low, high, rng, age_law), rng)
 
 
 def _piecewise_luminosity_sol(pieces, mass_sol):
@@ -593,8 +605,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
                 draw.redrawn("star.model_redraw")
                 continue  # an old population has no living star this massive
             low, high = age_window_gy(low, high, age_bias)
-            age = age_metallicity.tilted_age(
-                birth, population, lambda: rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng), rng)
+            age = birth_age_gy(birth, population, low, high, rng, age_law)
         else:
             mass = imf.sample(rng=rng, curve=imf.PRIMARY)
             if mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(birth):

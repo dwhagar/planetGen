@@ -76,6 +76,7 @@ from planetgen.galaxy.spherical import (
 )
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import abundance_tier, comet_abundance, object_first, place_terms, stored_trees
+from planetgen.generation import star_population
 from planetgen.generation.star_population import (
     bright_band_fraction, fe_h_support, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
@@ -1711,7 +1712,7 @@ class FillContext:
         after a scatter, the luminosity cap."""
         self.apply_population(system_config, rng)
         if self.min_luminosity_sol is not None:
-            system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol
+            system_config.MAX_STAR_LUMINOSITY_SOL = star_population.population_floor(system_config.POPULATION, self.min_luminosity_sol)
         if self.star_mass_limit_sol is not None:
             system_config.MAX_STAR_MASS_SOL = self.star_mass_limit_sol
         return system_config

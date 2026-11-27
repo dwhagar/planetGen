@@ -526,9 +526,10 @@ def _crumbs(page):
 
 
 def _raw_query(page):
-    """The address's query without the camera it carries once the view is still (MAP.228)."""
+    """The address's query without the camera it carries once the view is still (MAP.228) and without `whole=1`, which
+    the tests add to open the whole galaxy (MAP.189) and the address keeps."""
     return "&".join(part for part in urlparse(page.url).query.split("&")
-                    if part and not part.startswith("cam=") and part != "hide=" + HIDE_NAMES)
+                    if part and not part.startswith("cam=") and part not in ("hide=" + HIDE_NAMES, "whole=1"))
 
 
 def _stage(page):

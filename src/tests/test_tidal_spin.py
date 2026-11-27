@@ -295,6 +295,8 @@ def _giant_tilts_of(seed):
     with deterministic_entropy(seed):
         draw.set_run_seed(seed)
         config = SystemConfig()
+        config.STAR_TYPE = "G2V"      # TEST.842: a random star is mostly a red dwarf with no gas giant (1 in 300 systems on the 7100 to 7400 seeds), so the sweep never found four; a Sun-like star holds one in 10 (10 in 100 systems, 8 before Train 62)
+        config.BINARY_SYSTEM = False
         config.PLANETS = True
         config.MAX_PLANETS = True
         system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
