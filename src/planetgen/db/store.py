@@ -3569,6 +3569,19 @@ def load_moons_of_rogue_planet(conn, rogue_planet_id, system_config=None):
     return moons
 
 
+def load_free_moon(conn, moon_id, system_config=None):
+    """
+    The moon of a free planet with `moons.id` `moon_id`, rebuilt as `insert_moon_of_rogue_planet` stored it, its row id as `db_id`; `None`
+    when there is no such moon or it circles a planet of a system.
+    """
+    row = conn.execute("SELECT * FROM moons WHERE id = ? AND rogue_planet_id IS NOT NULL", (moon_id,)).fetchone()
+    if row is None:
+        return None
+    moon = Planet.from_dict(_planet_or_moon_row_to_dict(conn, row, is_moon=True), None, system_config or SystemConfig())
+    moon.db_id = row["id"]
+    return moon
+
+
 def _json_or_none(value):
     """`value` as JSON text, or None for an empty one (a belt made without an origin keeps no such column)."""
     return json.dumps(value, sort_keys=True) if value else None
