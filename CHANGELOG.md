@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4840+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A bare local name's search job now has a memory claim, and six functions nothing called are gone.
+
+### Fixed
+
+- OPS.321: `planetgen.api.lookup:name_search_job` (API.38) had no line in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed and the job ran on the default 1000 MB figure. It now claims 700 MB and one core, the figure of the other read-only light job.
+
+### Removed
+
+- GEN.1873: `memorygate.kill_note`, `units.open_job_id`, `wrapper.run_kind`, `region_stats.generated_mass_kg`, `corridor.unknown_space_flags` and `run_galaxy._neighborhood_batch`, which had no caller, test or wiring-register line.
+
+generation-affects: none
+generation-output: unchanged
+
 ## [8.0.4839+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The warm-up log test expects the start-times line, so it passes on main again
