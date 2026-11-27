@@ -225,7 +225,7 @@ def test_the_phenomena_of_a_component_are_its_systems_times_each_classs_rate():
     rows = [list(component_pass.scatter_phenomena([cluster], EDGE, seed, min_mass_solar=cut)) for seed in range(6)]
     counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for chunk in rows for row in chunk)
     for (kind, subtype), rate in rates.items():
-        wanted = component_pass.systems_of(cluster) * rate * 6
+        wanted = component_pass.systems_of(cluster) * rate * 6 * phenomenon_scatter.cluster_rate_ratio(kind, subtype, cluster)      # GEN.330: the cluster's own companion odds
         if (kind, subtype) == ("black-hole", "stellar"):      # the failed share of a globular cluster's old, metal-poor stars
             wanted *= remnant_density.component_factor({"cluster": 1.0})
         if wanted > 30:
