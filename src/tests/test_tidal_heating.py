@@ -59,12 +59,13 @@ def test_europa_gets_a_tide_of_the_published_size_from_its_ice_shell_with_nothin
     assert flux == pytest.approx(7.0e-4 + power / (4.0 * math.pi * 1560.8e3 ** 2), rel=1e-9)
 
 
-def test_enceladus_gets_a_tide_within_a_factor_of_ten_of_what_it_radiates():
-    """Enceladus: 16 GW radiated at its eccentricity of 0.0047; the equilibrium shell of the model makes 1e11 W, six times more (the shell
-    is 6 km against an observed 20 or so), the one body the stand-ins of `icy_tide` overshoot, within the factor of ten they claim."""
+def test_enceladus_shell_makes_a_few_percent_of_what_it_radiates_and_the_core_is_the_rest():
+    """Enceladus: 16 GW radiated at its eccentricity of 0.0047. Its shell is stiff against its small gravity (a membrane parameter of 140, GEN.1877: the flux its shell conducts, 1e-3 W/m2, makes a shell as thick as the body), so the shell of the model makes 5.5e8 W, three
+    percent of it; before the membrane the model made 1e11 W, six times too much. The rest is made in the porous core (Choblet 2017), which the shell model does not carry: GEN.1886. A shell that makes
+    more than what is radiated, or less than a hundredth of it, is the shell model wrong."""
     from planetgen.physics import icy_tide
     _, power = icy_tide.flux_from_tide(1.08e20, 252.1e3, SATURN, 2.3802e8, 0.0047, 3.0e-4, 75.0)
-    assert 1.6e9 < power < 1.6e11
+    assert 1.6e8 < power < 1.6e10
 
 
 def test_the_moon_is_flexed_solid_and_heated_by_a_fraction_of_a_percent_of_its_own_heat():
