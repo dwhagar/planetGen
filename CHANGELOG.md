@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4832+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The page and the API answer for a giant's trojan region work, and a facility built on one names it.
+
+### Fixed
+
+- The object resolver (`/api/objects/belt:<id>`, the page of a belt and its parent chain) read a belt number for every belt, and a trojan region takes none, so it raised a KeyError for any region and its page failed. It names the region for its giant now (`<host> L4 trojan region`), as the lists of belts do. The same fix is made where a facility's host chain names a belt.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4831+db280.gen150.api14] - 2026-11-27
 
 **Headline:** Stellar-mass black holes are heavier where the metals are fewer: the registered 5 to 20 solar mass law stays for the disk around the sun and grows toward 50 solar masses in metal-poor places.
