@@ -213,7 +213,7 @@ class Star(StellarObject):
                 `physics.planets.generate_orbital_motion_properties`).
                 `StarSystem.__init__` rolls this once per system and passes
                 the *same* value to the primary star, the secondary star
-                (if any), and the `BinaryStarProxy` -- a binary pair's
+                (if any), and the `PairHost` -- a binary pair's
                 negligible internal separation (AU) next to its galactic
                 orbit radius (light-years) means both stars move around the
                 galaxy together, not independently, so they must share one

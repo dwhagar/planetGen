@@ -18,10 +18,10 @@ minimal-displacement fix, not a wholesale relayout) -- true position
 first, decluttering only where it's actually needed.
 
 A single-star or 'close' (P-type) binary system's planets all orbit a
-shared origin (the barycenter -- see `binary.BinaryStarProxy`'s
+shared origin (the barycenter -- see `pair_host.PairHost`'s
 docstring: a 'close' pair's own two stars are placed around that same
 origin too, split by their real mass ratio from
-`star_systems.binary_mutual_position_x/y/z_km`, the secondary's position
+`query.system_detail`'s `binary_mutual_position_x/y/z_km` (read from the pair's orbit node), the secondary's position
 relative to the primary). A 'wide' (S-type) pair's two stars each anchor
 their own independent set of planets/belts (`planets.star_id`/
 `asteroid_belts.star_id` says which) -- unlike the old schematic map, this
@@ -1079,14 +1079,14 @@ def _facilities_svg(facilities, hosts, scale):
 
 def _binary_star_positions_km(system, stars):
     """
-    Splits `star_systems.binary_mutual_position_x/y/z_km` (the secondary's
+    Splits `query.system_detail`'s `binary_mutual_position_x/y/z_km` (read from the pair's orbit node) (the secondary's
     position relative to the primary) into each star's own position
     relative to their shared mass-weighted barycenter -- `primary * m2 +
     secondary * m1 = 0` around that point, by definition of a barycenter --
     rather than treating the primary as a fixed, unmoving anchor. Used both
     to actually place each star's own marker and, for a 'close' (P-type)
     pair, as the shared origin every planet/belt in the system also orbits
-    (`binary.BinaryStarProxy` merges the pair into one *effective*
+    (`pair_host.PairHost` merges the pair into one *effective*
     star sitting at that same barycenter -- see its own docstring).
 
     Args:

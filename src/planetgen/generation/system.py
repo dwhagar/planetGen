@@ -29,7 +29,7 @@ from planetgen.names.bodies import generate_star_word, name_bodies, wide_pair_fi
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.hosts import MEMBER, NODE, PRIMARY, SECONDARY, Host
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation import (
     cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
@@ -107,7 +107,9 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 9 -> 10 to drop `wide_binary` (GEN.640, slice b): a wide pair's orbit is its node's (`pair_orbit`), already in `orbit_nodes`, so the key is no longer
 # written or read.
-SERIALIZATION_SCHEMA_VERSION = 10
+# Bumped 10 -> 11 to drop the mutual orbit from a close pair's host (GEN.640, slice c): `PairHost` reads the pair's orbit from its node in `orbit_nodes`, so its dict
+# holds no `binary_mutual_*`, `binary_primary_position_*`, `binary_secondary_position_*`, `binary_secondary_mass_fraction` or `_binary_separation_au`.
+SERIALIZATION_SCHEMA_VERSION = 11
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -195,11 +197,11 @@ class StarSystem:
 
     hosts = ()
     """list of Host: The stars that hold planets and the planets and belts of each (GEN.1664), in the order every pass over
-    the system's bodies keeps: the system's star (a single star, or a close pair's proxy), a wide pair's secondary, each of
+    the system's bodies keeps: the system's star (a single star, or a close pair's host), a wide pair's secondary, each of
     `member_stars`, then each of `node_hosts`. `_sync_hosts` makes the list again whenever the tree changes (`build_ledger`)."""
 
     node_hosts = ()
-    """tuple of BinaryStarProxy: The inner pair nodes of the tree that hold circumbinary planets (GEN.332, slice A), each a proxy of the
+    """tuple of PairHost: The inner pair nodes of the tree that hold circumbinary planets (GEN.332, slice A), each a host of the
     pair's two stars with `host_node_no` the node's number (`_make_node_hosts`): a `close` node other than the system's own pair whose
     two children are both stars and whose P-type window exists. Derived from the tree and the stars, made again by `build_ledger`."""
 
@@ -290,7 +292,7 @@ class StarSystem:
         Args:
             galactic_center_dist_ly (float, optional): This system's actual
                 distance from the galactic center, in light-years -- passed
-                straight through to every `Star`/`BinaryStarProxy` this
+                straight through to every `Star`/`PairHost` this
                 system creates (see `Star.calculate_system_perimeter`'s
                 docstring). `None` (the default) leaves every constituent
                 star's Hill-sphere calculation on the radius that holds half of the
@@ -333,7 +335,7 @@ class StarSystem:
         # A run's prevalences (GEN.52) decide the measured features' flags
         # for this system before anything is drawn.
         prevalence.resolve(self.system_config)
-        # Rolled once here (not left for each Star/BinaryStarProxy to roll
+        # Rolled once here (not left for each Star/PairHost to roll
         # its own) and passed identically to every constituent star below --
         # a binary pair's AU-scale separation is negligible next to its
         # light-year-scale galactic orbit radius, so both stars (and the
@@ -553,7 +555,7 @@ class StarSystem:
 
     @property
     def name(self):
-        """The system's own name. A single star (or a close pair's proxy)
+        """The system's own name. A single star (or a close pair's host)
         carries it, so it's read from `star`; a wide pair's `star` is its
         primary, whose name adds its own word (see `names/bodies.py`), so
         that system keeps its name separately."""
@@ -602,7 +604,7 @@ class StarSystem:
 
     @property
     def primary(self):
-        """Host: The host of the system's own star (a single star, or a close pair's proxy): `hosts[0]`."""
+        """Host: The host of the system's own star (a single star, or a close pair's host): `hosts[0]`."""
         return self.hosts[0]
 
     @property
@@ -678,7 +680,7 @@ class StarSystem:
         return self._ledger
 
     def _ledger_host(self, star):
-        """The `(kind, number)` of the ledger host that is `star`: a close pair's proxy is its pair node, any other star its number."""
+        """The `(kind, number)` of the ledger host that is `star`: a close pair's host is its pair node, any other star its number."""
         if getattr(star, "host_node_no", None) is not None:
             return planet_zones.P_TYPE, star.host_node_no       # the proxy of an inner pair node (`_make_node_hosts`)
         if self.binary_type == "close" and star is self.star:
@@ -698,7 +700,7 @@ class StarSystem:
 
     def build_ledger(self):
         """
-        Builds the clearance ledger again and gives each star that has a companion above it, and a close pair's proxy, the outer limit
+        Builds the clearance ledger again and gives each star that has a companion above it, and a close pair's host, the outer limit
         of its window (GEN.332, GEN.1014): a member's S-type window against what hangs beside it, and a close pair's P-type window up
         to the S-type limit of the pair against the stars beside it, each held by every level above. Both are `a_crit_au`, which
         `validation.orbit_ceiling_au` reads for a wide pair's stars as well; the ledger is the only place that works it out. A lone
@@ -742,9 +744,9 @@ class StarSystem:
         """
         The proxies of the inner pair nodes that hold circumbinary planets (GEN.332, slice A): every `close` node of the tree other than
         the system's own pair (the proxy `star` serves that one) whose subtree holds stars only (no dark member and no `group` or `wide`
-        node below it) and whose P-type window exists. Each is a `BinaryStarProxy` of the node's two sides on the node's stored orbit, with
-        `host_node_no` the node's number; a side that is a node is the proxy of that node (the system's own proxy where it is the system's
-        pair), so a pair of pairs is a proxy of two proxies. It merges their mass and light as the system's own pair does. The proxy draws
+        node below it) and whose P-type window exists. Each is a `PairHost` of the node's two sides on the node's stored orbit, with
+        `host_node_no` the node's number; a side that is a node is the host of that node (the system's own host where it is the system's
+        pair), so a pair of pairs is a host of two hosts. It merges their mass and light as the system's own pair does. The proxy draws
         nothing the stream bound here does not settle. A node with a dark member or a wide pair below it has no planets yet.
         """
         if self.star_slots is None:
@@ -765,12 +767,14 @@ class StarSystem:
             if number == own and self.binary_type == "close":
                 return self.star
             if number not in proxies:
-                first, second = [*(self.stars[index] for index in star_children[number]), *(proxy_of(sub) for sub in sub_nodes[number])]
+                sides = [(self.stars[index], self.star_slots[index][1]) for index in star_children[number]]
+                sides += [(proxy_of(sub), nodes[sub].slot) for sub in sub_nodes[number]]
+                (first, first_slot), (second, _second_slot) = sorted(sides, key=lambda side: side[0].mass, reverse=True)      # the heavier first (a stable sort: a tie keeps the tree's order)
                 lead = self.primary_star
                 with draw.bound(draw.Stream(f"node-host:{number}:{first.mass!r}:{second.mass!r}:{nodes[number].separation_km!r}")):
                     # (a star loaded from the database has no galactic distance: it takes the default, which only the Hill ceiling reads)
-                    proxy = BinaryStarProxy(self.system_config, first, second, galactic_center_dist_ly=getattr(lead, "galactic_center_dist_ly", None),
-                                            galactic_orbital_phase_deg=lead.galactic_orbital_phase_deg, orbit=nodes[number])
+                    proxy = PairHost(self.system_config, first, second, nodes[number], galactic_center_dist_ly=getattr(lead, "galactic_center_dist_ly", None),
+                                     galactic_orbital_phase_deg=lead.galactic_orbital_phase_deg, turned=first_slot == 1)
                 proxy.host_node_no = number
                 proxies[number] = proxy
             return proxies[number]
@@ -878,12 +882,11 @@ class StarSystem:
             node_no = parent[node_no]
         return node_no
 
-    @property
-    def pair_orbit(self):
-        """The orbit of the system's own pair (`pair_orbit.PairOrbit`), read from its node (GEN.640 slice b), `None` for a single star."""
+    def _pair_node_and_turn(self):
+        """`(node, turned)` of the pair: its `OrbitNode`, and whether the primary hangs under slot 1 of it, which turns the node's orbit half way round (`pair_orbit.pair_orbit`); `(None, False)` for a single star."""
         node_no = self.pair_node_no()
         if node_no is None:
-            return None
+            return None, False
         node = next(node for node in self.orbit_nodes if node.node_no == node_no)
         turned = False
         if self.star_slots is not None:
@@ -892,6 +895,14 @@ class StarSystem:
             while at != node_no:
                 at, slot = parent[at]
             turned = slot == 1
+        return node, turned
+
+    @property
+    def pair_orbit(self):
+        """The orbit of the system's own pair (`pair_orbit.PairOrbit`), read from its node (GEN.640 slice b), `None` for a single star."""
+        node, turned = self._pair_node_and_turn()
+        if node is None:
+            return None
         return pair_orbit.pair_orbit(node, self.primary_star.mass, self.secondary_star.mass, turned)
 
     @staticmethod
@@ -987,9 +998,9 @@ class StarSystem:
         times the galaxy's comet abundance tier (none on `science`).
 
         Args:
-            star: The `Star` or `BinaryStarProxy` this comet population is
+            star: The `Star` or `PairHost` this comet population is
                  bound to -- its `.mass` (the pair's own combined mass for
-                 a close/P-type binary proxy, via `BinaryStarProxy.mass`)
+                 a close/P-type binary proxy, via `PairHost.mass`)
                  drives each comet's own orbital period, the same
                  `star.mass` a `Planet`'s own period calculation reads.
             ceiling_au (float, optional): For a star of a wide binary, its
@@ -1245,13 +1256,13 @@ class StarSystem:
                     nodes[pair_no], arg_periapsis_deg=(nodes[pair_no].arg_periapsis_deg + 180.0) % 360.0)
         # The pair is a P-type pair (`close`) where its axis is under the least a wide pair has, else an S-type one (`wide`);
         # its node says which, the other nodes of the tree keep the kind the tree drew them with.
-        # A P-type pair is tracked on a circle (`BinaryStarProxy`).
+        # A P-type pair is tracked on a circle (its node holds one).
         pair_node = nodes[pair_no]
         if kind is None:
             kind = "close" if _km_to_au(pair_node.separation_km) < tuning.WIDE_BINARY_SEPARATION_MIN_AU else "wide"
         if kind == "close":
             # (a circle has no periapsis: the angle from the ascending node is the argument of periapsis plus the anomaly,
-            # which is the phase the pair is tracked by, `BinaryStarProxy`)
+            # which is the phase the pair is tracked by)
             pair_node = dataclasses.replace(
                 pair_node, kind="close", eccentricity=0.0, arg_periapsis_deg=0.0,
                 mean_anomaly_deg=(pair_node.mean_anomaly_deg + pair_node.arg_periapsis_deg) % 360.0)
@@ -1276,14 +1287,13 @@ class StarSystem:
         # Which of the two real binary configurations the pair is was drawn with its node.
         self.binary_type = pair_node.kind
         log.choice("Binary type", self.binary_type, f"the {pair_node.kind} node of a tree of {len(plan.members)} stars")
-        # (the pair classes take the orbit of the second about the first: a pair that is not the two children of its node, with
-        # the first under the node's slot 1, has it turned half way round)
-        if not direct and plan.slot_under(next(m for m in plan.members if m.member_no == first), pair_no) == 1:
-            pair_node = dataclasses.replace(pair_node, arg_periapsis_deg=(pair_node.arg_periapsis_deg + 180.0) % 360.0)
+        # (the pair is the orbit of the second star about the first: a pair that is not the two children of its node, with the first
+        # under the node's slot 1, has the node's orbit turned half way round, `pair_orbit.pair_orbit`)
+        turned = not direct and plan.slot_under(next(m for m in plan.members if m.member_no == first), pair_no) == 1
         self._tidal_spin_of_stars(nodes, slots, [(first, primary), (second, secondary), *((member.member_no, built[member.member_no]) for member in others)])
         if self.binary_type == "close":
-            self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
-                                        galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
+            self.star = PairHost(config, primary, secondary, pair_node, galactic_center_dist_ly=galactic_center_dist_ly,
+                                 galactic_orbital_phase_deg=galactic_orbital_phase_deg, turned=turned)
         # (An S-type pair never merges into one effective star: self.star stays the primary Star itself, and the pair's orbit is `pair_orbit`, read from its node.)
 
     def _tidal_spin_of_stars(self, nodes, slots, stars):
@@ -1604,7 +1614,7 @@ class StarSystem:
         """
         if any(star is host for host in self.node_hosts):       # GEN.332 slice C: the belt row at an inner pair node is the disk; the dust note stays the star's own (a star of the pair may hold another disk)
             return
-        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
+        holder = star.stars[0] if isinstance(star, PairHost) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
         if holder.disk_kind not in (None, debris_dust.DEBRIS_KIND):                  # GEN.1550: a young star's own class 0, I or II disk (`pre_main_sequence.draw_disk`) is not this method's to clear
             return
         holder.disk_kind = holder.disk_mass_solar = holder.disk_inner_au = holder.disk_outer_au = None
@@ -1745,7 +1755,7 @@ class StarSystem:
         companion-driven Holman & Wiegert stability limit (`a_crit_au`,
         see `Star.a_crit_au`'s own docstring). `a_crit_au` is `None` for a
         single star or either star of a P-type (close) binary (whose
-        merged `BinaryStarProxy` never sets it), so this is a no-op
+        merged `PairHost` never sets it), so this is a no-op
         fallback to `system_perimeter` alone in those cases.
 
         The place's passing systems cut it further (GEN.325): the largest orbit whose expected number of ionizing passes
@@ -1887,7 +1897,7 @@ class StarSystem:
         Whether `star` still holds its own protoplanetary disk (GEN.1552: `disk_kind` of class 0, I or II, which the star was given by its age and its own dispersal time, `pre_main_sequence.dispersal_yr`), so it holds no
         bodies yet, planets or belts: they stand once the disk is gone, and the belts are the debris that follows. A config that asks for a class or lists its slots overrides it. A close pair's disk is its primary's.
         """
-        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star
+        holder = star.stars[0] if isinstance(star, PairHost) else star
         return getattr(holder, "disk_kind", None) in pre_main_sequence.DISK_KINDS and not self._explicit_request()
 
     def _apply_star_history(self, planets, star):
@@ -2014,7 +2024,7 @@ class StarSystem:
         system has two stars", true for either configuration. `secondary_star` and
         `secondary_planets` are only non-empty when `binary_type == "wide"` (a
         P-type binary's secondary is already nested inside `star`, the
-        `BinaryStarProxy` dict). `secondary_planets` is the wide binary
+        `PairHost` dict). `secondary_planets` is the wide binary
         secondary's own independently-generated planet list -- empty for
         every other configuration.
 
@@ -2087,7 +2097,7 @@ class StarSystem:
         once and re-attaches the same instances everywhere: `system_config`
         is built once and threaded into every child; `star` is built once
         (via a `binary_type` discriminator choosing `Star.from_dict` vs.
-        `BinaryStarProxy.from_dict`) and threaded into every top-level
+        `PairHost.from_dict`) and threaded into every top-level
         `Planet`/`AsteroidBelt` of the primary host. For a
         P-type (close) binary, the secondary star is deliberately
         reattached to the *same* shared `system_config` as everything else,
@@ -2125,15 +2135,19 @@ class StarSystem:
 
         binary_type = data.get("binary_type")
 
-        if binary_type == "close":
-            star = BinaryStarProxy.from_dict(data["star"], system_config)
-        else:
-            star = Star.from_dict(data["star"], system_config)
-
         system = object.__new__(cls)
         system.system_config = system_config
-        system.star = star
         system.binary_type = binary_type
+        system.orbit_nodes = tuple(OrbitNode(**node) for node in data.get("orbit_nodes", ()))
+        slots = data.get("star_slots")
+        system.star_slots = tuple(tuple(place) for place in slots) if slots is not None else None
+
+        if binary_type == "close":
+            pair_node, turned = system._pair_node_and_turn()
+            star = PairHost.from_dict(data["star"], system_config, pair_node, turned)
+        else:
+            star = Star.from_dict(data["star"], system_config)
+        system.star = star
 
         if binary_type == "close":
             system.primary_star = star._primary
@@ -2174,11 +2188,8 @@ class StarSystem:
             if binary_type == "wide" else []
         )
 
-        system.orbit_nodes = tuple(OrbitNode(**node) for node in data.get("orbit_nodes", ()))
         system.member_stars = tuple(Star.from_dict(member, system_config) for member in data.get("member_stars", ()))
         system.stars = system.stars + list(system.member_stars)
-        slots = data.get("star_slots")
-        system.star_slots = tuple(tuple(place) for place in slots) if slots is not None else None
         system.dark_members = tuple(stored_trees.DarkMember(**member) for member in data.get("dark_members", ()))
         system.build_ledger()
         system.primary.orbiters = _load_objects(data["planets"], star)

@@ -41,7 +41,7 @@ def _members(star):
 
 
 def is_post_agb_pair(star):
-    """Whether `star` is a close pair (a `BinaryStarProxy`) with a white dwarf as hot as a planetary nebula's central
+    """Whether `star` is a close pair (a `PairHost`) with a white dwarf as hot as a planetary nebula's central
     star."""
     members = getattr(star, "stars", None)
     if not members or len(members) < 2:

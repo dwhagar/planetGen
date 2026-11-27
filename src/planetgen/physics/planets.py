@@ -968,7 +968,7 @@ def generate_orbit_state(planet, primary_mass_kg):
 
     `position_x/y/z` (AU, via `update_orbital_position`) are this body's
     Cartesian position *relative to its orbital anchor* -- the star (or,
-    for a binary system, the `BinaryStarProxy` standing in for the system's
+    for a binary system, the `PairHost` standing in for the system's
     combined center) for a planet, the parent planet for a moon -- the same
     "each body positioned relative to its immediate primary, not some
     absolute frame" convention `docs/design/galaxy/galaxy-coordinate-system.md`

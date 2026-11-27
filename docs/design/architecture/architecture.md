@@ -151,7 +151,6 @@ Building the objects a run creates, and the commands that run it. Generation cod
 |---|---|
 | [`__init__.py`](../../../src/planetgen/generation/__init__.py) | Generation: building the objects a run creates, and the commands that run it. |
 | [`belt.py`](../../../src/planetgen/generation/belt.py) | `AsteroidBelt`: an asteroid belt within a star system and its composition. |
-| [`binary.py`](../../../src/planetgen/generation/binary.py) | `BinaryStarProxy`: a close (P-type) binary treated as one central star for planet generation. |
 | [`bright_stars.py`](../../../src/planetgen/generation/bright_stars.py) | Bright-star pre-placement: every star at least `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` bright is drawn and placed galaxy-wide right after `planetgen plan`, into `bright_stars`, while every sector stays unfilled. |
 | [`comet.py`](../../../src/planetgen/generation/comet.py) | `Comet`: a star-bound comet on a real Kepler or Barker orbit. |
 | [`config.py`](../../../src/planetgen/generation/config.py) | `SystemConfig`: every generation option for a system (mostly tri-state flags), from the CLI or a system file. |
@@ -164,6 +163,7 @@ Building the objects a run creates, and the commands that run it. Generation cod
 | [`object_timing.py`](../../../src/planetgen/generation/object_timing.py) | How long each generated object takes, per object and per object type (PERF.92), on top of the per-stage and per-job records (PERF.67). |
 | [`phenomena_plausibility.py`](../../../src/planetgen/generation/phenomena_plausibility.py) | The exotic-phenomena plausibility anomaly finder (a developer report). |
 | [`phenomenon_scatter.py`](../../../src/planetgen/generation/phenomenon_scatter.py) | Phenomenon pre-placement (GEN.100): the black holes, neutron stars, planetary nebulae and supernova remnants of the whole galaxy, its hypervelocity stars and the nucleus, drawn and placed right after `planetgen plan`. |
+| [`pair_host.py`](../../../src/planetgen/generation/pair_host.py) | `PairHost`: the two stars of an orbit node (a close pair, or an inner pair of a bigger tree) treated as one central star for the planets that circle both; the pair's orbit is the node's, read by [`pair_orbit.py`](../../../src/planetgen/generation/pair_orbit.py). |
 | [`planet.py`](../../../src/planetgen/generation/planet.py) | `Planet`: one planet or moon, its state and its description text. |
 | [`plausibility.py`](../../../src/planetgen/generation/plausibility.py) | The physical-plausibility anomaly finder (a developer report, not part of a run). |
 | [`prevalence.py`](../../../src/planetgen/generation/prevalence.py) | Prevalence: how much more or less often a sector or galaxy run's systems get a feature than they would by chance (GEN.52). |
