@@ -644,7 +644,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations", "planet_exosphere", "moon_exosphere",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
-    "comet_composition", "comet_coma", "interstellar_comet_composition", "interstellar_comet_coma", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
+    "comet_composition", "comet_coma", "interstellar_comet_composition", "interstellar_comet_coma", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons", "fallen_moons",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -3689,11 +3689,13 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     for member in belt.members:
         conn.execute(
             "INSERT INTO belt_members (belt_id, member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg,"
-            " mean_anomaly_deg, taxon, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status, soter_mu, scatter_tag)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " mean_anomaly_deg, taxon, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status, soter_mu, scatter_tag,"
+            " roundness_ratio, yield_strength_pa, binding_energy_j)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (belt_id, member["rank"], member["mass_kg"], member["radius_km"], member["distance_au"] * _AU_KM, member["eccentricity"], member["inclination_deg"],
              member["node_deg"], member["periapsis_deg"], member["anomaly_deg"], member["taxon"], member["density_g_cm3"], member["rock_fraction"],
-             member["metal_fraction"], member["water_fraction"], member["ice_fraction"], member["status"], member["soter_mu"], member["scatter_tag"]),
+             member["metal_fraction"], member["water_fraction"], member["ice_fraction"], member["status"], member["soter_mu"], member["scatter_tag"],
+             member["roundness_ratio"], member["yield_strength_pa"], member["binding_energy_j"]),
         )
 
     return belt_id
@@ -4529,10 +4531,11 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
 
     for member in field.members:
         conn.execute(
-            "INSERT INTO field_members (field_id, member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO field_members (field_id, member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status,"
+            " roundness_ratio, yield_strength_pa, binding_energy_j)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (field_id, member["rank"], member["mass_kg"], member["radius_km"], member["density_g_cm3"], member["rock_fraction"], member["metal_fraction"],
-             member["water_fraction"], member["ice_fraction"], member["status"]),
+             member["water_fraction"], member["ice_fraction"], member["status"], member["roundness_ratio"], member["yield_strength_pa"], member["binding_energy_j"]),
         )
 
     return field_id
@@ -4976,13 +4979,14 @@ def insert_body_history(conn, star_system_id, star_system, saved):
         if getattr(planet, "plan_slot", None) is not None:
             born[id(planet)] = planet.plan_slot      # DB.75b: the slot of the plan the planet was made in, which its ID follows
     rows = body_history.rows(star_system_id, bodies, saved, born)
-    lost = []
+    lost, fallen = [], []
     for planet in planets:
         where = saved.get(id(planet))
         if where is not None:
             lost += body_history.lost_rows(star_system_id, planet, where[1])
+            fallen += body_history.fallen_rows(star_system_id, planet, where[1])      # GEN.1874
     batch = getattr(conn, "_batch", None) is not None      # held back with the other child rows in a sector save, as `insert_effect_ledger`'s are
-    for table, fields, written in (("body_history", body_history.ROW_FIELDS, rows), ("lost_moons", body_history.LOST_FIELDS, lost)):
+    for table, fields, written in (("body_history", body_history.ROW_FIELDS, rows), ("lost_moons", body_history.LOST_FIELDS, lost), ("fallen_moons", body_history.FALLEN_FIELDS, fallen)):
         if not written:
             continue
         sql = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({', '.join('?' for _ in fields)})"
@@ -5010,6 +5014,7 @@ def rewrite_body_history(conn, star_system_id, star_system):
     """
     conn.execute("DELETE FROM body_history WHERE star_system_id = ?", (star_system_id,))
     conn.execute("DELETE FROM lost_moons WHERE star_system_id = ?", (star_system_id,))
+    conn.execute("DELETE FROM fallen_moons WHERE star_system_id = ?", (star_system_id,))
     saved = {}
     for planet in star_system.all_planets:
         if planet.body_type == "a":
@@ -8946,7 +8951,7 @@ placement), which `replace_star_system_content` swaps."""
 _SYSTEM_CONTENT_TABLES = kind_tables.tables("body")
 """tuple: The tables holding a system's bodies, keyed by `star_system_id`."""
 
-_SYSTEM_HISTORY_TABLES = ("body_history", "lost_moons", "effect_ledger")
+_SYSTEM_HISTORY_TABLES = ("body_history", "lost_moons", "fallen_moons", "effect_ledger")
 """tuple: The tables holding what a system's bodies were made with or by (`physics/body_history.py`, the effect ledger of GEN.1465), keyed by `star_system_id` and body row id; they go with the bodies."""
 
 _SYSTEM_TREE_TABLES = ("orbit_nodes", "dark_members")
@@ -10624,7 +10629,8 @@ def _belt_row_to_dict(row, composition_pairs, member_rows=()):
                         "eccentricity": m["eccentricity"], "inclination_deg": m["inclination_deg"], "node_deg": m["ascending_node_deg"],
                         "periapsis_deg": m["arg_periapsis_deg"], "anomaly_deg": m["mean_anomaly_deg"], "taxon": m["taxon"], "density_g_cm3": m["density_g_cm3"],
                         "rock_fraction": m["rock_fraction"], "metal_fraction": m["metal_fraction"], "water_fraction": m["water_fraction"],
-                        "ice_fraction": m["ice_fraction"], "status": m["status"], "soter_mu": m["soter_mu"], "scatter_tag": m["scatter_tag"]} for m in member_rows]
+                        "ice_fraction": m["ice_fraction"], "status": m["status"], "soter_mu": m["soter_mu"], "scatter_tag": m["scatter_tag"],
+                        "roundness_ratio": m["roundness_ratio"], "yield_strength_pa": m["yield_strength_pa"], "binding_energy_j": m["binding_energy_j"]} for m in member_rows]
     return data
 
 
@@ -10657,7 +10663,10 @@ def attach_body_history(conn, system, star_system_id):
         int: The bodies that got any.
     """
     stored = {(row["body_type"], row["body_id"]): row for row in conn.execute("SELECT * FROM body_history WHERE star_system_id = ?", (star_system_id,)).fetchall()}
-    if not stored:
+    fallen = {}
+    for row in conn.execute("SELECT * FROM fallen_moons WHERE star_system_id = ? ORDER BY planet_id, fall_index", (star_system_id,)).fetchall():
+        fallen.setdefault(row["planet_id"], []).append(row)      # GEN.1874: the moons the tide took, the rings of a restored planet are made from them
+    if not stored and not fallen:
         return 0
     lost = {}
     for row in conn.execute("SELECT * FROM lost_moons WHERE star_system_id = ? ORDER BY planet_id, born_index", (star_system_id,)).fetchall():
@@ -10677,6 +10686,7 @@ def attach_body_history(conn, system, star_system_id):
                 placed.append((row["born_index"], moon))
         if getattr(planet, "db_id", None) is not None:
             moon_history.restore_born(planet, placed, lost.get(planet.db_id, []))      # GEN.1753: the moons it was born with, for a history run again
+            body_history.attach_fallen(planet, fallen.get(planet.db_id, []))
     return attached
 
 

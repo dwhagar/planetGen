@@ -3683,6 +3683,9 @@ CREATE TABLE IF NOT EXISTS belt_members (
     status            VARCHAR(16) NOT NULL,  -- planet, dwarf planet, minor body or moon (`physics/body_status.py`)
     soter_mu          DOUBLE NULL,  -- Soter's mu, NULL where the zone holds nothing else
     scatter_tag       VARCHAR(24) NULL,  -- the population the scatter step put it in (GEN.1092), NULL until that step is wired
+    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a member stored before v281
+    yield_strength_pa DOUBLE NULL,  -- the whole-body strength of its material mix at the cold strength, Pa
+    binding_energy_j  DOUBLE NULL,  -- the energy that assembling it from infinity releases, J
 
     CONSTRAINT fk_belt_members_belt
         FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
@@ -3706,6 +3709,9 @@ CREATE TABLE IF NOT EXISTS field_members (
     water_fraction    DOUBLE NOT NULL,
     ice_fraction      DOUBLE NOT NULL,
     status            VARCHAR(16) NOT NULL,  -- dwarf planet or minor body (`physics/body_status.py`)
+    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a member stored before v281
+    yield_strength_pa DOUBLE NULL,  -- the whole-body strength of its material mix at the cold strength, Pa
+    binding_energy_j  DOUBLE NULL,  -- the energy that assembling it from infinity releases, J
 
     CONSTRAINT fk_field_members_field
         FOREIGN KEY (field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
@@ -5535,6 +5541,7 @@ CREATE TABLE IF NOT EXISTS body_history (
     born_index          SMALLINT UNSIGNED NULL,
     held_eccentricity   DOUBLE NULL CHECK (held_eccentricity IS NULL OR (held_eccentricity >= 0 AND held_eccentricity < 1)),
     forced_eccentricity DOUBLE NULL CHECK (forced_eccentricity IS NULL OR (forced_eccentricity >= 0 AND forced_eccentricity < 1)),
+    tilt_chaotic        TINYINT UNSIGNED NULL CHECK (tilt_chaotic IS NULL OR tilt_chaotic IN (0, 1)),
     formula_version     TINYINT UNSIGNED NOT NULL,
 
     PRIMARY KEY (star_system_id, body_type, body_id),
@@ -5559,6 +5566,21 @@ CREATE TABLE IF NOT EXISTS lost_moons (
 
     PRIMARY KEY (star_system_id, planet_id, born_index),
     CONSTRAINT fk_lost_moons_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v281 (GEN.1874): `body_history` gains `tilt_chaotic` (1 when the planet's tilt wanders chaotically, the quantity oddities W6 and W61 read) and `fallen_moons` keeps the moons a planet's tide brought
+-- inside its Roche limit with the years after the planet formed that each fell (`fall_index` is the place in the planet's list), which its rings are made from. A galaxy made earlier has NULL and no rows,
+-- which reads as 'not kept'.
+CREATE TABLE IF NOT EXISTS fallen_moons (
+    star_system_id      BIGINT UNSIGNED NOT NULL,
+    planet_id           BIGINT UNSIGNED NOT NULL,
+    fall_index          SMALLINT UNSIGNED NOT NULL,
+    mass_kg             DOUBLE NOT NULL CHECK (mass_kg > 0),
+    time_yr             DOUBLE NOT NULL CHECK (time_yr >= 0),
+
+    PRIMARY KEY (star_system_id, planet_id, fall_index),
+    CONSTRAINT fk_fallen_moons_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

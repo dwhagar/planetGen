@@ -41,6 +41,7 @@ def member_rows(field):
     for rank, mass in enumerate(ledger.masses_kg, start=1):
         radius_km = relations.sphere_radius(mass, density) / 1.0e3
         round_body = roundness.is_round(body_status.roundness(mass, ice, ice_type))
+        strength = body_strength.member_values(mass, radius_km, density, ice, makeup.metal, makeup.porosity, ice_type, mass, 2.0 * radius_km, rank)       # GEN.1159
         rows.append({"rank": rank, "mass_kg": mass, "radius_km": radius_km, "density_g_cm3": density / 1000.0, "rock_fraction": makeup.rock, "metal_fraction": makeup.metal,
-                     "water_fraction": makeup.water, "ice_fraction": makeup.ice, "status": body_status.DWARF_PLANET if round_body else body_status.MINOR_BODY})
+                     "water_fraction": makeup.water, "ice_fraction": makeup.ice, "status": body_status.DWARF_PLANET if round_body else body_status.MINOR_BODY, **strength})
     return rows

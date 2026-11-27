@@ -185,6 +185,8 @@ def body_entry(record, rank, member, held, placement, neighbours, belts):
     others = body_status.zone_mass_kg(placement.distance_au, member.mass_kg, record.star_mass_solar, neighbours, belts)
     ice = member.makeup.water + member.makeup.ice
     state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others, ice_type=body_strength.ice_type_of_makeup(member.makeup))      # GEN.1684
+    strength = body_strength.member_values(member.mass_kg, member.radius_km, member.density_kg_m3, ice, member.makeup.metal, 1.0 - member.filling, body_strength.ice_type_of_makeup(member.makeup),
+                                           member.mass_kg, 2.0 * member.radius_km, placement.distance_au, rank)       # GEN.1159
     return {
         "rank": rank,
         "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),
@@ -200,6 +202,7 @@ def body_entry(record, rank, member, held, placement, neighbours, belts):
                         "water": _q(member.makeup.water, "frac"), "ice": _q(member.makeup.ice, "frac")},
         "status": {"word": state.word, "soter_mu": None if state.mu is None or math.isinf(state.mu) else state.mu, "roundness": state.roundness,
                    "margot_pi": state.pi, "agrees": state.pi_agrees},
+        "strength": {"roundness_ratio": strength["roundness_ratio"], "yield_strength_pa": strength["yield_strength_pa"], "binding_energy_j": strength["binding_energy_j"]},
     }
 
 
@@ -235,6 +238,7 @@ def stored_bodies(belt_id, members):
             "composition": {"rock": _q(member["rock_fraction"], "frac"), "metal": _q(member["metal_fraction"], "frac"),
                             "water": _q(member["water_fraction"], "frac"), "ice": _q(member["ice_fraction"], "frac")},
             "status": {"word": member["status"], "soter_mu": member["soter_mu"]},
+            "strength": {name: member.get(name) for name in body_strength.MEMBER_FIELDS},
             "population": member.get("scatter_tag"),
         })
     return out

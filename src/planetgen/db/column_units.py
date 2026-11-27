@@ -194,6 +194,9 @@ TABLES = {
         "g_cm3": ("density_g_cm3",),
         "frac": ("rock_fraction", "metal_fraction", "water_fraction", "ice_fraction"),
         "soter-mu": ("soter_mu",),
+        "round-ratio": ("roundness_ratio",),
+        "Pa": ("yield_strength_pa",),
+        "J": ("binding_energy_j",),
     },
     "field_members": {
         "id": ("id", "field_id"),
@@ -202,6 +205,9 @@ TABLES = {
         "km": ("radius_km",),
         "g_cm3": ("density_g_cm3",),
         "frac": ("rock_fraction", "metal_fraction", "water_fraction", "ice_fraction"),
+        "round-ratio": ("roundness_ratio",),
+        "Pa": ("yield_strength_pa",),
+        "J": ("binding_energy_j",),
     },
     "irregular_sets": {
         "id": ("id", "planet_id"),
@@ -865,6 +871,13 @@ TABLES = {
         "rad_s": ("birth_spin_rate",),
         "au": ("formation_distance_au", "birth_distance_au"),
         "count": ("formula_version", "born_index"),
+        "flag": ("tilt_chaotic",),
+    },
+    "fallen_moons": {
+        "id": ("star_system_id", "planet_id"),
+        "kg": ("mass_kg",),
+        "yr": ("time_yr",),
+        "index": ("fall_index",),
     },
     "lost_moons": {
         "id": ("star_system_id", "planet_id"),

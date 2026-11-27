@@ -218,6 +218,20 @@ def generate_comet(comet):
         setattr(comet, name, value)
 
 
+MEMBER_FIELDS = FIELDS
+"""tuple: What a stored member of a belt or an asteroid field keeps of this module (GEN.1159): its roundness ratio, yield strength and binding energy, from its own mass, size, makeup and
+the cold strength (the same as a comet's, `generate_comet`)."""
+
+
+def member_values(mass_kg, radius_km, density_kg_m3, ice, metal, porosity, ice_type, *key):
+    """
+    `MEMBER_FIELDS` of a belt or field member: `{name: value}` from its mass, mean radius, bulk density, ice share (water and ice of its mass), metal share, porosity and the kind of its ice, at
+    the cold strength. `key` are the numbers that make the member unlike another (its mass, size, distance and a count); the strength quantile is drawn from a stream of them, so the run's stream does
+    not move and the same member has the same strength each time it is made again.
+    """
+    return solid(mass_kg, radius_km * 1000.0, density_kg_m3, ice, metal, porosity, None, quantile_for(*key), ice_type=ice_type)
+
+
 POPULATION_FIELDS = ("density_g_cm3", "ice_mass_fraction")
 """tuple: What a belt or an asteroid field stores of its makeup (GEN.1159): the mean bulk density of its members, g/cm3, and the mean share of their mass that is ice
 of any kind. The roundness ratio, strength and binding energy belong to a member, not to the population (the member rows, GEN.1070, GEN.1161)."""

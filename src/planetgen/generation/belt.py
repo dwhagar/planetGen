@@ -123,7 +123,8 @@ def member_row(body, entry):
         "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
         "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
         "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
-        "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag}
+        "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag,
+        "roundness_ratio": body["strength"]["roundness_ratio"], "yield_strength_pa": body["strength"]["yield_strength_pa"], "binding_energy_j": body["strength"]["binding_energy_j"]}
 
 
 _STARS = weakref.WeakKeyDictionary()

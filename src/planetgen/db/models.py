@@ -197,6 +197,9 @@ belt_members = sa.Table(
     sa.Column('status', sa.String(16), nullable=False),
     sa.Column('soter_mu', mysql.DOUBLE(), nullable=True),
     sa.Column('scatter_tag', sa.String(24), nullable=True),
+    sa.Column('roundness_ratio', mysql.DOUBLE(), nullable=True),
+    sa.Column('yield_strength_pa', mysql.DOUBLE(), nullable=True),
+    sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
     sa.Index('uq_belt_members_belt_rank', 'belt_id', 'member_rank', unique=True),
     sa.ForeignKeyConstraint(['belt_id'], ['asteroid_belts.id'], name='fk_belt_members_belt', ondelete='CASCADE'),
     mysql_engine="InnoDB",
@@ -289,6 +292,7 @@ body_history = sa.Table(
     sa.Column('born_index', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('held_eccentricity', mysql.DOUBLE(), nullable=True),
     sa.Column('forced_eccentricity', mysql.DOUBLE(), nullable=True),
+    sa.Column('tilt_chaotic', mysql.TINYINT(unsigned=True), nullable=True),
     sa.Column('formula_version', mysql.TINYINT(unsigned=True), nullable=False),
     sa.CheckConstraint('((`birth_eccentricity` is null) or (`birth_eccentricity` >= 0))', name='body_history_chk_1'),
     sa.CheckConstraint('((`birth_obliquity_deg` is null) or (`birth_obliquity_deg` between 0 and 180))', name='body_history_chk_2'),
@@ -298,6 +302,7 @@ body_history = sa.Table(
     sa.CheckConstraint('((`birth_distance_au` is null) or (`birth_distance_au` >= 0))', name='body_history_chk_6'),
     sa.CheckConstraint('((`held_eccentricity` is null) or ((`held_eccentricity` >= 0) and (`held_eccentricity` < 1)))', name='body_history_chk_7'),
     sa.CheckConstraint('((`forced_eccentricity` is null) or ((`forced_eccentricity` >= 0) and (`forced_eccentricity` < 1)))', name='body_history_chk_8'),
+    sa.CheckConstraint('((`tilt_chaotic` is null) or (`tilt_chaotic` in (0,1)))', name='body_history_chk_9'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_body_history_star_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
@@ -802,6 +807,9 @@ field_members = sa.Table(
     sa.Column('water_fraction', mysql.DOUBLE(), nullable=False),
     sa.Column('ice_fraction', mysql.DOUBLE(), nullable=False),
     sa.Column('status', sa.String(16), nullable=False),
+    sa.Column('roundness_ratio', mysql.DOUBLE(), nullable=True),
+    sa.Column('yield_strength_pa', mysql.DOUBLE(), nullable=True),
+    sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
     sa.Index('uq_field_members_field_rank', 'field_id', 'member_rank', unique=True),
     sa.ForeignKeyConstraint(['field_id'], ['asteroid_fields.id'], name='fk_field_members_field', ondelete='CASCADE'),
     mysql_engine="InnoDB",
@@ -1263,6 +1271,21 @@ lost_moons = sa.Table(
     sa.CheckConstraint('(`birth_distance_au` > 0)', name='lost_moons_chk_2'),
     sa.CheckConstraint('(`density_kg_m3` > 0)', name='lost_moons_chk_3'),
     sa.CheckConstraint('(`retrograde` in (0,1))', name='lost_moons_chk_4'),
+    mysql_engine="InnoDB",
+)
+
+
+fallen_moons = sa.Table(
+    'fallen_moons',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('fall_index', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('time_yr', mysql.DOUBLE(), nullable=False),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_fallen_moons_star_system', ondelete='CASCADE'),
+    sa.CheckConstraint('(`mass_kg` > 0)', name='fallen_moons_chk_1'),
+    sa.CheckConstraint('(`time_yr` >= 0)', name='fallen_moons_chk_2'),
     mysql_engine="InnoDB",
 )
 

@@ -38,12 +38,12 @@ HOMES = {
     "host_eccentricity": "not stored (DB.123): a moon is told its parent's eccentricity when the system is loaded",
     "primary_mass_kg": "not stored: what the body orbits, read from its parent when the system is loaded",
     "moon_disk_system": "not stored: the circumplanetary disk of a disk moon's giant (`generation/planet.py`), drawn again with the moons",
-    "fallen_moons": "not stored: the moons the history took away, worked out again by `moon_history.apply` from the born moons (`lost_moons`, GEN.1753); the ring they fed is stored (`ring_*` columns)",
+    "fallen_moons": "`fallen_moons` table (GEN.1874): each moon the tide brought inside the Roche limit, its mass and the years after the planet formed that it fell, attached on load (`body_history.attach_fallen`); the ring they fed is stored (`ring_*` columns)",
     "phi_bio": "not stored: the likelihood the microbial life score is made from (`life_scores`); the score is stored (`planet_life_class_scores`, migration 0150 dropped the likelihood columns)",
     "phi_cpx": "not stored: the likelihood the complex life score is made from (`life_scores`); the score is stored (`planet_life_class_scores`)",
     "oddity_quantities": (
-        "stored in part: the eccentricity a chain forces on a planet is `body_history.forced_eccentricity` (DB.132); `tilt_chaotic` (GEN.1535) is not stored: it is the gate that oddities W6 and W61 are drawn by when the "
-        "tilt is made, read at generation only; the oddity ids and the tilt they led to are stored (`oddities`, `axial_tilt_deg`, `obliquity_min_deg`, `obliquity_max_deg`)"),
+        "stored in part: the eccentricity a chain forces on a planet is `body_history.forced_eccentricity` (DB.132); `tilt_chaotic` (GEN.1535) is `body_history.tilt_chaotic` (GEN.1874), the gate that oddities W6 and W61 are drawn by when the "
+        "tilt is made, attached on load; the oddity ids and the tilt they led to are stored (`oddities`, `axial_tilt_deg`, `obliquity_min_deg`, `obliquity_max_deg`)"),
     "belt_member": "not stored: the flag of a body drawn as a belt member; a promoted body keeps its belt in `belt_order` and `belt_rank`",
 }
 """dict: Public attribute of a generated planet or moon -> where it is kept when it is not loaded by a field of the body tables (`store.BODY_FIELDS`, `PLANET_ONLY_FIELDS`), or why it is not kept."""
