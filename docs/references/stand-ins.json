@@ -62619,7 +62619,7 @@
             ],
             [
               "Evidence",
-              "READ ([R4882] Eq. 2 and its table of closed forms; checked here against the interior solver: 1.002 / 0.994, 1.208 / 1.207, 1.457 / 1.454, 1.757 / 1.734 at 1, 2, 4, 8 Earth masses)"
+              "READ ([R4882] Eq. 2 and its table of closed forms; checked here against the interior solver: 1.002 / 0.994, 1.208 / 1.207, 1.457 / 1.454, 1.757 / 1.734 at 1, 2, 4, 8 Earth masses) ; KNOWN MISS (census of 800 systems with GEN.1861 and EC1 0.025): planets of 3 to 4.57 Earth radii at orbits under 100 days are 0.148 a star against 0.071 in [R1478: Table 4] (2.1 times), and those of 1.97 to 2.43 radii are 0.4 to 0.5 of it; the valley survey is inside its targets, the census shape is not, taken with GEN.1870"
             ]
           ],
           "id": "SE5",
