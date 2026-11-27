@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4838+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Kepler zone mix test cites its paper by registry id only
+
+### Fixed
+
+- TEST.838: `src/tests/test_generation_mix.py` named its source by author and year in four places as well as by [R2020], which `test_citations_outside_the_registry` rejects. The names are gone and every mention reads [R2020] with its table or section. No product change.
+
+generation-output: unchanged
+
 ## [8.0.4837+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The zone mix test now holds the generated planets against Kepler's counts instead of the model's own old output
