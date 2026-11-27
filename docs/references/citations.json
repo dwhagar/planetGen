@@ -26750,6 +26750,16 @@
       "kind": "paper",
       "label": "Kruijssen et al. 2019",
       "title": "The E-MOSAICS project: tracing galaxy formation and assembly with the age–metallicity distribution of globular clusters"
+    },
+    "R5373": {
+      "kind": "paper",
+      "label": "Oey and Clarke 1997",
+      "title": "The superbubble size distribution in the interstellar medium of galaxies"
+    },
+    "R5374": {
+      "kind": "paper",
+      "label": "Weaver et al. 1977",
+      "title": "Interstellar bubbles. II - Structure and evolution"
     }
   }
 }

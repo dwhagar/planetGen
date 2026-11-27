@@ -1,6 +1,6 @@
 # Superbubbles shape the stars: the bubble field as a density modulation
 
-**Status:** plan. Boss asked for it on 2026-10-16 at 9:27 PM EDT; nothing is built. GEN.391 turns this plan into the checked design before any code. Boss decided the three open choices on 2026-10-16 at 9:38 and 9:39 PM EDT (section 7).
+**Status:** GEN.391 (the table of effects) is decided and GEN.392 (the handle, section 8) is built; the density terms (GEN.393), the scatters (GEN.394) and the sector fill (GEN.395) are not. Boss asked for it on 2026-10-16 at 9:27 PM EDT; GEN.391 turned this plan into the checked design. Boss decided the three open choices on 2026-10-16 at 9:38 and 9:39 PM EDT (section 7).
 
 Boss (2026-10-16, 9:27 PM EDT): "instead of drawing the bubbles, we need a way to store the regions and have them adjust the star density function for the space they occupy, which means finding a way to shift the probability to favor one part of a sector over another. TODO should think about how to do that so when sectors get built they follow the bubbles without having to draw them."
 
@@ -62,3 +62,28 @@ MAP.235 (the layer, toggle and key row) and MAP.236 (clearer bounds, more transp
 1. **Young only.** A bubble changes the young and intermediate star density only; old stars, halo, bulge, clusters and satellites are unchanged.
 2. **Optional overlay.** The drawn layer (MAP.235) stays, off by default; MAP.236 stays at lower priority.
 3. **Stay in 8.1.** The chain (GEN.391 to GEN.395, TEST.206, DOC.61) stays in 8.1 as planned: design in phase 3, build in phase 5. It does not hold the 8.1 headline GEN.301 but it does hold the 8.1 stamp.
+
+## 8. The table of effects (GEN.391, decided by Boss on 2026-11-26 at 7:42 PM EST) and the handle (GEN.392)
+
+Boss chose option 1 on card A, option 1 on card B and option 2 on card C. The numbers below come out of the code (`galaxy/bubble_field.py`) and the tuning constants named; every stand-in has a row in section 6.339 of the stand-in list (GEN.725, rows SB1 to SB5).
+
+| Population | Inside the cavity | On the shell | Outside | Where the number comes from |
+|---|---|---|---|---|
+| Young (0 to 100 Myr) | `interior_factor`: the stars younger than the bubble are missing, down to a floor `(gas inside / disk gas)^1.5` (0.0003 to 0.002); a bubble of the full 40 Myr is 0.6, a small young one nearly 1 | `shell_factor`: 13.1 times as many (the shell is 0.06 of the radius thick, its gas `1 / (3 x 0.06)` = 5.6 times denser, star formation that to the power 1.5) | 1 | card A (physical), card B (derived shell), [R4916] (young stars on the Local Bubble's surface), [R4347] (14 to 30 percent of massive stars form triggered) |
+| Intermediate (0.1 to 3 Gyr) | 1 | 1 | 1 | Boss, 2026-10-16: a gas structure acts on young stars only |
+| Old disk, bulge, halo, clusters, satellites | 1 | 1 | 1 | Boss, 2026-10-16 |
+
+**Age from radius (card C).** A bubble's age is Weaver's law ([R5374], eq. 24 of [R5373]) solved for the age, `age = (R / 0.76)^(5/3) (rho / L)^(1/3)`, at one driving power for all bubbles (`SUPERBUBBLE_DRIVING_POWER_ERG_S` 6.3e36 erg/s, `SUPERBUBBLE_DRIVING_DENSITY_CM3` 0.5, mean mass 1.25 hydrogen masses) and capped at the 40 Myr the driving power lasts ([R5373] section 2.1). No real bubble is the anchor. The ages and inside factors:
+
+| Radius (pc) | 50 | 75 | 100 | 150 | 250 | 400 | 500 |
+|---|---|---|---|---|---|---|---|
+| Age (Myr) | 1.2 | 2.4 | 3.9 | 7.6 | 17.7 | 38.8 | 40 |
+| Inside factor (gas 0.005 per cm3) | 0.988 | 0.976 | 0.961 | 0.924 | 0.823 | 0.612 | 0.600 |
+
+Half of the field's bubbles are under 160 pc (the radius is log-uniform, 50 to 500 pc), so most cavities are young and shallow; only those over 400 pc reach 0.6. The size law of the field is GEN.254's, not this chain's; the observed number of superbubbles by size is a power law (slope 1.4 to 2.1 in the luminosity function, [R5373] Table 2), so real small bubbles are likelier than the log-uniform draw has them. That is for GEN.1843.
+
+**The factor.** `young_factor(bubble, d)` with `d` the distance over the radius: the interior factor under `d` = 0.94, rising across `0.94 +/- 0.015` to the shell's peak, flat to `d` = 1, falling across `1 +/- 0.015` to 1 (smoothstep edges, `SUPERBUBBLE_EDGE_SHARE`). It is a mix of 1, the interior factor and the peak, so it never goes beyond the peak: the peak is the certified maximum of one bubble. Overlaps multiply.
+
+**Finding for the census.** The ball's gas goes into the shell, but star formation goes as density to the 1.5, so the shell forms more stars than the swept ball would have: the young stars of a full-age bubble and its shell are about 2.4 times the unmodulated count (0.6 of the 0.83 of the volume plus 13.1 of the 0.17). The check is the census share of young stars on a shell against 14 to 30 percent ([R4347]); if it misses, the shell's thickness moves, not the law.
+
+**The handle.** `GalaxyShape.bubbles` is a `BubbleField` holding the galaxy's seed (`None` for a shape with no seed), set where the shape is read (`db.store.get_galaxy_shape`) and planned (`generation.plan_outline.build`). It compares and hashes by seed. `bubbles_in_box(shape, low, high)` is the box cut (every bubble whose smooth edge reaches the box, by column and draw order); `young_factor(shape, point)` is the product at a point; `max_young_factor(shape, low, high)` is the certified bound (the peak to the power of the number of bubbles that reach the box, 1 for none); `density_without_bubbles(shape, point)` is the stellar density read with no bubble in it. `superbubble_field.bubble_free(shape)` strips the handle before the bubbles' own placement reads the shape, so the factor of GEN.393 cannot feed back into where the bubbles are, and a shape with and without the handle share one cache entry. Nothing reads the factor yet: the density is unchanged until GEN.393.

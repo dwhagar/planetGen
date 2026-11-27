@@ -97,8 +97,20 @@ def cell_bubbles(galaxy_seed, shape, index):
 def _log_uniform(low, high):
     """The next draw of the bound stream, log-uniform between `low` and `high`."""
     return math.exp(draw.uniform(math.log(low), math.log(high)))
+
+
+def bubble_free(shape):
+    """
+    `shape` without its bubble handle (`GalaxyShape.bubbles`, GEN.392): the shape the placement reads, so that once the density
+    carries the bubbles' factor (GEN.393) the factor does not feed back into where the bubbles are, and a shape with and without
+    the handle share one cache entry.
+    """
+    return shape if getattr(shape, "bubbles", None) is None else shape._replace(bubbles=None)
+
+
 def bubbles_reaching(galaxy_seed, shape, point_pc, reach_pc=0.0):
     """Every bubble whose sphere comes within `reach_pc` of `point_pc`, nearest column first."""
+    shape = bubble_free(shape)
     span = tuning.SUPERBUBBLE_RADIUS_RANGE_PC[1] + reach_pc
     low = cell_index((point_pc[0] - span, point_pc[1] - span))
     high = cell_index((point_pc[0] + span, point_pc[1] + span))
@@ -126,6 +138,7 @@ def all_bubbles(galaxy_seed, shape, radius_pc, half_height_pc=None):
     above and below the plane when given), by column then draw order: what the Galaxy Map draws.
     """
     edge = tuning.SUPERBUBBLE_CELL_PC
+    shape = bubble_free(shape)
     reach = math.floor(radius_pc / edge) + 1
     found = []
     for i in range(-reach, reach + 1):
