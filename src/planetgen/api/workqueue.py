@@ -420,7 +420,7 @@ def waiting_state():
 @require_admin()
 def tuning():
     """`GET /api/admin/work/tuning` -- what the queue has learned per job kind (OPS.158): `self_tuning` (whether the job profile is read), `kinds` (each `kind`, `typed_mb`, `figure_mb`
-    the claim from the profile, `pinned_mb`, `samples`, `last_sample`, `changed` the newest change made to it) and `changes` (the newest 20 changes the engine or an admin made)."""
+    the claim from the profile, `pinned_mb`, `samples`, `last_sample`, `changed` the newest change made to it, `current` whether code still emits the kind, OPS.316) and `changes` (the newest 20 changes the engine or an admin made)."""
     return jsonify(profileclaim.overview(_redis()))
 
 
