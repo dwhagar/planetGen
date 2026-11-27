@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4843+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The life-air API test now says what the route documents: a lifeless world with a stored air history answers from that record.
+
+### Fixed
+
+- GEN.1878: `tests/test_api_life_air.py` expected `life_air` to be `null` for every planet with no living class. The route (`planet_life_air`, API.51) documents `null` only for a world with no living class and no stored history; since GEN.1745 slice 2 a lifeless world with air of 500 Pa or more keeps an air history record, and the route answers from it (its gases, shocks and temperatures, no classes and no stages of life). The API was right and the test stale; the test now pins both cases. No change to the route or to any world.
+
+generation-output: unchanged
+
 ## [8.0.4842+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The Queue page's "What the queue has learned" table lists only the job kinds the code still emits, and folds the retired ones away where they can still be forgotten.
