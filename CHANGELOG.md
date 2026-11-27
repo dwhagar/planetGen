@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4838+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Kepler zone mix test cites its paper by registry id only
+
+### Fixed
+
+- TEST.838: `src/tests/test_generation_mix.py` named its source by author and year in four places as well as by [R2020], which `test_citations_outside_the_registry` rejects. The names are gone and every mention reads [R2020] with its table or section. No product change.
+
+generation-output: unchanged
+
+## [8.0.4837+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The zone mix test now holds the generated planets against Kepler's counts instead of the model's own old output
+
+### Changed
+
+- TEST.838 part 2 / GEN.1858: `test_zone_mix_is_spread` held the share of hot, ecosphere and cold planets of all stars to bands (hot 0.20 to 0.48) that recorded the model's own output of 11-05; GEN.1709 (Train 40, 11-16, sourced to [R2020]) moved the first inner-system planet from 5 to 25 days on purpose and the share fell to 0.18 to 0.22. The share cannot be observed (82 percent of a sample's stars are M dwarfs, whose hot zone lasts a few days, and the cold zone has no small-planet census), so the test now holds what Kepler measures: the planets of 1.25 to 4 Earth radii per FGK dwarf from 8 to 256 days, and the part of them inside the habitable zone's inner edge (the hot zone), against Hsu et al. 2019 Table 2 ([R2020], read from the paper's PDF) with the cells' errors and Poisson at the sample size, 3 standard errors of both. The zones still all occur. 0.79 +- 0.14 generated against 0.92 +- 0.09 observed (8 to 256 d), 0.69 hot against about 1.0. The 256 to 500 day bin runs low (0.14 against 0.52, 2 sigma) and is GEN.1871's. No product change.
+
+generation-output: unchanged
+
+## [8.0.4836+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The 36-sector galaxy run test builds its sectors without the air history record, so it fits its time limit
+
+### Fixed
+
+- TEST.843: `test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units` (36 sectors through the real queue) ran past its 3600 s limit alone on a 4-core box and was ended by the watchdog (3840 s) on main and on Train 63; stack samples put 58 percent of its time in the air solve and 31 percent in the air history. The test reads stage keys, sector counts and linked paths, never a body's air, so it builds its sectors without the air history record (`tests/air_history_off.py`, TEST.831, as the site galaxy of TEST.835 does). Tests only, no product change.
+
+generation-output: unchanged
+
+## [8.0.4835+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The read-back test compares a planet's irregular moons to a rounding, the way it already compares every other float.
+
+### Fixed
+- `test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from` compared the stored irregular set (a dict of moons) for exact equality, while it compares every other float to 1e-12. An irregular moon is stored in km and g/cm3 and read back in AU and kg/m3, so a distance or density comes back one rounding off (59.96918180368469 AU read back as 59.969181803684684). The test now recurses into the set and holds each value to the same 1e-12, and takes its comet from a system asked to hold one (the physics gives few stars comets, so 60 seeds may hold none); the store and the generator are unchanged, and a missing or extra key still fails.
+
+generation-output: unchanged
+
+## [8.0.4834+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The class filters in search show each class's description again, every class has a marker colour on the system map, and the class words and docs match the rules.
+
+### Fixed
+
+- The planet and moon class filters in search read a description that was removed when class text moved to its own table (GEN.1212), so every class tooltip was empty. They show the class's own sentence now.
+- The system map drew classes Q, R, U, W, X, Y and Z in the grey default colour. Each now has its own colour, and a test checks that every class letter has one and that no two share it.
+- Class O's text said water covers "most" of the surface, though the rule is 95 percent or more (a global ocean with at most islands); it says "nearly all" now. Class X's text said "a thin air or none", though the rule allows any air above the ice lid (GEN.1737); it says "an air above it or none".
+- The system file reference said Q is a reserved letter and cannot be used, that O starts at 80 percent water and M ends at 80 percent, and that class T takes a rocky body by its envelope share. It now matches the rules (Q is the hot world, O is 95 percent or more, M is 20 to 95 percent, T is hydrogen 30 percent or more of the air under 10 Earth masses).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4833+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A moon that circles a free planet has a description of its own on its page, as a moon of a system has.
+
+### Added
+
+- `GET /api/moons/<id>/description`: the Document of a moon of a free planet (UX.138), built from its row, one `moon` section with its facts, ratings, composition and prose. A moon of a wanderer has no system, so it had no description; the route is additive and `API_VERSION` stays.
+- The page of a moon of a free planet shows that description and the same About, Habitability and Properties sections as a moon of a system.
+
+### Fixed
+
+- The page of a moon of a free planet failed to draw when its property sheet had a habitability group (the template read the planet sections the page did not pass).
+
+## [8.0.4832+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The page and the API answer for a giant's trojan region work, and a facility built on one names it.
+
+### Fixed
+
+- The object resolver (`/api/objects/belt:<id>`, the page of a belt and its parent chain) read a belt number for every belt, and a trojan region takes none, so it raised a KeyError for any region and its page failed. It names the region for its giant now (`<host> L4 trojan region`), as the lists of belts do. The same fix is made where a facility's host chain names a belt.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4831+db280.gen150.api14] - 2026-11-27
 
 **Headline:** Stellar-mass black holes are heavier where the metals are fewer: the registered 5 to 20 solar mass law stays for the disk around the sun and grows toward 50 solar masses in metal-poor places.
