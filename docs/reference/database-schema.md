@@ -1618,6 +1618,20 @@ Added in v274 (GEN.1809). What the life of a planet or moon had to become able t
 | `grade` | TINYINT UNSIGNED | nullable, CHECK 2 or 3 | The lowest grade of the table that reaches the demand (2 tolerant, 3 extreme); `NULL` when even the extreme grade falls short (the life there is past the table) and for a habitat row. |
 | `row_ids` | VARCHAR(64) | NOT NULL | The ids of the rows of the table that give it, comma separated (`C8`, `D2,D3`). |
 
+### `planet_exosphere` / `moon_exosphere`
+
+Added in v280 (GEN.455 part B). What the exosphere of a planet or moon with no air at all holds (`physics/exosphere.py`): one row for each species a source of the surface supplies (thermal release of the ices, photon-stimulated desorption of Na and K, micrometeoroid impact vaporisation and ion sputtering of the rock), the largest column first. A body with any air, a giant and a row made before v280 have none.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `entry_number` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The row's place in the record, from 1 (the largest column). UNIQUE with the owner. |
+| `species` | VARCHAR(16) | NOT NULL | The gas table's formula (`Na`, `K`, `Ca`, `Mg`, `Fe`, `SiO`, `H2O`, `CO2`, ...). Indexed with the column, so a search for the bodies with a sodium exosphere reads the index. |
+| `column_cm2` | DOUBLE | NOT NULL, CHECK over 0 | The column, atoms or molecules per square centimetre, the sources added over the loss to the star's light, to escape and to the ground. |
+| `source` | VARCHAR(40) | NOT NULL | The source that gives most of it (`thermal release`, `photon-stimulated desorption`, `micrometeoroid impact vaporisation`, `ion sputtering`). |
+| `scale_height_km` | DOUBLE | NOT NULL | `kT/(m g)` at that source's launch temperature, km. |
+
 ### `irregular_moons`
 
 Added in v219 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
@@ -2636,6 +2650,10 @@ Migration 0271 adds `lagrange_point`, `libration_amplitude_deg`, `libration_phas
 ### v273 (GEN.1746): the life ages of a world
 
 Migration 0273 creates `planet_life_ages` and `moon_life_ages` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
+
+### v280 (GEN.455 part B): the exosphere of an airless body
+
+Migration 0280 creates `planet_exosphere` and `moon_exosphere` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come with the next regeneration.
 
 ### v274 (GEN.1809): the adaptations the life of a world needed
 

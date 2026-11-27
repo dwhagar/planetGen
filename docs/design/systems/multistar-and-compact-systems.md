@@ -413,11 +413,11 @@ phases): a sanity check, not a re-derivation.
 - Cap everything at a disk size (100 AU; `_disk_outer_edge_au` exists).
 
 Over 3,000 draws per N with a 0.3 AU minimum window and a crude habitable-zone
-test [C]:
+test [C] (the N = 2 cell re-measured on 12,000 pairs after the generator moved: 77% to 72%):
 
 | N | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|
-| Stars with an S-type window above 0.3 AU | 77% | 40% | 28% | 20% | 15% | 13% |
+| Stars with an S-type window above 0.3 AU | 72% | 40% | 28% | 20% | 15% | 13% |
 | Pair nodes with a usable P-type window (earlier estimate, see GEN.543 below) | 34% | 35% | 28% | 23% | 20% | 18% |
 | Pair nodes with a P-type window above 0.3 AU (measured, GEN.543) | 45% | 48% | 43% | 37% | 35% | 30% |
 

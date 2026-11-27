@@ -28,7 +28,7 @@ from planetgen.generation import bodybeat
 from planetgen.generation import abundance_tier, habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import isotope_record, ore_deposits
-from planetgen.physics import adaptation_record, aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_ages, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import adaptation_record, aerosols, exosphere, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_ages, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -115,6 +115,7 @@ class Planet(PlanetaryObject):
         life_class_scores (dict or None): `{class id: score}` for every class the body supports (a score of 1 or more).
         life_living (list or None): The life classes that live on the body (GEN.1209): the dominant class first, each a dict (`physics.life_classes.LIVING_FIELD`).
         life_ages (list or None): The life ages of the body, the stretches of its life between mass extinctions, each a dict (`physics.life_ages.entries_of`, GEN.1746 slice 3); `None` for a body with no life.
+        exosphere (list or None): What an airless body's exosphere holds, each species a dict of its column, its main source and its scale height (`physics.exosphere`, GEN.455 part B); `None` for a body with any air, a giant, a belt or one with no star's light.
         life_adaptations (list or None): What the life of the body had to become to live where it does, each a dict (`physics.adaptation_record.entries_of`, GEN.1808 and GEN.1809); `None` for a body whose life needs none or is of a class with no record.
         life_animal_grade (int or None): The grade of its animals, 0 none to 3 large and active (`physics.life_complexity`).
         life_complexity (float or None): The complexity index of its life class (`physics.life_complexity`).
@@ -215,7 +216,7 @@ class Planet(PlanetaryObject):
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
-        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, life_classes.LIVING_FIELD, life_ages.FIELD, adaptation_record.FIELD, "reflection_spectrum_visible",
+        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, life_classes.LIVING_FIELD, life_ages.FIELD, adaptation_record.FIELD, exosphere.FIELD, "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
         "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
@@ -318,6 +319,7 @@ class Planet(PlanetaryObject):
     """str or None: Where a giant's hot-condensate clouds sit and the most each trace gas can hold, as JSON text (`physics/hot_cloud_deck.py`, GEN.1577); `None` for a body that is not a giant of a star."""
     air_history = None
     life_adaptations = None
+    exosphere = None
     """str or None: The record of the body's air history as the short JSON text `physics/air_record.pack` makes (GEN.1745 slice 4b); `None` for a body that gets none (`air_record.eligible`) and for a body not yet through the life pass."""
     oddities = ()
     """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
@@ -452,6 +454,7 @@ class Planet(PlanetaryObject):
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.cloud_decks = None     # a giant's cloud decks and trace-gas ceilings (`hot_cloud_deck.generate`, set with its air, GEN.1577)
         self.air_history = None     # the record of its air history (`air_record.pack`, set at the end of the life pass, GEN.1745)
+        self.exosphere = None        # an airless body's exosphere (`exosphere.generate`, GEN.455 part B; stored in `planet_exosphere` and `moon_exosphere`)
         self.life_adaptations = None        # what its life had to become to live where it does (`adaptation_record`, set at the end of the life pass, GEN.1808; stored by GEN.1809)
         self.collision_count = collision_count
         self.build.plan_eccentricity = plan_eccentricity      # GEN.1797: runtime build state, never stored

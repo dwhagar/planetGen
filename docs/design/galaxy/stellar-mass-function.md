@@ -73,7 +73,7 @@ one's (12 solar masses) 0.38; the share with q > 0.95 is 12% against 6% flat for
   solar masses. The disk history's return fraction is 0.384 (it was 0.371).
 * **Neutron stars** are drawn from the Gaussian of the slow pulsars ([R3396]: 1.49 +- 0.19), held to 1.1 to 2.2
   solar masses; `remnant_mass.share_above` and `moments` are the same Gaussian's for the scatter cut and the placement terms.
-* **Black holes** stay uniform over 5 to 20 solar masses: the widest of the published ranges stands.
+* **Black holes** stay uniform over 5 to 20 solar masses at the sun's metals, the widest of the published ranges, as the anchor; a metal-poor place stretches the span toward 50 solar masses (GEN.554, `docs/design/systems/black-hole-mass-by-metals.md`, stand-in BHM1).
 
 ## What moves, and why it is not a defect
 

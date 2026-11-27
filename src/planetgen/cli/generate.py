@@ -1569,7 +1569,7 @@ def add_repair_db_arguments(parser):
     parser.add_argument('--dry-run', action='store_true',
                         help="Say which damaged sectors the parity file could rebuild and write nothing.")
     parser.add_argument('--regenerate', action='store_true',
-                        help="Draw again from the galaxy's seed each sector the parity file could not rebuild (DB.17), under the directive its "
+                        help="Draw again from the galaxy's seed each sector the parity file could not rebuild, under the directive its "
                              "stored record names. A sector made under another generator epoch is refused, and says why. Admin edits of a sector "
                              "are not restored (a --dry-run lists them); the sector's cell is emptied and generated again like the Regenerate "
                              "button of the sector page.")

@@ -225,6 +225,9 @@ def test_a_rows_rate_is_the_class_rate_over_one_plus_the_same_class_companions_p
         assert phenomenon_scatter.row_density_divisor(kind, subtype) == 1.0
     rates = {(kind, subtype): rate for kind, subtype, rate in phenomenon_scatter._scattered_rates(1.0)}
     for kind, subtype in phenomenon_scatter.SCATTER_CLASSES:
+        if phenomenon_scatter.is_pair(kind, subtype):
+            assert (kind, subtype) not in rates      # no pair is under a cut of 1: every black hole is above it (GEN.263)
+            continue
         row_rate = rates[(kind, subtype)]
         object_rate = (phenomenon_scatter.class_rate_per_star(kind, subtype)
                        * phenomenon_scatter.share_above(kind, subtype, 1.0))

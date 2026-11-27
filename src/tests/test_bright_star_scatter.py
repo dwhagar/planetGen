@@ -129,7 +129,8 @@ def test_a_band_scatter_draws_only_stars_between_its_limits():
         band = brightStars.bright_band_fraction(low, THRESHOLD, population)
         assert band == pytest.approx(bright_star_fraction(low, population)
                                      - bright_star_fraction(THRESHOLD, population))
-        assert band > 0
+        # a cluster's floor sits under the band's low end (GEN.161), so both ends take it and the band adds nothing for a cluster
+        assert (band == 0.0) if population == "cluster" else (band > 0)
 
 
 def test_fill_context_caps_dim_stars_and_sets_their_population():

@@ -217,8 +217,11 @@ A <code>major</code> note bumps MAJOR, any other note bumps REVISION, and BUILD 
 sum of the TODO category counters in <code>docs/plan/todo-number-map.md</code>
 (Boss: &quot;major feature set.revision.build&quot;). <strong>Changed on 2026-10-10:</strong> Boss
 wanted BUILD to change on every stamp, so BUILD is now the previous BUILD
-plus one and never resets; the counters only allocate TODO IDs. See
-<code>changes/README.md</code>.</p>
+plus one and never resets; the counters only allocate TODO IDs. <strong>OPS.64
+(Boss, 2026-10-24, the PEP 440 local suffix):</strong> the version string also carries
+<code>+db&lt;schema&gt;.gen&lt;epoch&gt;.api&lt;api&gt;</code>, which the stamp reads from the newest migration
+revision, <code>epochs.json</code> and <code>API_VERSION</code>, so a database, a galaxy or a client can be
+matched to a release by its version alone. See <code>changes/README.md</code>.</p>
 <hr />
 <h2 id="7-system-python-with-apt-on-linux-venvs-elsewhere">7. System Python with apt on Linux, venvs elsewhere</h2>
 <p><strong>Status: reversed by OPS.45</strong> (merged, #1333, 2026-10-14). The installers now make planetGen's own virtual environment at <code>/usr/local/planetgen/venv</code> from the hash-checked lock, on Linux and macOS alike, and mod_wsgi reaches it through <code>python-home</code> (<a href="../../deployment/apache.html#planetgens-own-python">apache.md</a>); the system Python is left alone. The dedicated venv this section turned down &quot;for now&quot; is the one that was built.</p>
