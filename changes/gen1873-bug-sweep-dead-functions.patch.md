@@ -2,7 +2,7 @@
 
 ### Fixed
 
-- `planetgen.api.lookup:name_search_job` (API.38) had no line in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed and the job ran on the default 1000 MB figure. It now claims 700 MB and one core, the figure of the other read-only light job.
+- OPS.321: `planetgen.api.lookup:name_search_job` (API.38) had no line in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed and the job ran on the default 1000 MB figure. It now claims 700 MB and one core, the figure of the other read-only light job.
 
 ### Removed
 

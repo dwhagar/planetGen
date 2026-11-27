@@ -105,7 +105,7 @@ over 2 sector edges" flag.
   first (TEST.79, PR #427).
 - **Built (NAV.12).** `route.hops` carries `{from, to, distance_ly,
   unknown_space}` per hop and `route.longest_hop_ly` the longest
-  (`query.nav_between`, `corridor.unknown_space_flags`: a hop is flagged when
+  (`query.nav_between`, `corridor.unknown_cells`: a hop is flagged when
   a cell on its line, other than the two holding its ends, has no `sectors`
   row). A same-sector pair with a galaxy placement is routed in the galaxy
   corridor and shifted back into the sector's frame. The NAV page states the
@@ -505,7 +505,7 @@ for both.
   database, workers)` takes `(density, expected_systems)` per sector and returns
   seconds, bytes and a disk refusal; `run_galaxy.generate_sector_neighborhood`
   already does this for a sphere (`_neighborhood_candidates`,
-  `_neighborhood_batch`, `estimate_only`), and NAV.48 needs the same with an
+  `_Pending.of_candidates`, `estimate_only`), and NAV.48 needs the same with an
   explicit address list. A line in the disk plane crosses 0.26 to 0.32 cells
   per parsec, a random 3D direction about 0.4 [C]. At 6.3 systems per
   solar-density cell that is about 6 CPU-minutes per 1,000 pc at the PERF.3
