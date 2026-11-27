@@ -99,3 +99,14 @@ def test_a_field_members_numbers_are_written_to_the_database_and_read_back(mysql
             conn.execute("DELETE FROM asteroid_fields WHERE id = ?", (field_id,))
     finally:
         conn.close()
+
+
+def test_every_irregular_moon_has_its_three_numbers_and_they_are_the_same_each_time():
+    from tests.test_irregular_moons_stored import _belt_caught_set, _jupiter_set
+    for make in (_jupiter_set, _belt_caught_set):
+        held = make()
+        assert held.moons
+        for moon in held.moons:
+            for name in body_strength.MEMBER_FIELDS:
+                assert math.isfinite(getattr(moon, name)) and getattr(moon, name) > 0.0
+        assert [moon.to_dict() for moon in make().moons] == [moon.to_dict() for moon in held.moons]

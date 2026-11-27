@@ -3762,6 +3762,9 @@ CREATE TABLE IF NOT EXISTS irregular_moons (
     mean_anomaly_deg  DOUBLE NOT NULL,
     belt_order        INT NULL,  -- v224 (GEN.1085): for a body caught from an inner belt, the belt's number among the belts of the planet's star, nearest first
     belt_rank         INT NULL,  -- v224 (GEN.1085): when it was a stored member of that belt, its rank there, which it keeps in its designation
+    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a body stored before v281
+    yield_strength_pa DOUBLE NULL,  -- the whole-body strength of its material mix at the cold strength, Pa
+    binding_energy_j  DOUBLE NULL,  -- the energy that assembling it from infinity releases, J
 
     CONSTRAINT fk_irregular_moons_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
