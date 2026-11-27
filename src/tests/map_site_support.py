@@ -17,6 +17,7 @@ nebula, a neutron star and two rogue planets.
 
 import contextlib
 import math
+import os
 import threading
 
 import pytest
@@ -1181,6 +1182,14 @@ class _Served:
             for name in _TILECACHE:
                 patch.setattr(tilecache, name, getattr(self.api, name))
             patch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
+            # TEST.844: the nodes and stages the site's server wrote for an earlier test are not there for this one. The fixture's stamp never changes, so
+            # nothing would ever stale them, and the next test read them back where a fresh server would have built them from the fixture's answer (a
+            # test that asked for "no star outside this block" then saw the stars an earlier view had made it write). The stamp files and the folders stay.
+            for folder, _folders, files in os.walk(self.tiles):
+                if os.path.basename(folder) != "" and os.path.dirname(folder) != str(self.tiles):
+                    for name in files:
+                        if name != "stamp.json":
+                            os.remove(os.path.join(folder, name))
             patch.setenv("PLANETGEN_TILE_CACHE_DIR", str(self.tiles))
             patch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
             yield
