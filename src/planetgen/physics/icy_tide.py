@@ -102,14 +102,61 @@ def love_k2(mass_kg, radius_m, frequency_rad_s):
     return tidal_rheology.ice_response(mass_kg, radius_m, frequency_rad_s, LOVE_TEMPERATURE_K).k2
 
 
+CORE_ROCK_DENSITY_KG_M3 = 2500.0
+"""float: The bulk density of the rocky core of a small icy body (Choblet 2017, [R5377], supplement Table S1: 2500 kg/m3, a porous silicate rubble). Source tier T1, tweak level L0."""
+CORE_SHELL_DENSITY_KG_M3 = 1000.0
+"""float: The mean density of what lies over the core, the ice shell and the ocean (925 and 1030 kg/m3 in [R5377], supplement Table S1), used to find the core's radius from the body's mean density. Source tier T2, tweak level L0."""
+CORE_RIGIDITY_PA = 1.6e7
+"""float: The effective shear modulus of an unconsolidated rocky core at the central pressure `CORE_REFERENCE_PRESSURE_PA` (Choblet 2017, [R5377], supplement: `mu_eff` fixed to 1.6e7 Pa, "an equivalent result" for 0.3 GPa). Source tier T1, tweak level L0."""
+CORE_DISSIPATION = 0.5
+"""float: The inverse quality factor of that core, `1 / Q` (Choblet 2017, [R5377], supplement: fixed to 0.5, a very dissipative core with 0.2 to 0.8 explored). Source tier T1, tweak level L0."""
+CORE_REFERENCE_PRESSURE_PA = 3.0e7
+"""float: The central pressure of Enceladus's core, `(2 pi / 3) G rho^2 R^2` for 2500 kg/m3 and 186 km (Choblet 2017, [R5377], supplement Table S1), where `CORE_RIGIDITY_PA` holds; a rubble's shear modulus grows as the cube root of the confining pressure (Hertz-Mindlin contacts). Source tier T5, tweak level L0."""
+CORE_CONSOLIDATION_PA = 1.0e8
+"""float: The central pressure at which a silicate rubble core is compacted and welded into rock, taking its tide out of this model (a core of a Europa's size, 1e9 Pa, is rock): the rubble's share falls as `exp(-P / this)`, the form of Athy's compaction law for porosity. Source tier T6, tweak level L1 (compaction of silicate rubble begins at tens of MPa and is complete by a few hundred)."""
+CORE_COUPLING = 0.37
+"""float: The share of the dissipation of an isolated sphere of that rigidity and quality factor the core keeps under an ocean and a shell, which flex with it and share its tide (an isolated Enceladus core of 186 km at e = 0.0047 dissipates 6.9e10 W; Choblet's model with the same two numbers makes "about 20 GW" in the whole body). Source tier T6, tweak level L2 (set to that one result)."""
+
+
+def core_k2_over_q(mass_kg, radius_m):
+    """
+    The `k2/Q` the unconsolidated rocky core of a small icy body adds to the body's own, referred to the body's radius (GEN.1886): the core as a homogeneous sphere of the radius its share of the body's mean density gives, `k2 = (3/2) / (1 + 19 mu / (2 rho g R_c))` of its
+    rubble rigidity `mu` (`CORE_RIGIDITY_PA` scaled as the cube root of the core's central pressure) and `1/Q` of `CORE_DISSIPATION`, times `(R_c / R)^5`, `CORE_COUPLING`, and the rubble's share left at that pressure. 0 for a body
+    whose mean density is no more than the shell's (it has no core to speak of) and for a core that is rock.
+    """
+    mean_density = mass_kg / (4.0 / 3.0 * math.pi * radius_m ** 3)
+    if mean_density <= CORE_SHELL_DENSITY_KG_M3:
+        return 0.0
+    rock_mass_fraction = (1.0 / CORE_SHELL_DENSITY_KG_M3 - 1.0 / mean_density) / (1.0 / CORE_SHELL_DENSITY_KG_M3 - 1.0 / CORE_ROCK_DENSITY_KG_M3)
+    core_radius = radius_m * min(rock_mass_fraction * mean_density / CORE_ROCK_DENSITY_KG_M3, 1.0) ** (1.0 / 3.0)
+    gravity = 4.0 / 3.0 * math.pi * constants.G * CORE_ROCK_DENSITY_KG_M3 * core_radius
+    pressure = 2.0 * math.pi / 3.0 * constants.G * CORE_ROCK_DENSITY_KG_M3 ** 2 * core_radius ** 2
+    rubble = math.exp(-pressure / CORE_CONSOLIDATION_PA)
+    rigidity = CORE_RIGIDITY_PA * (pressure / CORE_REFERENCE_PRESSURE_PA) ** (1.0 / 3.0)
+    k2 = 1.5 / (1.0 + 19.0 * rigidity / (2.0 * CORE_ROCK_DENSITY_KG_M3 * gravity * core_radius))
+    return CORE_COUPLING * rubble * k2 * CORE_DISSIPATION * (core_radius / radius_m) ** 5
+
+
+def core_power_w(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentricity):
+    """The tidal power the core of `core_k2_over_q` makes on an orbit of `eccentricity` about a host of `host_mass_kg`, W: the standard eccentricity-tide law `(21/2) (k2/Q) G M_h^2 R^5 n e^2 / a^6` (`tidal_heating.peale_power_w`). It rises through the shell as the body's own heat does."""
+    if eccentricity <= 0.0:
+        return 0.0
+    rate = math.sqrt(constants.G * host_mass_kg / semi_major_axis_m ** 3)
+    return 10.5 * core_k2_over_q(mass_kg, radius_m) * constants.G * host_mass_kg ** 2 * radius_m ** 5 * rate * eccentricity ** 2 / semi_major_axis_m ** 6
+
+
 def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentricity, own_flux_w_m2, top_k, base_k=aquifers.WATER_MELTING_K):
     """
     `(F, P)`: the heat flux the shell conducts, W/m2, and the power its tide makes, W, for a body on an orbit of `eccentricity` about a host of `host_mass_kg`, with `own_flux_w_m2` of
-    its own heat coming up into the shell. The tide's flux is `F - own_flux_w_m2`.
+    its own heat coming up into the shell. The tide's flux is `F - own_flux_w_m2`: the shell's own tide and, for a small body with an unconsolidated core, the core's (`core_power_w`, GEN.1886), which comes up through
+    the shell and sets its thickness with the rest.
     """
     own = max(own_flux_w_m2, MIN_FLUX_W_M2)
     if eccentricity <= 0.0 or top_k >= base_k:
         return own, 0.0
+    core_flux = core_power_w(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentricity) / (4.0 * math.pi * radius_m ** 2)       # GEN.1886: the core's tide comes up through the shell with the body's own heat
+    own_without_core = own
+    own = own + core_flux
     rate = math.sqrt(constants.G * host_mass_kg / semi_major_axis_m ** 3)
     fluid_h2 = 1.0 + love_k2(mass_kg, radius_m, rate)
     integral = dissipation_integral_pa(top_k, base_k, rate)
@@ -124,7 +171,8 @@ def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentric
     unstiffened = 0.5 * rate * (STRAIN_FACTOR * 3.0 * eccentricity * fluid_h2 * (host_mass_kg / mass_kg) * (radius_m / semi_major_axis_m) ** 3) ** 2 * hydrosphere.ICE_CONDUCTIVITY_A_W_M * integral
     upper = own + 2.0 * unstiffened / (own + math.sqrt(own ** 2 + 4.0 * unstiffened))
     if upper - own <= 1.0e-12 * upper:
-        return own, 0.0
+        return own, 4.0 * math.pi * radius_m ** 2 * (own - own_without_core)
+
     def residual(flux):
         return flux - own - power_term(flux) / flux
 
@@ -135,14 +183,14 @@ def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentric
         flux = own
     else:
         flux = optimize.brentq(residual, own, upper, xtol=1.0e-12 * upper, rtol=1.0e-10)
-    return flux, 4.0 * math.pi * radius_m ** 2 * (flux - own)
+    return flux, 4.0 * math.pi * radius_m ** 2 * (flux - own_without_core)
 
 
 def k2_over_q(mass_kg, radius_m, frequency_rad_s, flux_w_m2, top_k, base_k=aquifers.WATER_MELTING_K):
     """
     The effective `k2/Q` of the shell for a tide of `frequency_rad_s` (the semi-diurnal frequency of a spinning body, or the orbital rate of an eccentricity tide) with the shell
     conducting `flux_w_m2`: the dissipation the strain above makes, over what a body of that `k2/Q` would make in the torque law (`spin_torques.Torques.gravitational`),
-    `(4 pi / 3) (9/7) (1 + k2)^2 R^3 A I / (F G M^2)`, never more than `MAX_K2_OVER_Q` (IC5). 0 when there is no shell.
+    `(4 pi / 3) (9/7) (1 + k2)^2 R^3 A I / (F G M^2)`, plus the core's of a small body (`core_k2_over_q`, GEN.1886), never more than `MAX_K2_OVER_Q` (IC5). 0 when there is no shell.
     """
     integral = dissipation_integral_pa(top_k, base_k, frequency_rad_s)
     if integral <= 0.0:
@@ -151,4 +199,4 @@ def k2_over_q(mass_kg, radius_m, frequency_rad_s, flux_w_m2, top_k, base_k=aquif
     h2 = tide_response(1.0 + love_k2(mass_kg, radius_m, frequency_rad_s), membrane_parameter(mass_kg, radius_m, flux, top_k, base_k))      # GEN.1877: the shell bends as far as its stiffness lets it
     shell = (4.0 * math.pi / 3.0 * ENERGY_RATIO * STRAIN_FACTOR ** 2 * h2 ** 2 * radius_m ** 3 * hydrosphere.ICE_CONDUCTIVITY_A_W_M * integral
              / (flux * constants.G * mass_kg ** 2))
-    return min(shell, MAX_K2_OVER_Q)
+    return min(shell + core_k2_over_q(mass_kg, radius_m), MAX_K2_OVER_Q)

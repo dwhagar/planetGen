@@ -42,13 +42,40 @@ def test_the_shell_is_in_equilibrium_with_its_own_tide():
 
 
 def test_europa_enceladus_and_callisto_come_out_the_size_the_shells_are():
-    """Nothing is fitted: Europa 1e11 to 1e12 W and a shell of 10 to 30 km, Callisto's tide a tenth of Europa's or less, and Enceladus's shell, stiff against its small gravity (GEN.1877), making under its observed 16 GW (far under it: the rest is made in the porous core, GEN.1886, which the shell model does not carry)."""
+    """Europa 1e11 to 1e12 W and a shell of 10 to 30 km, Callisto's tide a tenth of Europa's or less, and Enceladus, whose shell is stiff against its small gravity (GEN.1877) and whose unconsolidated core makes
+    the rest (GEN.1886), within a factor of two of its observed 16 GW, in a shell of 20 to 40 km."""
     europa = icy_tide.flux_from_tide(*EUROPA)
     thickness = hydrosphere.ice_shell_thickness_km(europa[0], EUROPA[-1])
     assert 1.0e11 < europa[1] < 1.0e12 and 10.0 < thickness < 40.0
-    # The shell alone makes about 5e8 W of Enceladus's 1.6e10 W radiated; the porous core (GEN.1886) makes the rest.
-    assert 1.0e8 < icy_tide.flux_from_tide(*ENCELADUS)[1] < 1.6e10
+    enceladus = icy_tide.flux_from_tide(*ENCELADUS)
+    assert 8.0e9 < enceladus[1] < 3.2e10
+    assert 20.0 < hydrosphere.ice_shell_thickness_km(enceladus[0], ENCELADUS[-1]) < 40.0
     assert icy_tide.flux_from_tide(*CALLISTO)[1] < 0.2 * europa[1]
+
+
+def test_the_core_of_a_small_icy_body_is_rubble_that_makes_most_of_its_tide_and_that_of_a_large_one_is_rock_that_makes_none_here():
+    """GEN.1886: Choblet's rubble core (186 km, 1.6e7 Pa, 1/Q 0.5) makes about 20 GW in Enceladus; Europa's and Callisto's cores are at a pressure of 1e9 Pa and over, compacted to rock, and a Ceres-size body
+    at 1 AU has a core with no tide to speak of; a body with no core to speak of (the mean density of its shell) makes none and no eccentricity makes none."""
+    enceladus = icy_tide.core_power_w(*ENCELADUS[:5])
+    assert 1.5e10 < enceladus < 2.5e10
+    assert icy_tide.flux_from_tide(*ENCELADUS)[1] > 0.9 * enceladus
+    assert icy_tide.core_power_w(*EUROPA[:5]) < 1.0e-3 * icy_tide.flux_from_tide(*EUROPA)[1]
+    assert icy_tide.core_power_w(*CALLISTO[:5]) < 1.0e-3 * icy_tide.flux_from_tide(*CALLISTO)[1]
+    assert icy_tide.core_power_w(9.4e20, 4.7e5, 1.99e30, 1.5e11, 0.1) < 1.0e4
+    assert icy_tide.core_power_w(ENCELADUS[0] * 0.5, ENCELADUS[1], *ENCELADUS[2:5]) == 0.0
+    assert icy_tide.core_power_w(*ENCELADUS[:4], 0.0) == 0.0
+
+
+def test_the_core_heat_gives_a_thin_shell_enceladus_its_ocean_back(monkeypatch):
+    """GEN.1877 made the shell stiff against a small body's tide, and the flux its shell and its radiogenic heat conduct (1e-3 W/m2) makes a shell as thick as the body: frozen through. The core's tide (GEN.1886)
+    comes up through the shell and thins it to a few tens of kilometers, an ocean under it."""
+    radius_km = ENCELADUS[1] / 1000.0
+    monkeypatch.setattr(icy_tide, "CORE_COUPLING", 0.0)
+    flux, _ = icy_tide.flux_from_tide(*ENCELADUS)
+    assert hydrosphere.ice_shell_thickness_km(flux, ENCELADUS[-1]) > radius_km
+    monkeypatch.undo()
+    flux, _ = icy_tide.flux_from_tide(*ENCELADUS)
+    assert hydrosphere.ice_shell_thickness_km(flux, ENCELADUS[-1]) < 0.3 * radius_km
 
 
 def test_a_stronger_tide_makes_a_thinner_shell_and_more_heat_and_no_eccentricity_none():

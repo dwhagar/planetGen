@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5233 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5234 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -846,6 +846,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r5095"></a>**R5095** Chiappini, C., Matteucci, F., & Romano, D. 2001, Abundance Gradients and the Formation of the Milky Way, ApJ, 554, 1044, doi:10.1086/321427. [paper](https://doi.org/10.1086/321427) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/321427/abstract)
 - <a id="paper-r5295"></a>**R5295** Chiera, N. M., et al. 2024, The $$^{146}\\text{Sm}$$ half-life re-measured: consolidating the chronometer for events in the early Solar System, Sci Rep, 14, 17436, doi:10.1038/s41598-024-64104-6. [paper](https://doi.org/10.1038/s41598-024-64104-6) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41598-024-64104-6/abstract)
 - <a id="paper-r0772"></a>**R0772** Chivian, D., et al. 2008, Environmental Genomics Reveals a Single-Species Ecosystem Deep Within Earth, Science, 322, 275, doi:10.1126/science.1155495. [paper](https://doi.org/10.1126/science.1155495) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/science.1155495/abstract)
+- <a id="paper-r5377"></a>**R5377** Choblet, G., et al. 2017, Powering prolonged hydrothermal activity inside Enceladus, NatAs, 1, 841, doi:10.1038/s41550-017-0289-8. [paper](https://doi.org/10.1038/s41550-017-0289-8) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41550-017-0289-8/abstract)
 - <a id="paper-r0773"></a>**R0773** Choi, J., et al. 2016, MESA ISOCHRONES AND STELLAR TRACKS (MIST). I. SOLAR-SCALED MODELS, ApJ, 823, 102, doi:10.3847/0004-637x/823/2/102. [paper](https://doi.org/10.3847/0004-637x/823/2/102) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/0004-637x/823/2/102/abstract)
 - <a id="paper-r0774"></a>**R0774** Chomiuk, L. & Povich, M. S. 2011, TOWARD A UNIFICATION OF STAR FORMATION RATE DETERMINATIONS IN THE MILKY WAY AND OTHER GALAXIES, AJ, 142, 197, doi:10.1088/0004-6256/142/6/197, arXiv:1110.4105. [paper](https://doi.org/10.1088/0004-6256/142/6/197) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-6256/142/6/197/abstract)
 - <a id="paper-r0775"></a>**R0775** CHOU, K. C. & DAI, Y. B. 2009, SOLITON-SOLITON SCATTERING AND THE SEMI-CLASSICAL APPROXIMATION FOR THE PROBLEM OF SCATTERING IN THREE-DIMENSIONAL SPACE, in World Scientific Series in 20th Century Physics, WORLD SCIENTIFIC, doi:10.1142/9789814280389\_0036. [paper](https://doi.org/10.1142/9789814280389_0036) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1142/9789814280389_0036/abstract)
