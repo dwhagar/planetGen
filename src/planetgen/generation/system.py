@@ -1905,7 +1905,7 @@ class StarSystem:
         Whether `star` is at or above `tuning.PLANET_HOST_MAX_MASS_SOLAR` at birth (GEN.1866): such a star (a Wolf-Rayet, O or heavy B star) keeps no planets, though its disk is gone by its age (`_holds_its_disk`), and no round
         belt member is promoted to one; its belts stand. A close pair's mass is its primary's. A config that asks for a class or lists its slots overrides it.
         """
-        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star
+        holder = star.stars[0] if isinstance(star, PairHost) else star
         mass_sol = getattr(holder, "initial_mass_sol", None) or _kg_to_msun(holder.mass)
         return mass_sol >= tuning.PLANET_HOST_MAX_MASS_SOLAR and not self._explicit_request()
 
