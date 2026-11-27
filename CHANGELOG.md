@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4848+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A test run no longer leaves its control database behind, and the next run drops the databases a killed run left
+
+### Fixed
+
+- TEST.852: test runs left `pgtest_control_*` databases behind: one lane box held 1,216 of them (8.2 GB) and ran out of disk. Every pytest process makes a control database at its start (`_ledger_control_database`, OPS.216), and only the tests that used the MySQL server dropped it, so a process whose tests needed none left one each time; a process killed by a gate's time limit or by the kernel never reached its teardown at all. The fixture now drops the process's control database at its own end, whether or not a test used it. The names of the test databases (the control one, the worker's, a test's fresh and scratch ones) now carry the machine and the process (`tests/dbpool.OWNER`, `owned_name`), and the first fixture of a run drops those of this machine whose process is gone (`dbpool.drop_abandoned`); once an hour per machine it also drops the databases with no owner in the name (a run before this change, the site galaxy's) whose newest table is over 12 hours old, which is longer than any run of a gate. The new `tests/test_abandoned_test_databases.py` runs a real pytest process on a test that needs no server and holds that no database of that process remains, drops the database of a process that was killed, and leaves another process's and another machine's alone. Tests only.
+
+generation-output: unchanged
+
 ## [8.0.4847+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The tests that read the release number take the build stamp the version has carried since OPS.64
