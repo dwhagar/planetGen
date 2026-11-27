@@ -316,12 +316,12 @@ NEVER_READ = {
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "comet_coma", "interstellar_comet_coma", "planet_reflection_spectrum", "moon_reflection_spectrum")},
     # GEN.1809: the adaptations of a body are read ORDER BY entry_number, which the SELECT does not list.
-    **{(table, "entry_number"): "sort key" for table in ("planet_adaptations", "moon_adaptations")},
+    **{(table, "entry_number"): "sort key" for table in ("planet_adaptations", "moon_adaptations", "planet_exosphere", "moon_exosphere")},
     # Child tables' own ids and parent keys: matched in the WHERE clause.
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "comet_coma", "interstellar_comet_coma", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
+        "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations", "planet_exosphere", "moon_exosphere", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("comet_coma", "comet_id"), ("interstellar_comet_coma", "comet_id"),

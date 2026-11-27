@@ -2950,6 +2950,23 @@ CREATE TABLE IF NOT EXISTS planet_adaptations (
     KEY idx_planet_adaptations_axis (axis, grade)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The exosphere of a planet with no air (v280, GEN.455 part B): one row for each species a source of the surface supplies (`physics/exosphere.py`), the order from 1 (the largest column first), the species (the gas table's formula),
+-- the column, atoms per square centimetre, the source that gives most of it and the scale height, km, at that source's launch temperature. A body with any air, a giant and a row made before v280 have none.
+CREATE TABLE IF NOT EXISTS planet_exosphere (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id          BIGINT UNSIGNED NOT NULL,
+    entry_number    SMALLINT UNSIGNED NOT NULL CHECK (entry_number >= 1),
+    species         VARCHAR(16) NOT NULL,
+    column_cm2      DOUBLE NOT NULL CHECK (column_cm2 > 0),
+    source          VARCHAR(40) NOT NULL,
+    scale_height_km DOUBLE NOT NULL,
+
+    CONSTRAINT fk_planet_exosphere_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_planet_exosphere (planet_id, entry_number),
+    KEY idx_planet_exosphere_species (species, column_cm2)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- moons -- one row per moon, as of schema v2 (see the header comment's
 -- "v2" note). Exactly the same column shape as `planets` (moons are
@@ -3529,6 +3546,23 @@ CREATE TABLE IF NOT EXISTS moon_adaptations (
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     UNIQUE KEY uq_moon_adaptations (moon_id, entry_number),
     KEY idx_moon_adaptations_axis (axis, grade)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The exosphere of a moon with no air (v280, GEN.455 part B): one row for each species a source of the surface supplies (`physics/exosphere.py`), the order from 1 (the largest column first), the species (the gas table's formula),
+-- the column, atoms per square centimetre, the source that gives most of it and the scale height, km, at that source's launch temperature. A body with any air, a giant and a row made before v280 have none.
+CREATE TABLE IF NOT EXISTS moon_exosphere (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id          BIGINT UNSIGNED NOT NULL,
+    entry_number    SMALLINT UNSIGNED NOT NULL CHECK (entry_number >= 1),
+    species         VARCHAR(16) NOT NULL,
+    column_cm2      DOUBLE NOT NULL CHECK (column_cm2 > 0),
+    source          VARCHAR(40) NOT NULL,
+    scale_height_km DOUBLE NOT NULL,
+
+    CONSTRAINT fk_moon_exosphere_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_moon_exosphere (moon_id, entry_number),
+    KEY idx_moon_exosphere_species (species, column_cm2)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

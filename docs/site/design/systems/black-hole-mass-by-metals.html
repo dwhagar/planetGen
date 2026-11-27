@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The mass of a stellar-mass black hole follows the metals (GEN.554) - planetGen docs</title>
+<meta name="description" content="Status: built (stand-in BHM1, docs/design/research/gap-filling-plan.md section 6.337).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/black-hole-mass-by-metals.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/black-hole-mass-by-metals.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-mass-of-a-stellar-mass-black-hole-follows-the-metals-gen554">The mass of a stellar-mass black hole follows the metals (GEN.554)</h1><p class="meta">docs/design/systems/black-hole-mass-by-metals.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#what-was-wrong">What was wrong</a></li><li style="margin-left:0px"><a href="#what-was-tried-first-and-why-it-is-not-used">What was tried first, and why it is not used</a></li><li style="margin-left:0px"><a href="#the-rule">The rule</a></li><li style="margin-left:0px"><a href="#what-moves-milky-way-like-shape-reportsgen554-mass-from-progenitor-2026-11-24">What moves (Milky Way-like shape, reports/gen554-mass-from-progenitor-2026-11-24/)</a></li><li style="margin-left:0px"><a href="#what-is-left-as-a-stand-in">What is left as a stand-in</a></li></ul></details>
+<p><strong>Status:</strong> built (stand-in BHM1, <code>docs/design/research/gap-filling-plan.md</code> section 6.337). Code: <code>physics/fryer_remnants.py</code>,
+<code>physics/remnant_mass.py</code> (<code>black_hole_stretch</code>, <code>stretched_mass_sol</code>, <code>draw_mass_sol(..., stretch=)</code>), <code>galaxy/remnant_density.py</code>
+(<code>stretch_array</code>, <code>place_stretch</code>), the scatter (<code>generation/phenomenon_scatter.py</code>), the sector fill
+(<code>generation/run_sector.py</code>), the member tree (<code>generation/multistar.py</code>) and the remnant composition (<code>physics/remnant_composition.py</code>).</p>
+<h2 id="what-was-wrong">What was wrong</h2>
+<p>A stellar-mass black hole's mass was uniform over 5 to 20 solar masses everywhere, whatever the metals of the stars that made it. The
+failed share already follows the metals (<code>black_hole_formation.failed_share</code>, GEN.563), and so does the count, but the mass did not:
+the holes of a metal-poor halo were as heavy as the disk's, where [R1466] and the gravitational-wave holes of metal-poor places say
+they are heavier (a lighter wind leaves more of the star).</p>
+<h2 id="what-was-tried-first-and-why-it-is-not-used">What was tried first, and why it is not used</h2>
+<p>[R1466]'s delayed engine (their Eqs. 5, 7 and 9, baryonic mass, 0.9 of it for a hole, their Eq. 14) gives a hole mass from a progenitor's
+initial mass and metals. Over the stars the failure windows hold (<code>remnant_progenitors.kind_windows</code>) it gives a mean of 4.4 solar masses
+at the sun's metals, 14 at half of them, 21 at a third and 31 at a tenth. At the sun, 67% of the stars of the top window (31 to 150
+solar masses) come out under 5 solar masses (their Eq. 9, wind-stripped), which no observed hole is, so the kind (the windows) and the
+mass (the fits) disagree there. The neutron stars the fits give (1.17 to 1.35) are under the verified observed Gaussian
+(1.49 +- 0.19, [R3396]). Verified wins, so neither is taken as it stands: the neutron stars keep the Gaussian and the black holes keep the
+registered law as the anchor.</p>
+<h2 id="the-rule">The rule</h2>
+<ul>
+<li>The anchor is the registered law, uniform over 5 to 20 solar masses (<code>tuning.BLACK_HOLE_MASS_RANGE_SOLAR</code>), the widest published range
+([R3397]'s 7.8 +- 1.2 are 16 holes of transient X-ray binaries chosen by flux; [R1328] has holes to 28; [R3348] 14.2 and 11.7).
+It stands for the holes of the disk around the sun.</li>
+<li>Fryer's delayed engine sets only the trend: <code>fryer_remnants.mass_trend(fe_h)</code>, the IMF-weighted mean hole mass over the failure
+windows at the failed share of that [Fe/H] (<code>failed_share</code> of the reference structure) and the metals <code>Z = 10^[Fe/H]</code> (held at 1
+from the sun up), over its mean for the spread of [Fe/H] of the disk at the reference radius (<code>intermediate</code>, 0 +- 0.15). It is
+1 for that disk, 0.73 at and above the sun's metals, 1.75 at -0.2 dex, 3.2 at -0.5 and 6.0 with no metals.</li>
+<li><code>remnant_mass.black_hole_stretch(fe_h)</code> multiplies the span above the 5 solar mass edge by the trend, held so that the top of the
+span is at most <code>tuning.BLACK_HOLE_MASS_TOP_SOLAR</code> = 50 solar masses. The top is inside the lower edge of the pair-instability
+mass gap, 45 solar masses, 40 to 56 for the carbon-oxygen reaction rate's one-sigma range [R5365]: the pulsations that gap comes
+from strip the heavier stars before they collapse. The hole's mass is <code>5 + (anchor mass - 5) x stretch</code>: the same rank in the law
+at every place, and a flat law up to the top, no pile at the top.</li>
+<li>A star of the member tree and a remnant's composition take the stretch of their own [Fe/H]. The scatter's rows (the disk, bulge and halo scatter, the reach groups and the rows of a component's own pass), the rows of a ring
+sector and the holes of the sector fill take the stretch of their place: the densities' mean of each population's mean stretch
+over its [Fe/H] distribution (<code>remnant_density.stretch_array</code>, the same tables as the failed share's mean).</li>
+<li>The scatter's mass cut (<code>tuning.PHENOMENON_MIN_MASS_SOLAR</code>, 14) and <code>remnant_mass.share_above</code>, <code>moments</code> stay in the anchor law's
+masses, so the counts above and below the cut, and every count, do not move: a hole of a metal-poor place above the cut is above it
+by rank, and its mass is larger.</li>
+</ul>
+<h2 id="what-moves-milky-way-like-shape-reportsgen554-mass-from-progenitor-2026-11-24">What moves (Milky Way-like shape, <code>reports/gen554-mass-from-progenitor-2026-11-24/</code>)</h2>
+<p>The mean hole mass of the galaxy goes from 12.5 to 17.7 solar masses; the share at or above 10 solar masses from 67% to 79%, 20 from 0 to
+38%, 30 from 0 to 6% and 40 from 0 to 1.7%; the anchor's cut at 14 solar masses holds 40% of the holes by rank and 63% by mass. The
+galaxy as a whole is poorer in metals than the disk around the sun (the old disk is at -0.325, the halo at -1.6), so its holes are
+heavier than the anchor's.</p>
+<h2 id="what-is-left-as-a-stand-in">What is left as a stand-in</h2>
+<ul>
+<li>The standalone remnants (scatter rows, field hosts) draw their mass before any progenitor, so the mass does not follow a single progenitor;
+only the place's trend reaches them. A mass from the progenitor itself waits for the progenitor to be drawn first (the age, <code>remnant_progenitors.collapse_age_gy</code>, draws one
+after the mass today).</li>
+<li>The field hosts (<code>generation/field_host.py</code>) have no metallicity at hand and draw at the anchor.</li>
+<li>The trend uses the reference structure's failed shares, not the galaxy's own, as the windows do (<code>reference_failed_share</code>).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

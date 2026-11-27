@@ -85,17 +85,42 @@ def _neutron_star_normal():
     return NormalDist(mean, sigma), tuning.NEUTRON_STAR_MASS_RANGE_SOLAR
 
 
-def draw_mass_sol(kind, mass_range=None, rng=draw):
+def black_hole_stretch(fe_h):
+    """
+    The factor by which the span of the black hole law above its lower edge grows at a place of [Fe/H] `fe_h` (a number, or an
+    array): the mean hole mass over that of the disk around the sun (`fryer_remnants.mass_trend`: 1 for the spread of metals
+    there, 0.73 at and above the sun's, 3 and over at a third of them), held so that the top of the span stays at or under
+    `tuning.BLACK_HOLE_MASS_TOP_SOLAR` (stand-in BHM1, L2). The registered law of `tuning.BLACK_HOLE_MASS_RANGE_SOLAR` is the
+    anchor, the holes of that disk.
+    """
+    from planetgen.physics import fryer_remnants      # a late import: it reads the structure, which imports this module
+    low, high = tuning.BLACK_HOLE_MASS_RANGE_SOLAR
+    top = max(tuning.BLACK_HOLE_MASS_TOP_SOLAR, high)
+    found = (np.minimum(low + (high - low) * np.asarray(fryer_remnants.mass_trend(fe_h)), top) - low) / (high - low)
+    return float(found) if np.ndim(fe_h) == 0 else found
+
+
+def stretched_mass_sol(mass_sol, stretch):
+    """`mass_sol` of the black hole law (the solar anchor, a number or an array) as it is at a place whose span is `stretch`
+    times the anchor's: the distance above the lower edge times `stretch` (the same rank in the law at every place)."""
+    low = tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0]
+    return low + (mass_sol - low) * stretch
+
+
+def draw_mass_sol(kind, mass_range=None, rng=draw, stretch=None):
     """A neutron star's or stellar black hole's mass in solar masses, truncated to `mass_range` when given: a neutron star's
     from the Gaussian of the slow pulsars ([R3396]: 1.49 +- 0.19) held to the kind's range, a black hole's
     uniform over its range (the widest of the published ranges stands, `docs/design/galaxy/stellar-mass-function.md`).
-    One draw from `rng`."""
+    A black hole at a place whose metals are below the sun's takes `stretch` (`black_hole_stretch`): `mass_range` is in the
+    solar anchor's masses (the scatter's cut), and the hole's mass is the draw's place in that law at the place's span
+    (`stretched_mass_sol`). One draw from `rng`."""
     low, high = within(mass_range_sol(kind), mass_range)
     if kind == "neutron-star":
         normal, _range = _neutron_star_normal()
         cdf_low, cdf_high = normal.cdf(low), normal.cdf(high)
         return normal.inv_cdf(cdf_low + rng.random() * (cdf_high - cdf_low))
-    return rng.uniform(low, high)
+    mass = rng.uniform(low, high)
+    return mass if stretch is None else float(stretched_mass_sol(mass, stretch))
 
 
 def share_above(kind, mass_sol):

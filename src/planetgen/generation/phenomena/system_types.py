@@ -364,7 +364,7 @@ it; the completeness test reads the note and fails when a row has no entry."""
 
 
 TUNING_KNOBS = {
-    "tight_tail_weight": 6.0,
+    "tight_tail_weight": 8.0,
     "post_ce_fraction": 0.10,
     "accreting_fraction": {"low-mass-xray-binary": 0.01, "high-mass-xray-binary": 0.40},
     "merger_product_fraction": {"massive": 0.08, "field": 0.005},
@@ -372,8 +372,8 @@ TUNING_KNOBS = {
 """dict: The knobs of section 13.7. `tight_tail_weight` multiplies the density of
 pairs with a period under a day for primaries under the massive limit, until
 the contact share of FGK systems is inside 0.2% to 0.77% and the Algol share
-of a constant-star-formation disk approaches 0.1% (GEN.270 set it to 6.0, the
-plain draw being 1.0); `post_ce_fraction` is the post-common-envelope
+of a constant-star-formation disk reaches 0.1% (GEN.270 set it to 6.0, which gave 0.09%; GEN.1855
+raised it to 8.0, which gives 0.100%; the plain draw is 1.0); `post_ce_fraction` is the post-common-envelope
 share of white-dwarf companions (the Maoz 9.5% for double white dwarfs and a
 matching value for white dwarf plus star); `accreting_fraction` is the share of
 compact companions that accrete, by class (1% to 40%); `merger_product_fraction`

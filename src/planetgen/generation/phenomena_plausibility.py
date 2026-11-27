@@ -368,7 +368,7 @@ def check_hard_invariants(record):
 
     if phenomenon_type == "black-hole":
         mass = record["mass_solar"]
-        stellar_lo, stellar_hi = prog_c.BLACK_HOLE_MASS_RANGE_SOLAR
+        stellar_lo, stellar_hi = prog_c.BLACK_HOLE_MASS_RANGE_SOLAR[0], prog_c.BLACK_HOLE_MASS_TOP_SOLAR   # a metal-poor place stretches the span (GEN.554)
         inter_lo, inter_hi = prog_c.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
         if not (stellar_lo <= mass <= stellar_hi or inter_lo <= mass <= inter_hi):
             issues.append(f"mass_solar={mass!r} outside both stellar-mass and intermediate-mass ranges")

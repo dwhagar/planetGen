@@ -80,7 +80,7 @@ from planetgen.galaxy import resident_mass, component_field as componentField, d
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
 from planetgen.physics import body_history, effect_ledger, moon_history, isotope_record, light_ledger, ore_deposits
-from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, comet_coma, class_code, core_composition, daylight, giant_interior, adaptation_record, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, comet_coma, class_code, core_composition, daylight, giant_interior, adaptation_record, exosphere, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
@@ -642,7 +642,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
-    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations",
+    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations", "planet_exosphere", "moon_exosphere",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
     "comet_composition", "comet_coma", "interstellar_comet_composition", "interstellar_comet_coma", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
 ))
@@ -3199,6 +3199,9 @@ def body_child_rows(conn, body, body_id, owner=None):
     for number, entry in enumerate(getattr(body, adaptation_record.FIELD, None) or (), 1):
         conn.execute(f"INSERT INTO {prefix}_adaptations ({id_column}, {', '.join(ADAPTATION_COLUMNS)}) VALUES (?, {', '.join('?' * len(ADAPTATION_COLUMNS))})",
                      (body_id, number, entry["life_class"], entry["axis"], entry["habitat"], entry["demand"], entry["grade"], ",".join(entry["rows"])))
+    for number, entry in enumerate(getattr(body, exosphere.FIELD, None) or (), 1):       # GEN.455 part B
+        conn.execute(f"INSERT INTO {prefix}_exosphere ({id_column}, {', '.join(EXOSPHERE_COLUMNS)}) VALUES (?, {', '.join('?' * len(EXOSPHERE_COLUMNS))})",
+                     (body_id, number, entry["species"], entry["column_cm2"], entry["source"], entry["scale_height_km"]))
 
 
 def body_gases(conn, body_ids, is_moon, owner=None):
@@ -3272,6 +3275,23 @@ def body_adaptations(conn, body_ids, is_moon):
         marks = ", ".join("?" * len(chunk))
         for row in conn.execute(f"SELECT {id_column}, {', '.join(ADAPTATION_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, entry_number", tuple(chunk)).fetchall():
             found.setdefault(row[id_column], []).append({"life_class": row["life_class"], "axis": row["axis"], "habitat": row["habitat"], "demand": row["demand"], "grade": row["grade"], "rows": row["row_ids"].split(",") if row["row_ids"] else []})
+    return found
+
+
+EXOSPHERE_COLUMNS = ("entry_number", "species", "column_cm2", "source", "scale_height_km")
+"""tuple: The columns of `planet_exosphere` and `moon_exosphere` after the body's id, in the order `body_child_rows` writes them (GEN.455 part B)."""
+
+
+def body_exosphere(conn, body_ids, is_moon):
+    """`{body id: [exosphere entries (`exosphere.columns`), the largest column first]}` of the planets or moons `body_ids`: the species their rows keep in `planet_exosphere` or `moon_exosphere` (a body with none has no key)."""
+    table, id_column = ("moon_exosphere", "moon_id") if is_moon else ("planet_exosphere", "planet_id")
+    found = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(f"SELECT {id_column}, {', '.join(EXOSPHERE_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, entry_number", tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], []).append({"species": row["species"], "column_cm2": row["column_cm2"], "source": row["source"], "scale_height_km": row["scale_height_km"]})
     return found
 
 
@@ -7666,7 +7686,11 @@ def phenomena_for_sector(conn, shell_index, band_index, wedge_index):
 
 BELOW_CUT_REMNANT_KINDS = ("neutron-star", "black-hole")
 """tuple: The kinds of scatter row that can hold a mass under the phenomenon scatter's cut (GEN.1682): the neutron stars and the black holes the scatter's draws below the cut make. A magnetar is scattered whatever the
-cut (its mass is a neutron star's), so a row of that subtype is not one of them."""
+cut (its mass is a neutron star's), and a promoted compact pair (GEN.263) is scattered below it, so a row of those subtypes is not one of them (`NOT_REMNANT_SUBTYPES`)."""
+
+NOT_REMNANT_SUBTYPES = ("magnetar", "pair", "stellar-pair")
+"""tuple: The subtypes of a below-cut row that is not a ring sector's remnant: the magnetars (scattered at every cut) and the promoted compact pairs (GEN.263: scattered below the cut, anywhere, with their companion). A sector that
+holds only these has had no below-cut draw of its own."""
 
 
 def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
@@ -7679,7 +7703,7 @@ def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
     marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
     return conn.execute(
         f"SELECT 1 FROM phenomenon_scatter WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND kind IN ({marks})"
-        " AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ? LIMIT 1",
+        " AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair') AND mass_solar < ? LIMIT 1",
         (*[int(value) for value in address], *BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchone() is not None
 
 
@@ -7694,7 +7718,7 @@ def addresses_holding_below_cut_remnants(conn, min_mass_solar):
     highest = max(min_mass_solar.tiers) if by_place else float(min_mass_solar)
     marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
     rows = conn.execute(
-        f"SELECT shell_index, band_index, wedge_index, MIN(mass_solar) AS lightest FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ? "
+        f"SELECT shell_index, band_index, wedge_index, MIN(mass_solar) AS lightest FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair') AND mass_solar < ? "
         "GROUP BY shell_index, band_index, wedge_index",
         (*BELOW_CUT_REMNANT_KINDS, highest)).fetchall()
     return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows
@@ -10561,6 +10585,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         life_classes.LIVING_FIELD: None if owner == "rogue_planet" else dominant_first(body_living(conn, [row["id"]], is_moon).get(row["id"]), row["life_class"], row["life_class_variant"]),
         life_ages.FIELD: None if owner == "rogue_planet" else body_life_ages(conn, [row["id"]], is_moon).get(row["id"]),
         adaptation_record.FIELD: None if owner == "rogue_planet" else body_adaptations(conn, [row["id"]], is_moon).get(row["id"]),
+        exosphere.FIELD: None if owner == "rogue_planet" else body_exosphere(conn, [row["id"]], is_moon).get(row["id"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

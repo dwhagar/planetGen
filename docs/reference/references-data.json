@@ -190714,6 +190714,46 @@
    "volume": "428",
    "year": 2012
   },
+  "10.1093/mnras/sts085": {
+   "arxiv": "1210.0542",
+   "authors": [
+    [
+     "Leigh",
+     "N."
+    ],
+    [
+     "Knigge",
+     "C."
+    ],
+    [
+     "Sills",
+     "A."
+    ],
+    [
+     "Perets",
+     "H. B."
+    ],
+    [
+     "Sarajedini",
+     "A."
+    ],
+    [
+     "Glebbeek",
+     "E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/sts085",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "897",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The origins of blue stragglers and binarity in globular clusters",
+   "type": "journal-article",
+   "volume": "428",
+   "year": 2012
+  },
   "10.1093/mnras/sts112": {
    "authors": [
     [
@@ -257882,6 +257922,42 @@
    "volume": "886",
    "year": 2019
   },
+  "10.3847/1538-4357/ab518b": {
+   "arxiv": "1910.12874",
+   "authors": [
+    [
+     "Farmer",
+     "R."
+    ],
+    [
+     "Renzo",
+     "M."
+    ],
+    [
+     "de Mink",
+     "S. E."
+    ],
+    [
+     "Marchant",
+     "P."
+    ],
+    [
+     "Justham",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/ab518b",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "53",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Mind the Gap: The Location of the Lower Edge of the Pair-instability Supernova Black Hole Mass Gap",
+   "type": "journal-article",
+   "volume": "887",
+   "year": 2019
+  },
   "10.3847/1538-4357/ab5710": {
    "arxiv": "1909.02007",
    "authors": [
@@ -288265,7 +288341,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5367,
+ "id_next": 5368,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -291430,6 +291506,7 @@
   "10.1093/mnras/sts029": "R3588",
   "10.1093/mnras/sts048": "R3941",
   "10.1093/mnras/sts083": "R0203",
+  "10.1093/mnras/sts085": "R5367",
   "10.1093/mnras/sts112": "R0840",
   "10.1093/mnras/sts261": "R3181",
   "10.1093/mnras/sts262": "R1201",
@@ -293014,6 +293091,7 @@
   "10.3847/1538-4357/ab4cf0": "R4578",
   "10.3847/1538-4357/ab4e96": "R4482",
   "10.3847/1538-4357/ab4f6f": "R3460",
+  "10.3847/1538-4357/ab518b": "R5365",
   "10.3847/1538-4357/ab5710": "R0872",
   "10.3847/1538-4357/ab58cc": "R2735",
   "10.3847/1538-4357/ab5dcb": "R1208",
@@ -293594,6 +293672,7 @@
   "arxiv:1209.5125": "R0671",
   "arxiv:1210.0270": "R1344",
   "arxiv:1210.0328": "R3225",
+  "arxiv:1210.0542": "R5367",
   "arxiv:1210.2619": "R4333",
   "arxiv:1210.2720": "R2803",
   "arxiv:1210.3838": "R3377",
@@ -294371,6 +294450,7 @@
   "arxiv:2104.03318": "R3274",
   "arxiv:2104.11631": "R0405",
   "arxiv:2104.13385": "R2851",
+  "arxiv:2104.14972": "R5364",
   "arxiv:2105.00019": "R5302",
   "arxiv:2105.01661": "R0168",
   "arxiv:2105.03435": "R0655",

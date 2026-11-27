@@ -66,10 +66,10 @@ import math
 from planetgen.galaxy import scales
 from planetgen.generation import band_table_cache, bodybeat
 from planetgen.galaxy.age_law import AgeLaw
-from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, post_main_sequence, wolf_rayet
+from planetgen.physics import alpha_tracks, constants, imf, main_sequence, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    alive_until_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance, main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy, remnant_formation_time_gy, star_params,
+    alive_until_gy, birth_age_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance, main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy, remnant_formation_time_gy, star_params,
 )
 from planetgen.util import draw
 
@@ -276,9 +276,25 @@ def _range_grid(mass_range, cells):
     return _mass_grid(tuple(edge for edge in mass_range if edge is not None), cells)
 
 
-def check_threshold(min_luminosity_sol):
+def population_floor(population, min_luminosity_sol):
+    """
+    The luminosity floor a pass of `min_luminosity_sol` means for `population` (GEN.161): a globular cluster's own pre-placed stars start at
+    `tuning.CLUSTER_BRIGHT_FLOOR_SOL` (its giants and its whole horizontal branch) whatever the galaxy's floor is, so a cluster is not left
+    entirely to its sectors' fill at the default floor of 18,000. The substitution is the one place the cluster's floor is decided: the
+    share of the population a pass keeps, the stars it draws and the fill's luminosity cap all come through here, so the pass and the fill
+    agree. A band with an upper limit (`bright_band_fraction`) takes it at both ends and so adds nothing for a cluster: all of its stars at
+    or above the floor are placed by the top pass. Other populations, and `None`, keep the floor as given.
+    """
+    if population == "cluster" and min_luminosity_sol is not None:
+        return min(float(min_luminosity_sol), tuning.CLUSTER_BRIGHT_FLOOR_SOL)
+    return min_luminosity_sol
+
+
+def check_threshold(min_luminosity_sol, population=None):
     if not (isinstance(min_luminosity_sol, (int, float)) and math.isfinite(min_luminosity_sol)):
         raise ValueError(f"luminosity threshold must be a finite number, got {min_luminosity_sol!r}")
+    if population == "cluster" and min_luminosity_sol >= tuning.CLUSTER_BRIGHT_FLOOR_SOL:
+        return          # a cluster's own floor sits under the brightest white dwarf: its white dwarfs are all old and far fainter
     if min_luminosity_sol < tuning.WD_LUMINOSITY_RANGE_SOL[1]:
         raise ValueError(f"luminosity threshold {min_luminosity_sol} Lsun must be at least the brightest white dwarf "
                          f"({tuning.WD_LUMINOSITY_RANGE_SOL[1]} Lsun)")
@@ -384,7 +400,7 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, 
     which are most of a table's cost).
     Worked out by `_build_bright_table`; a test run keeps each across processes (`band_table_cache`, PERF.218).
     """
-    check_threshold(min_luminosity_sol)
+    check_threshold(min_luminosity_sol, population)
     if window is None:
         window = _law(population, None)
     return band_table_cache.kept(
@@ -447,7 +463,7 @@ def _bright_fraction(min_luminosity_sol, population, mass_range, window, fe_bin)
     the mean of each cell's measure over stratified IMF quantiles. It reads the measure of a few stars a cell and no
     bound, which is most of what a sampling table spends its time on.
     """
-    check_threshold(min_luminosity_sol)
+    check_threshold(min_luminosity_sol, population)
     living, cells = _fraction_terms(mass_range, window, fe_bin)
     bright = 0.0
     for count, masses, points in cells:
@@ -487,7 +503,7 @@ def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None, a
     Returns:
         float: The fraction, in `[0, 1]`.
     """
-    return _bright_fraction(float(min_luminosity_sol), population, _check_mass_range(mass_range),
+    return _bright_fraction(float(population_floor(population, min_luminosity_sol)), population, _check_mass_range(mass_range),
                             _law(population, age_laws), reference_fe_h(population))
 
 
@@ -603,7 +619,7 @@ def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, 
             if pick < weight:
                 break
             pick -= weight
-        age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(start, end, rng), rng)
+        age = birth_age_gy(fe_h, table["population"], start, end, rng, law)
         state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, fe_h=fe_h,
                             population=table["population"])
         # Guards the window edges against rounding (an age landing exactly
@@ -671,6 +687,8 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_lu
     """
     if max_luminosity_sol is not None and max_luminosity_sol <= min_luminosity_sol:
         raise ValueError(f"empty luminosity band [{min_luminosity_sol:g}, {max_luminosity_sol:g}) Lsun")
+    if max_luminosity_sol is None:
+        min_luminosity_sol = population_floor(population, min_luminosity_sol)
     mass_range, window = _check_mass_range(mass_range), _law(population, age_laws)
     if max_luminosity_sol is None:
         return [_sample_one_bright(min_luminosity_sol, population, mass_range, window, rng,
@@ -776,7 +794,7 @@ def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, sou
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
             oldest = min(oldest, alive_until_gy(mass, fe_h))
-        age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(window[0], oldest, rng), rng)
+        age = birth_age_gy(fe_h, table["population"], window[0], oldest, rng, law)
         state = evolve_star(mass, age, rng, fe_h=fe_h, population=table["population"])
         if state is None:
             continue

@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="design/generation/mass-backfill.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="mass-backfill-four-rings-of-heavier-stars-around-the-generated-sectors">Mass backfill: four rings of heavier stars around the generated sectors</h1><p class="meta">docs/design/generation/mass-backfill.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#the-rule">The rule</a></li><li style="margin-left:0px"><a href="#what-a-sector-holds">What a sector holds</a></li><li style="margin-left:0px"><a href="#per-sector-state">Per sector state</a></li><li style="margin-left:0px"><a href="#reproducibility">Reproducibility</a></li><li style="margin-left:0px"><a href="#how-big">How big</a></li><li style="margin-left:0px"><a href="#code">Code</a></li></ul></details>
+<h1 id="mass-backfill-four-rings-of-heavier-stars-around-the-generated-sectors">Mass backfill: four rings of heavier stars around the generated sectors</h1><p class="meta">docs/design/generation/mass-backfill.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#the-rule">The rule</a></li><li style="margin-left:0px"><a href="#what-a-sector-holds">What a sector holds</a></li><li style="margin-left:0px"><a href="#per-sector-state">Per sector state</a></li><li style="margin-left:0px"><a href="#reproducibility">Reproducibility</a></li><li style="margin-left:0px"><a href="#how-big">How big</a></li><li style="margin-left:0px"><a href="#the-neutron-stars-and-black-holes-below-the-scatters-cut-gen1682">The neutron stars and black holes below the scatter's cut (GEN.1682)</a></li><li style="margin-left:0px"><a href="#code">Code</a></li></ul></details>
 <p>Boss (GitHub issue #952, defaults confirmed 2026-10-10 04:06Z): replace the GEN.30 luminosity
 tiers with four rings of sectors around what has been generated, each ring taking the stars
 born above a mass, so the sky of a generated sector is full of the stars you could see from it
@@ -107,11 +107,19 @@ sector will hold, ring 2 three, ring 3 half a star, so the work is a few percent
 sectors in place and grows with the surface of the run, not its volume. The luminosity shares that
 remain after the scatter's L are nearly all of those (under L = 5000, 1 to 2 Msun: 5.8% of living
 stars, 2 to 5: 2.8%, 5 to 8: 0.55%).</p>
+<h2 id="the-neutron-stars-and-black-holes-below-the-scatters-cut-gen1682">The neutron stars and black holes below the scatter's cut (GEN.1682)</h2>
+<p>The phenomenon scatter places only the neutron stars and black holes at or above its cut (14 solar masses); the share below it (every neutron star, about 60 percent of the stellar black holes) is drawn when a
+sector is filled (<code>phenomenon_scatter.below_cut_draws</code>, GEN.168). A ring sector therefore held its stars and none of those remnants until it was filled. The backfill now draws them with the stars: the count and the
+mass range of each class are the fill's own draw, and each remnant gets a point in the sector's cell, a seed and a mass, stored as a <code>phenomenon_scatter</code> row (<code>phenomenon_scatter.ring_remnant_rows</code>,
+<code>ring_remnants.rows_for</code>). A galaxy run draws them in the <code>remnants</code> piece of <code>write-special-phenomena</code> (the backfill comes before the scatter is recorded, so its chunk draws none then); a backfill after the
+scatter draws them in its chunk's transaction (<code>run_plan._write_ring_remnants</code>). A sector that already holds a below-cut remnant row is not drawn again (a repeat of the backfill or the unit changes nothing), a
+cell above the ceiling gets none (as in the fill), and the fill builds the stored rows like any scattered row and draws no below-cut remnants of its own for that sector. No schema change.</p>
 <h2 id="code">Code</h2>
 <p><code>bright_stars.backfill_mass_cells</code>, <code>star_population.mass_band_fraction</code> and <code>sample_mass_band_stars</code>;
 <code>run_galaxy.backfill_ring_targets</code> (the ring walk) and <code>backfill_bright_stars_around</code>;
 <code>run_plan._draw_sector_masses</code> (chunked under <code>lock_sector_stats</code>, like the luminosity bands);
-<code>store.sector_bright_masses</code>, <code>set_sector_bright_masses</code>, <code>bright_star_fill_mass_limit</code>.</p>
+<code>store.sector_bright_masses</code>, <code>set_sector_bright_masses</code>, <code>bright_star_fill_mass_limit</code>;
+<code>ring_remnants.rows_for</code>, <code>store.sector_holds_below_cut_remnants</code>, <code>addresses_holding_below_cut_remnants</code>, <code>backfilled_uncharted_addresses</code>.</p>
 
 </main>
 </div>

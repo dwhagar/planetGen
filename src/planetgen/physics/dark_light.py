@@ -28,7 +28,7 @@ Stand-ins are the rows DL1 to DL7, DL9 and DL10 of section 6.259 of the gap plan
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import activity, brown_dwarf, constants, ms_lifetime, roche, stellar_wind
+from planetgen.physics import activity, brown_dwarf, constants, ms_lifetime, relations, roche, stellar_wind
 from planetgen.physics import unit_registry as units
 
 _au_to_m = units.converter("au", "m")
@@ -133,7 +133,7 @@ def disk_luminosity_w(black_hole_kg, captured_kg_s):
 
 def disk_radius_km(black_hole_kg):
     """The radius the disk's light is taken to come from, km: the innermost stable orbit, `ISCO_SCHWARZSCHILD_RADII` Schwarzschild radii."""
-    return _m_to_km(ISCO_SCHWARZSCHILD_RADII * 2.0 * constants.G * black_hole_kg / constants.SPEED_OF_LIGHT_M_S ** 2)
+    return _m_to_km(ISCO_SCHWARZSCHILD_RADII * relations.schwarzschild_radius(black_hole_kg))
 
 
 def disk_temperature_k(luminosity_w, radius_km):

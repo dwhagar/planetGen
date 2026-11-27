@@ -65,6 +65,11 @@ class Cuts:
         return self.tiers[scatter_limits.BASELINE]
 
     @property
+    def highest(self):
+        """The highest of the three cuts: the one that leaves the most below it, which the promoted compact pairs' candidate counts are drawn at (GEN.263)."""
+        return max(self.tiers)
+
+    @property
     def lowest(self):
         """The lowest of the three cuts: the one that places the most, which the candidate counts and the bounds are drawn at."""
         return min(self.tiers)
