@@ -10030,6 +10030,14 @@ def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):
         _assign_top_level_uids(conn, table, "id", [row_id])
         if table == "rogue_planets":
             _assign_rogue_moon_uids(conn, [row_id])
+        elif table == "supernova_remnants":
+            # NAV.81: the remnant's collapsed core is a row of its own that the listing and its page ask for by ID; saved with a sector it is numbered with the sector's
+            # phenomena, saved with none it takes its ID here, as the remnant does.
+            remnant = conn.execute("SELECT compact_remnant_black_hole_id, compact_remnant_neutron_star_id FROM supernova_remnants WHERE id = ?", (row_id,)).fetchone()
+            for core_table, core_id in (("black_holes", remnant and remnant["compact_remnant_black_hole_id"]),
+                                        ("neutron_stars", remnant and remnant["compact_remnant_neutron_star_id"])):
+                if core_id is not None:
+                    _assign_top_level_uids(conn, core_table, "id", [core_id])
 
 
 def _assign_sector_uids(conn, sector_id):
