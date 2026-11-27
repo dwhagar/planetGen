@@ -1332,7 +1332,7 @@ column.
 other `binary_*` columns are populated. `binary_separation_km` is the pair's
 axis for both `'close'` and `'wide'` pairs (kept on the row for the lists and
 maps that read it without the tree). The rest of the pair's orbit has no
-column since v280 (GEN.640): its eccentricity, plane, phase, period and each
+column since v281 (GEN.640): its eccentricity, plane, phase, period and each
 star's place are its node in `orbit_nodes` (`orbit_trees.pair_places_km`;
 `store.advance_orbital_phases` turns the node), and the columns v13 to v20
 added for it (`binary_eccentricity`, `binary_periapsis_km`,

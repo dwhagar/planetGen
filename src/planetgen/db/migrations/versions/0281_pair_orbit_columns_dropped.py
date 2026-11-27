@@ -1,6 +1,6 @@
 """The pair's orbit is its node's: the mutual-orbit columns of `star_systems` are gone (GEN.640 slice d).
 
-Schema v280 (a placeholder: the train that merges this renumbers it to the next free revision). A system's own pair of stars has its orbit in its node of `orbit_nodes`, where
+Schema v281 (a placeholder: the train that merges this renumbers it to the next free revision). A system's own pair of stars has its orbit in its node of `orbit_nodes`, where
 `orbit_trees.pair_places_km` and `generation.pair_orbit.PairOrbit` read it, and `store.advance_orbital_phases` turns that node (GEN.313, GEN.640 slice a); the close pair's host
 (`generation.pair_host.PairHost`, slice c) keeps no copy of it either. The copy `star_systems` kept has no writer and no reader, so it is dropped: `binary_eccentricity`,
 `binary_periapsis_km`, `binary_apoapsis_km`, `binary_mutual_orbital_period_years`, `binary_mutual_orbital_speed_kms`, `binary_mutual_orbital_inclination_deg`,
@@ -15,8 +15,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0280"
-down_revision = "0279"
+revision = "0281"
+down_revision = "0280"
 branch_labels = None
 depends_on = None
 

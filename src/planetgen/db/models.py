@@ -1324,6 +1324,8 @@ moon_exosphere = sa.Table(
     sa.CheckConstraint('(`column_cm2` > 0)', name='moon_exosphere_chk_2'),
     mysql_engine="InnoDB",
 )
+
+
 moon_gases = sa.Table(
     'moon_gases',
     metadata,
@@ -2465,6 +2467,8 @@ planet_exosphere = sa.Table(
     sa.CheckConstraint('(`column_cm2` > 0)', name='planet_exosphere_chk_2'),
     mysql_engine="InnoDB",
 )
+
+
 planet_gases = sa.Table(
     'planet_gases',
     metadata,

@@ -6869,6 +6869,6 @@ CREATE TABLE IF NOT EXISTS engine_piece_results (
 -- of a satellite, and for a row made before v279, nothing is backfilled. The built system reads it (`run_sector._build_scattered`): a pulsar of a cluster may hold a captured giant (`generation/pulsar_planets.py`).
 -- It is a plain column, not a foreign key: a cluster row may be replaced while its scattered objects stay.
 
--- v280 (GEN.640 slices c and d): `star_systems` drops the 21 columns that copied the pair's orbit (`binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, the `binary_mutual_*` orbit, position and update-interval columns,
+-- v281 (GEN.640 slices c and d): `star_systems` drops the 21 columns that copied the pair's orbit (`binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, the `binary_mutual_*` orbit, position and update-interval columns,
 -- `binary_primary_position_*`, `binary_secondary_position_*`, `binary_secondary_mass_fraction`, `binary_epoch_unix` and `binary_next_update_due`) with the index on the last. The pair of a system is its node in `orbit_nodes`
 -- (`generation/pair_orbit.PairOrbit`, `db/orbit_trees.pair_places_km`); `binary_separation_km` stays as the pair's axis for the lists and maps.

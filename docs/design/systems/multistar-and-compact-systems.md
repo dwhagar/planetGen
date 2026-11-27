@@ -70,7 +70,7 @@ were rerun while writing this document.
   orientation), read as `generation.pair_orbit.PairOrbit`; the host holds the node and no copy of it. Mass ratio
   from the law of [R3108] over 0.1 to 1 (`generation/mass_ratio.py`, GEN.951, with `tuning.BINARY_MASS_RATIO_RANGE` the ends), same age as the primary
   (GEN.53). The orbit is the pair's node in `orbit_nodes` (no `binary_*` orbit columns on
-  `star_systems` since v280, only the axis `binary_separation_km`); the host has
+  `star_systems` since v281, only the axis `binary_separation_km`); the host has
   no `stars` row ([database-schema.md](../../reference/database-schema.md), "Binary
   configuration").
 - **Wide (S-type) pair.** Its draws are in `generation/wide_binary.py` (the pair's orbit is a node of the tree, read as `generation.pair_orbit.PairOrbit`, GEN.640 slice b):
