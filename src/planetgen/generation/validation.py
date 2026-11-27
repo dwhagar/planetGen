@@ -424,7 +424,7 @@ def cross_star_violation(system):
     """
     if system.binary_type != "wide" or not system.primary.orbiters or not system.secondary.orbiters:
         return None
-    closest_au = system.wide_binary.periapsis_au
+    closest_au = system.pair_orbit.periapsis_au
     worst = None
     for body_p in system.primary.orbiters:
         for body_s in system.secondary.orbiters:

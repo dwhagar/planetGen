@@ -492,9 +492,9 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-CREEP_KEYS = (86, 270)
+CREEP_KEYS = (270,)
 """tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
-these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732, keys 156 and 63 before the dissolved nitrogen of the ocean, GEN.1834; a scan of keys 0 to 299 lists keys 86 and 270 and no other); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
+these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732, keys 156 and 63 before the dissolved nitrogen of the ocean, GEN.1834, key 86 before Train 62; a scan of keys 0 to 299 lists key 270 and no other); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
 
 
 def test_an_air_still_creeping_when_its_steps_run_out_is_given_more_and_settles(monkeypatch):
@@ -531,7 +531,7 @@ def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_
 
     monkeypatch.setattr(sa, "solve", recording_solve)
     monkeypatch.setattr(air_history, "_solved_temperature", history_solve)
-    for _ in _generated(range(6)):
+    for _ in _generated(range(14)):
         pass
     assert len(seen) >= 3, "the seeds make giants"
     for setting, entry, first, began in seen[:6]:
@@ -716,7 +716,7 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         return real(subject, result, column_bar)
 
     monkeypatch.setattr(sa.mixture_escape, "apply", recording)
-    for seed in (2, 3, 5):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
+    for seed in (3, 4, 5):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323, 2 until GEN.1836)
         columns.clear()
         planet = _earth_like_planet(seed)
         assert planet.atmospheric_pressure > 0.0, seed

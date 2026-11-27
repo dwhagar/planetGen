@@ -554,6 +554,8 @@ dark_members = sa.Table(
     sa.Column('kind', sa.String(16), nullable=False),
     sa.Column('mass_solar', mysql.DOUBLE(), nullable=False),
     sa.Column('radius_au', mysql.DOUBLE(), nullable=True),
+    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=True),
+    sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
     sa.CheckConstraint("(`kind` in (_utf8mb4'brown-dwarf',_utf8mb4'neutron-star',_utf8mb4'black-hole',_utf8mb4'stripped-helium'))", name='chk_dark_members_kind'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_dark_members_star_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
@@ -1174,6 +1176,7 @@ interstellar_comets = sa.Table(
     sa.Column('coma_active_area_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('coma_outflow_1au_kms', mysql.DOUBLE(), nullable=True),
     sa.Column('nucleus_albedo', mysql.DOUBLE(), nullable=True),
+    sa.Column('carbon_chain_depleted', mysql.TINYINT(), nullable=True),
     sa.Index('fk_interstellar_comets_inside_nebula', 'inside_nebula_id'),
     sa.Index('fk_interstellar_comets_inside_remnant', 'inside_remnant_id'),
     sa.Index('idx_interstellar_comets_cell', 'cell_key', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
@@ -1194,6 +1197,7 @@ interstellar_comets = sa.Table(
     sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_interstellar_comets_sector', ondelete='RESTRICT'),
     sa.CheckConstraint('(`is_active` in (0,1))', name='interstellar_comets_chk_1'),
     sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='interstellar_comets_chk_2'),
+    sa.CheckConstraint('((`carbon_chain_depleted` is null) or (`carbon_chain_depleted` in (0,1)))', name='interstellar_comets_chk_3'),
     mysql_engine="InnoDB",
 )
 
@@ -1303,6 +1307,23 @@ moon_deposit_types = sa.Table(
 )
 
 
+moon_exosphere = sa.Table(
+    'moon_exosphere',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('species', sa.String(16), nullable=False),
+    sa.Column('column_cm2', mysql.DOUBLE(), nullable=False),
+    sa.Column('source', sa.String(40), nullable=False),
+    sa.Column('scale_height_km', mysql.DOUBLE(), nullable=False),
+    sa.Index('idx_moon_exosphere_species', 'species', 'column_cm2'),
+    sa.Index('uq_moon_exosphere', 'moon_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_exosphere_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='moon_exosphere_chk_1'),
+    sa.CheckConstraint('(`column_cm2` > 0)', name='moon_exosphere_chk_2'),
+    mysql_engine="InnoDB",
+)
 moon_gases = sa.Table(
     'moon_gases',
     metadata,
@@ -2365,6 +2386,7 @@ phenomenon_scatter = sa.Table(
     sa.Column('member_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('system_mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
+    sa.Column('cluster_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('idx_phenomenon_scatter_address', 'shell_index', 'band_index', 'wedge_index'),
     sa.Index('idx_phenomenon_scatter_cell', 'cell_key', 'position_x_mpc', 'position_y_mpc', 'position_z_mpc'),
     sa.Index('idx_phenomenon_scatter_class', 'kind', 'subtype', 'mass_solar'),
@@ -2426,6 +2448,23 @@ planet_deposit_types = sa.Table(
 )
 
 
+planet_exosphere = sa.Table(
+    'planet_exosphere',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('species', sa.String(16), nullable=False),
+    sa.Column('column_cm2', mysql.DOUBLE(), nullable=False),
+    sa.Column('source', sa.String(40), nullable=False),
+    sa.Column('scale_height_km', mysql.DOUBLE(), nullable=False),
+    sa.Index('idx_planet_exosphere_species', 'species', 'column_cm2'),
+    sa.Index('uq_planet_exosphere', 'planet_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_exosphere_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='planet_exosphere_chk_1'),
+    sa.CheckConstraint('(`column_cm2` > 0)', name='planet_exosphere_chk_2'),
+    mysql_engine="InnoDB",
+)
 planet_gases = sa.Table(
     'planet_gases',
     metadata,
@@ -3707,6 +3746,33 @@ schema_migrations = sa.Table(
     metadata,
     sa.Column('version', mysql.INTEGER(), primary_key=True, nullable=False),
     sa.Column('applied_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+sector_directive_minimums = sa.Table(
+    'sector_directive_minimums',
+    metadata,
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('minimum_key', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('wanted', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('got', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.ForeignKeyConstraint(['sector_id'], ['sector_directives.sector_id'], name='fk_sector_directive_minimums_sector', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+sector_directives = sa.Table(
+    'sector_directives',
+    metadata,
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('directive_digest', mysql.CHAR(16), nullable=False),
+    sa.Column('status', sa.String(24), nullable=False),
+    sa.Column('attempts', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Index('idx_sector_directives_status', 'status'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_sector_directives_sector', ondelete='CASCADE'),
+    sa.CheckConstraint("(`status` in (_utf8mb4'met_naturally',_utf8mb4'met_after_k_attempts',_utf8mb4'met_forced',_utf8mb4'unmet'))", name='sector_directives_chk_1'),
+    sa.CheckConstraint('(`attempts` >= 1)', name='sector_directives_chk_2'),
     mysql_engine="InnoDB",
 )
 

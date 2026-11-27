@@ -611,7 +611,7 @@ def test_api51_a_planet_with_no_living_class_but_a_stored_air_history_has_the_ch
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     block = page.split('id="life-and-air"')[1].split("</details>")[0]
     assert '<svg class="life-air-chart"' in block and block.count("<polyline") == 6, "a line for each of the six gases of the record"
-    assert "from the history stored with the world" in block and "Mass extinctions:" in block and "Flood basalt eruptions" in block
+    assert "from the history stored with the world" in block and "Mass extinctions (each killed at least 30 percent of the species):" in block and "Flood basalt eruptions" in block
     assert "stages of the life" not in block and 'class="life-air-ages"' in block
 
 

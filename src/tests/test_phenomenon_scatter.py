@@ -611,7 +611,8 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
                and entry.phenomenon.mass_class == "stellar"]
     assert neutron and stellar
     assert all(1.1 <= remnant.mass_solar <= 2.2 for remnant in neutron)
-    assert all(5.0 <= remnant.mass_solar <= 20.0 for remnant in stellar)
+    # The cut is in the anchor law's masses (GEN.554): a hole of a place with fewer metals than the sun's is stretched above 20.
+    assert all(5.0 <= remnant.mass_solar <= tuning.BLACK_HOLE_MASS_TOP_SOLAR for remnant in stellar)
 
 
 def test_a_scatter_without_a_flag_keeps_the_stored_cut(mysql_config):
@@ -808,7 +809,7 @@ def test_the_nucleus_row_does_not_depend_on_any_limit():
 def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_class_range():
     rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5, SHAPE))]
     ranges = {("neutron-star", None): tuning.NEUTRON_STAR_MASS_RANGE_SOLAR,
-              ("black-hole", "stellar"): tuning.BLACK_HOLE_MASS_RANGE_SOLAR,
+              ("black-hole", "stellar"): (tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0], tuning.BLACK_HOLE_MASS_TOP_SOLAR),  # GEN.554: a metal-poor place stretches the span
               ("black-hole", "intermediate"): tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
               ("black-hole", "supermassive"): (tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR, float("inf"))}
     seen = set()
@@ -825,7 +826,8 @@ def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_cl
 
 def test_the_mass_respects_the_cut_and_repeats_with_the_seed():
     rows = [_as_dict(row) for row in _shell(min_mass_solar=12.0)]
-    assert all(row["mass_solar"] >= 12.0 for row in rows if row["mass_solar"] is not None)
+    assert all(row["mass_solar"] >= 12.0 for row in rows if row["mass_solar"] is not None and not scatter.is_pair(row["kind"], row["subtype"]))
+    assert all(row["mass_solar"] <= 12.0 for row in rows if scatter.is_pair(row["kind"], row["subtype"]))      # GEN.263: a compact pair is drawn below the cut
     assert _shell(seed=8) == _shell(seed=8)
 
 
@@ -915,10 +917,10 @@ def test_the_hand_built_insert_stores_the_same_rows_as_the_drivers(mysql_config)
     import numpy
 
     rows = [
-        (1, 2, 3, "neutron-star", None, 10, -20, 30, None, None, None, 2 ** 63 - 1, 1.4, None),
-        (4, -5, 6, "hypervelocity-star", "it's", -7, 8, -9, 1.5, -2.25, 1e-7, 7, None, None),
+        (1, 2, 3, "neutron-star", None, 10, -20, 30, None, None, None, 2 ** 63 - 1, 1.4, None, None),
+        (4, -5, 6, "hypervelocity-star", "it's", -7, 8, -9, 1.5, -2.25, 1e-7, 7, None, None, None),
         (numpy.int64(2), numpy.int16(3), numpy.int32(4), "black-hole", "super\\massive", numpy.int64(-1), numpy.int64(2),
-         numpy.int64(3), numpy.float64(0.1), None, None, numpy.uint64(5), numpy.float64(12.5), None),
+         numpy.int64(3), numpy.float64(0.1), None, None, numpy.uint64(5), numpy.float64(12.5), None, numpy.int64(9)),
     ]
     conn = store.get_connection(mysql_config)
     try:

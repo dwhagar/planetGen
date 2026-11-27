@@ -669,14 +669,14 @@ def test_close_binary_primary_and_secondary_positions_sum_to_mutual_position():
 
 def test_wide_binary_primary_and_secondary_positions_sum_to_mutual_position():
     """Same relationship as the close-binary case above, for the S-type
-    (`wideBinary.WideBinaryPair`) configuration instead."""
+    (`pair_orbit.PairOrbit`) configuration instead."""
     for _ in range(5):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = True
         system = StarSystem(system_config=cfg)
-        pair = system.wide_binary
+        pair = system.pair_orbit
 
         assert pair.secondary_position_x_au == pytest.approx(
             pair.primary_position_x_au + pair.position_x_au
@@ -688,7 +688,8 @@ def test_wide_binary_primary_and_secondary_positions_sum_to_mutual_position():
             pair.primary_position_z_au + pair.position_z_au
         )
 
-        mu = pair.secondary.mass / (pair.primary.mass + pair.secondary.mass)
+        masses = sorted((system.primary_star.mass, system.secondary_star.mass))
+        mu = masses[0] / (masses[0] + masses[1])
         assert 0.0 < mu < 1.0
         assert pair.secondary_mass_fraction == pytest.approx(mu)
         assert pair.primary_position_x_au == pytest.approx(-mu * pair.position_x_au)

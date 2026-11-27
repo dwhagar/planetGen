@@ -18,6 +18,7 @@ from planetgen.generation import bright_stars
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.util import draw
 from planetgen.physics.units import ly_to_pc
+from tests.anchor_masses import anchor_mass
 from tests.toy_shape import toy_shape
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -65,12 +66,15 @@ def test_every_row_sits_in_its_own_cell_with_a_mass_above_the_cut():
     rows = _shell(min_mass_solar=10.0)
     assert len(rows) > 100
     assert len({row[1] for row in rows}) > 1, "the shell's rows should fall in more than one band"
-    for row in map(dict, (zip(scatter.PHENOMENON_SCATTER_COLUMNS, row) for row in rows)):
+    for tuple_row in rows:
+        row = dict(zip(scatter.PHENOMENON_SCATTER_COLUMNS, tuple_row))
         point = (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000, row["position_z_mpc"] / 1000)
         assert sector_address_at(point, EDGE_PC) == (row["shell_index"], row["band_index"], row["wedge_index"])
         assert row["shell_index"] == SHELL and abs(row["band_index"]) <= HIGH_BAND and 0 <= row["seed"] < 2 ** 63
-        if row["kind"] == "black-hole":
-            assert row["mass_solar"] >= 10.0
+        if scatter.is_pair(row["kind"], row["subtype"]):
+            assert row["mass_solar"] < 10.0, "a promoted compact pair (GEN.263) is drawn below the cut"
+        elif row["kind"] == "black-hole":
+            assert anchor_mass(tuple_row, SHAPE) >= 10.0 - 1e-6      # the cut is in the anchor law's masses (GEN.554)
         elif row["kind"] == "neutron-star":
             # A magnetar ignores the mass cut (GEN.278): it follows the young stars, whatever the cut leaves.
             assert row["subtype"] == scatter.MAGNETAR_SUBTYPE or row["mass_solar"] is None or row["mass_solar"] >= 10.0

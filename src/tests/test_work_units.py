@@ -557,8 +557,10 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
     assert expansion.plan == json.loads(json.dumps(expansion.plan))
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
     assert shape.to_json() == {key: value for key, value in expansion.plan.items()
-                                      if key not in ("filled", "outline_shells", "min_mass_solar", "row_totals")} \
+                                      if key not in ("filled", "outline_shells", "min_mass_solar", "min_mass_tiers", "row_totals")} \
         and len(shape.tasks) == len(expansion.units) > 1
+    # GEN.377: the tiers of the cut travel in the plan beside the shape (the units read them from `plan["detail"]`), one floor for each of the three tiers.
+    assert len(expansion.plan["min_mass_tiers"]) == 3 and all(floor > 0.0 for floor in expansion.plan["min_mass_tiers"])
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM phenomenon_scatter")

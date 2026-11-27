@@ -181,7 +181,8 @@ def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn,
     from planetgen.queue import commands
     stars, points = _rows()
     kind_at, mass_at = store.PHENOMENON_SCATTER_COLUMNS.index("kind"), store.PHENOMENON_SCATTER_COLUMNS.index("mass_solar")
-    points = [row[:kind_at] + ("hypervelocity-star",) + row[kind_at + 1:mass_at] + (2.0,) + row[mass_at + 1:-1] + (None,) for row in points]      # scattered before the map luminosity existed: a mass, no value
+    light_at = store.PHENOMENON_SCATTER_COLUMNS.index("map_luminosity_sol")
+    points = [row[:kind_at] + ("hypervelocity-star",) + row[kind_at + 1:mass_at] + (2.0,) + row[mass_at + 1:light_at] + (None,) + row[light_at + 1:] for row in points]      # scattered before the map luminosity existed: a mass, no value
     store.insert_phenomenon_scatter(conn, points)
     conn.commit()
     ids = conn.execute("SELECT MIN(id) AS low, MAX(id) AS high FROM phenomenon_scatter").fetchone()

@@ -91,6 +91,8 @@ def phenomenon_companion(kind, subtype, seed):
     the companion state (`star`, `black-hole`, ...). A class without a tree (`phenomenon_scatter.PLACED_KINDS`) is
     never a hit. The odds are `multistar.MEMBER_STATE_BY_PLACED`'s, walked with the row's `screen_unit`.
     """
+    if phenomenon_scatter.is_pair(kind, subtype):
+        return _pair_companion(kind, subtype, seed)
     placed_kind = phenomenon_scatter.PLACED_KINDS.get((kind, subtype))
     if placed_kind is None:
         return None
@@ -104,6 +106,25 @@ def phenomenon_companion(kind, subtype, seed):
         if pick < upper:
             return placed_kind, recycled, state
     return None
+
+
+def _pair_companion(kind, subtype, seed):
+    """
+    The companion of a promoted compact pair row (GEN.263): always a hit, whose state is picked among the compact companions of the placed object
+    (`phenomenon_scatter.PAIR_COMPANIONS`) by the odds the class table gives each, with the row's own `screen_unit`. A neutron star of a pair row is a millisecond pulsar
+    at the share the pair rows have (`phenomenon_scatter.pair_recycled_share`), not the share the neutron stars have.
+    """
+    placed_kind = phenomenon_scatter.PLACED_KINDS[(kind, phenomenon_scatter.base_subtype(kind, subtype))]
+    recycled = (placed_kind == "neutron-star"
+                and screen_unit(seed, "recycled") < phenomenon_scatter.pair_recycled_share(kind, subtype))
+    odds = phenomenon_scatter._pair_table(placed_kind, recycled)
+    pick = screen_unit(seed) * sum(odds.values())
+    running = 0.0
+    for state, share in odds.items():
+        running += share
+        if pick < running:
+            return placed_kind, recycled, state
+    return placed_kind, recycled, next(reversed(odds))
 
 
 def _planetary_nebula_star(rng):

@@ -78,11 +78,12 @@ def test_the_wheel_carries_the_map_into_a_system_and_back_out_with_no_page_load(
         spot = page.evaluate(f"(p) => {CANVAS_JS}.galaxyScreenOf(...p)", list(point))
         assert spot, "the star left the map"
         _wheel(page, (spot["x"], spot["y"]), -60)
+        _at_rest(page)      # MAP.434: the wheel now carries the camera on at the zoom floor too, so ticks sent faster than the camera moves outrun the system scene's dwell and load
         states.append(_state(page))
         if states[-1]["system"]:
             break
     assert states[-1]["system"], f"never entered the system: {states[-1]}"
-    assert any(s["ambient"] > 0 for s in states), "the system's scene never faded in before it opened"
+    assert any(s["ambient"] > 0 for s in states), f"the system's scene never faded in before it opened: {[(round(s['ambient'], 3), bool(s['system'])) for s in states]}"
     assert page.evaluate("() => window.__same_page === true"), "the page was loaded again"
     assert "system=" in page.url
     inside = page.evaluate(f"() => {CANVAS_JS}.galaxySystem()")
@@ -101,15 +102,29 @@ def test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system(page, bas
     stages hand over to each other and the system opens (the camera used to stop 0.5 pc short, the nearest zoom being
     judged from the view's middle and not from the star under the pointer); the wheel out goes back the same way."""
     systems = _kinds(site_app.test_client())
+    system_id = systems.get("moons") or next(iter(systems.values()))
     reach = _Scene(page, base_url, site_app, sample_params)
-    point = _star_point_of(reach, systems.get("moons") or next(iter(systems.values())))
+    point = _star_point_of(reach, system_id)
     page.goto(f"{base_url}/galaxy", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
     page.evaluate("() => { window.__same_page = true; }")
     trail = []
+    drawn = None
     for n in range(600):
-        spot = page.evaluate(f"(p) => {CANVAS_JS}.galaxyScreenOf(...p)", list(point))
+        # MAP.434: a user aims the wheel at what the map draws. The star is looked for among the stars the map draws and can pick (a star
+        # the map draws thinned out or not at all is not a place the wheel heads for: it zooms toward the nearest thing drawn there, which
+        # may be a star in front of it, and the aim then drifts off the map), and followed by its system's id as the camera comes in. Until the
+        # map draws it the aim is where the sector's own data puts it; a star the map never draws ends the test with a skip, not a pass.
+        found = page.evaluate(f"(id) => {CANVAS_JS}.galaxyPickableStars().find((s) => s.system_id === id && s.visible) || null", system_id)
+        if found:
+            box = page.locator(CANVAS).bounding_box()
+            drawn = (box["x"] + found["x"], box["y"] + found["y"])
+            spot = {"x": drawn[0], "y": drawn[1]}
+        elif drawn is None:
+            spot = page.evaluate(f"(p) => {CANVAS_JS}.galaxyScreenOf(...p)", list(point))
+        else:
+            spot = {"x": drawn[0], "y": drawn[1]}
         if not spot:
             trail.append(("offscreen", n))
             break
@@ -120,6 +135,8 @@ def test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system(page, bas
         trail.append((n, round(math.dist(cam["eye"], point), 6), state["system"] is not None, state["url"][:60]))
         if state["system"]:
             break
+    if not _state(page)["system"] and drawn is None:
+        pytest.skip("the map never drew the star of this system, so there is no star to aim the wheel at (MAP.434)")
     assert _state(page)["system"], trail[-3:]
     assert page.evaluate("() => window.__same_page === true"), "the page was loaded again"
     # The wheel back out carries the map out of the system, the sector and on up the stages with no page load.

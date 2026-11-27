@@ -133,12 +133,16 @@ main{padding:16px 16px 60px}}
 <td><code>galactic_orbital_phase_deg</code>, <code>reflex_offset_x/y/z_km</code></td>
 </tr>
 <tr>
+<td><code>orbit_nodes</code></td>
+<td><code>mean_anomaly_deg</code>, <code>epoch_unix</code> (GEN.313: the update advances the nodes of a star tree)</td>
+</tr>
+<tr>
 <td><code>planets</code></td>
 <td><code>reflex_offset_x/y/z_km</code> (from their moons)</td>
 </tr>
 <tr>
 <td><code>star_systems</code></td>
-<td><code>binary_mutual_orbital_phase_deg</code>, <code>binary_mutual_position_*</code>, <code>binary_primary_position_*</code>, <code>binary_secondary_position_*</code>, <code>binary_planetary_wobble_*</code>, <code>binary_galactic_orbital_phase_deg</code>; from the galactic move also <code>position_x/y/z_mpc</code>, <code>quadrant</code>, <code>velocity_*</code> and <code>sector_id</code></td>
+<td><code>binary_planetary_wobble_*</code>, <code>binary_galactic_orbital_phase_deg</code>; from the galactic move also <code>position_x/y/z_mpc</code>, <code>quadrant</code>, <code>velocity_*</code> and <code>sector_id</code></td>
 </tr>
 <tr>
 <td><code>black_holes</code>, <code>neutron_stars</code>, <code>nebulae</code>, <code>supernova_remnants</code>, <code>rogue_planets</code>, <code>interstellar_comets</code>, <code>asteroid_fields</code></td>
@@ -447,6 +451,7 @@ class RS:
 <li><strong>Rows agree with the record, the stored checksum does not:</strong> the column is the damaged part and is sealed again (two independent copies agree on the rows).</li>
 <li><strong>Record holds the stored checksum, rows differ:</strong> the group's other members are read and each must hash to what the record holds for it; every block that does not (damaged, changed since the record was made, gone, or another target) is an erasure, and up to <code>m</code> erasures of one group are decoded together (<code>RS.decode</code>, the parity blocks added to the surviving data blocks). The rebuilt block is parsed (<code>sector_export.parse</code>) and hashed (<code>checksum_of</code>) against the stored checksum before anything is written.</li>
 <li><strong>Record holds another checksum, the sector is in no group, more than <code>m</code> blocks are lost, or the group's record fails its CRC:</strong> reported with the reason and left alone (the way out is the seed regeneration or a backup, DB.9's fallback).</li>
+<li><strong><code>repair-db --regenerate</code> (DB.17):</strong> each sector left that way is drawn again from the galaxy's seed and its address (<code>queue.api_jobs.regenerate_sector</code>, the job behind the sector page's Regenerate button), under the directive its GEN.179 record names (the minimums are read back from <code>sector_directive_minimums</code> and must hash to the stored digest). It is refused, with the reason, when the sector's generator epoch is not the running code's (the seed then draws another sector; the reason names the release that made it), when no epoch is recorded, when it has no grid address (hand-made) or when its directive cannot be made again. A different build of the same epoch is allowed and the result line says so. Admin edits (<code>edit_journal</code>, the admin audit log) are not restored; the dry run and the result line count them (&quot;N admin edit(s) are NOT restored&quot;). With no parity file at all, every damaged sector goes to this path. The result line says whether the directive came out the same as before (status and draws). A table the server will not read is rebuilt first (<code>--salvage</code>, <code>--reload</code>).</li>
 <li><strong>A table the server refuses to read:</strong> reported as unreadable, with the tables found by a count through the primary key; DB.48's case (5.12).</li>
 </ul>
 <p>Writing is by primary key in one transaction, under the sector's row lock and with <code>foreign_key_checks</code> off for the writes only: a row that differs gets its covered columns updated, a row the export has that the database lacks (or has filed elsewhere) is deleted by key and inserted, and a row the sector has that the export does not is deleted. The checksum is taken again before the commit and the transaction is rolled back if it is not the stored one. The columns the orbit update rewrites (5.2) are never written to an existing row, so a repair does not undo the daily run; an inserted row takes them at the column default, zero where there is none, and its <code>sector_id</code> is the sector's. That is option (a) of 5.2: a repaired row carries no history of its orbit.</p>

@@ -29,7 +29,7 @@ LISTED = {"black_hole": 2, "neutron_star": 1, "supernova_remnant": 1, "quasar": 
 def scattered(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        rows = [(0, 0, slot, kind, subtype, 1000 * slot, 0, 0, None, None, None, slot + 1, 3.0 if subtype == "stellar" else None, None)
+        rows = [(0, 0, slot, kind, subtype, 1000 * slot, 0, 0, None, None, None, slot + 1, 3.0 if subtype == "stellar" else None, None, None)
                 for slot, (kind, subtype) in enumerate(KINDS)]
         store.insert_phenomenon_scatter(conn, rows)
         store.record_phenomenon_scatter_classes(conn, {(kind, subtype or ""): 1 for kind, subtype in KINDS})

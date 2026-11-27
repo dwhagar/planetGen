@@ -129,9 +129,26 @@ def test_the_luminosity_is_stefan_boltzmann_of_the_tracks_radius_and_temperature
 
 
 def test_a_mass_outside_the_models_has_no_track():
-    for mass in (0.005, 2.0):
+    """Above the table (2 solar masses) and under the lightest planetary-mass companion (GEN.331 continues the track down to it) there is no track."""
+    lowest = brown_dwarf.planetary_mass_range_solar()[0]
+    for mass in (lowest * 0.99, lowest * 0.5, 2.0):
         with pytest.raises(ValueError):
             brown_dwarf.effective_temperature_k(mass, 1.0)
+        with pytest.raises(ValueError):
+            brown_dwarf.radius_sol(mass, 1.0)
+    brown_dwarf.effective_temperature_k(lowest, 1.0)      # the lower edge itself has one
+
+
+def test_the_track_under_the_tables_lightest_mass_follows_the_exponents():
+    """0.005 solar masses (5.2 Jupiter masses) is inside the continued range: cooler than the table's 0.01 track and slightly larger (the brown dwarf radius is flat to
+    falling with mass, exponent -0.04), each by its exponent of the mass ratio."""
+    lightest, mass = 0.01, 0.005
+    assert brown_dwarf.planetary_mass_range_solar()[0] < mass < lightest
+    ratio = mass / lightest
+    assert brown_dwarf.radius_sol(mass, 1.0) == pytest.approx(brown_dwarf.radius_sol(lightest, 1.0) * ratio ** brown_dwarf.RADIUS_MASS_EXPONENT)
+    assert brown_dwarf.radius_sol(mass, 1.0) > brown_dwarf.radius_sol(lightest, 1.0)
+    assert brown_dwarf._track(mass, 1.0)[0] == pytest.approx(brown_dwarf._track(lightest, 1.0)[0] * ratio ** brown_dwarf.TEMPERATURE_MASS_EXPONENT)
+    assert brown_dwarf.effective_temperature_k(mass, 1.0) < brown_dwarf.effective_temperature_k(lightest, 1.0)
 
 
 def test_the_types_start_where_kirkpatrick_et_al_put_them():
