@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4847+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The tests that read the release number take the build stamp the version has carried since OPS.64
+
+### Fixed
+
+- TEST.850: eight tests were red on main since OPS.64 (PR 7315, 8.0.4653) made `__version__` read like `8.0.4845+db280.gen150.api14`. `test_version_key.py::test_the_running_code_has_a_key` split the whole string on dots (the product's `galaxy/version_key.py` already reads the release before the `+`, so the product is right and only the test changes). Five tests of the same file (`test_every_run_that_changes_the_galaxy_is_recorded`, `test_the_history_never_stops_a_run`, `test_a_run_writes_its_seed_and_version_first`, `test_a_plan_names_the_seed_it_was_given_or_none_yet`, `test_the_line_is_first_in_a_debug_file_too`) ran a real command against the test database as its control database without the control schema, so a run's ledger table `engine_runs` was missing: `engine_runs` is a control-schema table (OPS.215) and not a migration's drop, so the helper `_generate` makes the control schema first, as the `control_config` fixture does. `test_datasets_fetch.py::test_the_user_agent_is_product_tokens_with_the_release_url_and_api_version` matched the release as three numbers; the sent `User-Agent` is valid with the stamp (RFC 9110 product versions are tokens and `+` is a token character), so the pattern accepts it. `test_the_scripts_run_the_download_step_at_setup` named a stage line (`log_stage 4 9`) that `update.sh` no longer has; it now holds the download before the step that migrates the database. The other readers of the version (`fmt.static_url`, the version sync tests, `bump_version.py`, the release numbers in the API and TODO tables) were looked at: they read the whole string, the stamped release or a release number, not the stamp as a number. Tests only.
+
+generation-output: unchanged
+
 ## [8.0.4846+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The train gate ends a file's pytest that has gone idle, with a stack dump of every process in the log, instead of waiting out the whole limit.
