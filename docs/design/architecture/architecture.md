@@ -182,7 +182,7 @@ Building the objects a run creates, and the commands that run it. Generation cod
 | [`steps.py`](../../../src/planetgen/generation/steps.py) | Steps (PERF.51): the one way a generation or maintenance run reports the progress of a piece of work. |
 | [`system.py`](../../../src/planetgen/generation/system.py) | `StarSystem`: builds a whole system (star or binary, planets, moons, belts, comets, life data) and renders it. |
 | [`validation.py`](../../../src/planetgen/generation/validation.py) | One place to validate a planet, a lunar system (a planet and its moons) and a star system (TODO ADM.5). |
-| [`wide_binary.py`](../../../src/planetgen/generation/wide_binary.py) | `WideBinaryPair`: a wide (S-type) binary where each star keeps its own planets. |
+| [`wide_binary.py`](../../../src/planetgen/generation/wide_binary.py) | The draws of a wide (S-type) binary where each star keeps its own planets (its orbit is a tree node, read by [`pair_orbit.py`](../../../src/planetgen/generation/pair_orbit.py)). |
 
 #### src/planetgen/generation/phenomena/
 

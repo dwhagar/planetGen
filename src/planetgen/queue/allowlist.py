@@ -43,6 +43,7 @@ API_FUNCTIONS = frozenset({
     "planetgen.api.edits:edit_body_job",
     "planetgen.api.edits:regenerate_phenomenon_job",
     "planetgen.api.routes:create_system_job",
+    "planetgen.api.lookup:name_search_job",
     "planetgen.api.routes:generate_uncharted_system_job",
     "planetgen.api.routes:update_system_job",
     "planetgen.queue.api_jobs:build_gravity_grid",

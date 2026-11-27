@@ -163,6 +163,7 @@ def galaxy():
     galaxy_shape = apiclient.get_galaxy_shape(db)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     initial_view = fetch_nodes(db, opening_request(galaxy_shape))
+    regions = apiclient.get_galaxy_charted_regions(db)["regions"]
     course = _course_from_args()
     pick = _pick_from_args()
     map_html = render_galaxy_map3d_panel(
@@ -184,11 +185,12 @@ def galaxy():
         nearby_url=page_url("nearby"),
         uncharted_scene_url=uncharted_scene_url_template(),
         uncharted_phenomenon_url=uncharted_phenomenon_url_template(),
+        opening_region=regions[0] if regions else None,        # MAP.189: the first frame frames the largest charted region (?whole=1: the whole galaxy, as before)
+        opening_whole=bool(request.args.get("whole")),
         superbubbles=apiclient.get_superbubbles(db),
         clusters=_cluster_labels(db),
     )
 
-    regions = apiclient.get_galaxy_charted_regions(db)["regions"]
     context = {"placed_count": len(sectors), "map_html": trusted_html(map_html),
                "region_rows": _region_rows(regions), "region_count": len(regions), "region_cap": REGION_LIST_CAP,
                "glance": glance.galaxy_rows(sectors, apiclient.get_containers(db))}

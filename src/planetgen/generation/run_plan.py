@@ -14,6 +14,7 @@ scatter and its per-sector bands.
 import collections
 import concurrent.futures
 import dataclasses
+import itertools
 import math
 import multiprocessing
 import os
@@ -29,6 +30,7 @@ from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.generation import containers as generationContainers
+from planetgen.generation import phenomenon_cuts as phenomenonCuts
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import ring_remnants as ringRemnants
@@ -223,7 +225,7 @@ def _write_ring_remnants(c, skeleton, limits, addresses):
     if settings is None or settings[1] is None:
         return
     seed, min_mass = settings
-    rows = ringRemnants.rows_for(c, skeleton, limits, seed, min_mass, addresses)
+    rows = ringRemnants.rows_for(c, skeleton, limits, seed, phenomenonCuts.Cuts.of(skeleton, min_mass), addresses)
     if rows:
         scatterCompanions.insert_phenomenon_scatter(c, rows)
         store.add_phenomenon_scatter_classes(c, _class_counts(rows))
@@ -2010,7 +2012,8 @@ def scatter_shells_do(unit_args, piece, ctx):
         components = ctx.kept("components", lambda: _galaxy_components(ctx.config))
         fractions, pass_bands = brightStars.pass_of(tiered, min_luminosity, max_luminosity, mass_range)
         these, slices = componentPass.chosen(components, unit_args["component_parts"])
-        rows = componentPass.scatter_stars(these, edge_pc, seed, fractions, pass_bands, tiered=tiered, skip_addresses=skip, slices=slices)
+        rows = itertools.chain(componentPass.scatter_stars(these, edge_pc, seed, fractions, pass_bands, tiered=tiered, skip_addresses=skip, slices=slices),
+                               componentPass.scatter_blue_stragglers(these, edge_pc, seed, skip_addresses=skip, slices=slices))
     ctx.step(f"Stars of {'the components' if key == COMPONENT_TASK_SHELL else 'shell ' + format(key, ',')}", expected_by_shell.get(key))
     counts = {population: 0 for population in brightStars.POPULATIONS}
     types = collections.Counter()
@@ -2247,7 +2250,8 @@ def expand_scatter_phenomena(params):
         skeleton, extents, filled = _stored_galaxy(conn)
     finally:
         conn.close()
-    shape = _plan_phenomena(skeleton, extents, _galaxy_components(mysql_config), params["min_mass_solar"])
+    cuts = phenomenonCuts.Cuts.of(skeleton, params["min_mass_solar"])
+    shape = _plan_phenomena(skeleton, extents, _galaxy_components(mysql_config), cuts)
     filled_by_shell = collections.defaultdict(list)
     for address in filled:
         filled_by_shell[address[0]].append(list(address))
@@ -2264,7 +2268,8 @@ def expand_scatter_phenomena(params):
                         "component_parts": shape.component_parts.get(key), "seed": params["seed"],
                         "min_mass_solar": params["min_mass_solar"], "skip": skip, "weight": shape.weights[key]}, shape.weights[key]))
     return commands.Expansion(units_, {**shape.to_json(), "filled": len(filled), "outline_shells": len(extents),
-                                       "min_mass_solar": params["min_mass_solar"], "row_totals": {"shells": shape.shell_total}})
+                                       "min_mass_solar": params["min_mass_solar"], "min_mass_tiers": list(cuts.tiers),
+                                       "row_totals": {"shells": shape.shell_total}})
 
 
 def scatter_phenomena_pieces(unit_args, cursor):
@@ -2294,7 +2299,7 @@ def scatter_phenomena_do(unit_args, piece, ctx):
     skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(ctx.db))
     skip = ctx.kept("skip", lambda: {tuple(address) for address in unit_args["skip"]})
     shape, edge_pc, expected = skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1
-    seed, min_mass = unit_args["seed"], unit_args["min_mass_solar"]
+    seed, min_mass = unit_args["seed"], phenomenonCuts.Cuts.of(skeleton, unit_args["min_mass_solar"])      # GEN.377: the cut of each band's tier
     runs = []
     if piece["run"] == "shell":
         shell_index, high_band = piece["shell"], piece["high"]
@@ -3423,8 +3428,9 @@ class PhenomenaFollower(followed.Follower):
         shape = self.shape = _PhenomenaShape.from_json(plan["detail"])
         self.book.tasks = len(shape.tasks)
         self.book.shells, self.book.min_mass_solar = plan["detail"]["outline_shells"], plan["detail"]["min_mass_solar"]
+        cuts = phenomenonCuts.Cuts.from_tiers(plan["detail"].get("min_mass_tiers") or [self.book.min_mass_solar] * 3)
         log.normal(f"Phenomena: about {round(shape.expected_rows):,} phenomena to place in {shape.shell_total:,} shells "
-                   f"({phenomenon_scatter.cut_summary(self.book.min_mass_solar)}).")
+                   f"({phenomenon_scatter.cut_summary(cuts)}).")
         if plan["detail"].get("filled"):
             log.normal(f"Leaving out the {plan['detail']['filled']:,} sectors already filled.")
         self.bar = self.hold(steps.Step(f"Phenomena (0 of {shape.shell_total:,} shells)", "phenomena",
@@ -3750,8 +3756,8 @@ def _write_special_remnants(params, ctx):
         dict: `{label: count}` of what was written, as the `write` piece returns.
     """
     conn = ctx.db
-    min_mass = params["min_mass_solar"]
     skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(conn))
+    min_mass = phenomenonCuts.Cuts.of(skeleton, params["min_mass_solar"])      # GEN.377: by place, as the scatter placed its phenomena
     limits = store.scatter_limits_of(conn, skeleton)
     addresses = store.backfilled_uncharted_addresses(conn)
     held = store.addresses_holding_below_cut_remnants(conn, min_mass)

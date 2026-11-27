@@ -22,6 +22,8 @@ import contextlib
 import contextvars
 import dataclasses
 
+import pymysql
+
 
 @dataclasses.dataclass(frozen=True)
 class Field:
@@ -134,6 +136,29 @@ def load_dict(fields, row, only=None):
 _ROW_LOG = contextvars.ContextVar("object_rows_row_log", default=None)
 
 
+_COLUMN_CANNOT_BE_NULL = 1048
+"""int: The server's error number for a NULL written to a NOT NULL column."""
+
+IDENTITY_ATTRIBUTES = ("name", "uid", "body_type", "planet_class", "is_moon", "mass", "distance")
+"""tuple: What names the object of a refused row: its own name and kind and where it sits."""
+
+
+def required_columns_left_empty(table, columns, values):
+    """The columns of `table` that `values` leave `None` and that the table does not let be NULL (from the models' metadata; a table the models do not know has none)."""
+    from planetgen.db import models      # not at the top: the models module is large and a plain insert never needs it
+    known = models.metadata.tables[table].columns if table in models.metadata.tables else {}
+    return [column for column, value in zip(columns, values) if value is None and column in known and not known[column].nullable]
+
+
+def null_column_report(table, empty, obj):
+    """
+    Names the body behind a row that would be refused for a NULL in a NOT NULL column (GEN.1856: `rotation_period_hours` came out None once in four runs of two workers, and the server's
+    message, raised when the held-back INSERTs were written, names the column but not the body): the table, the required columns left empty, and the object's class and identity attributes.
+    """
+    identity = ", ".join(f"{name}={getattr(obj, name)!r}" for name in IDENTITY_ATTRIBUTES if hasattr(obj, name))
+    return f"table {table}, required columns left empty: {', '.join(empty)}; object {type(obj).__name__} ({identity})"
+
+
 @contextlib.contextmanager
 def logged_rows():
     """
@@ -158,8 +183,12 @@ def insert_row(conn, table, fields, obj, context=None):
     from the id blocks (`store.ID_BLOCK_TABLES`) still does.
     """
     columns = columns_of(fields)
-    cur = conn.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-                       tuple(values_of(fields, obj, context)))
+    values = tuple(values_of(fields, obj, context))
+    if None in values:      # a connection that holds its INSERTs back refuses a NULL only when it writes them, long after the body is gone (GEN.1856): refused here, where the body is known
+        empty = required_columns_left_empty(table, columns, values)
+        if empty:
+            raise pymysql.err.IntegrityError(_COLUMN_CANNOT_BE_NULL, f"Column '{empty[0]}' cannot be null; {null_column_report(table, empty, obj)}")
+    cur = conn.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})", values)
     log = _ROW_LOG.get()
     if log is not None:
         log[id(obj)] = (table, cur.lastrowid)

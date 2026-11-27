@@ -352,8 +352,7 @@ def _close_pair_section(pair):
                    [facts("Binary system", rows), prose("summary", age)])
 
 
-def _wide_pair_section(pair):
-    primary, secondary = pair.primary, pair.secondary
+def _wide_pair_section(pair, primary, secondary):
     offsets = _barycenter_offsets(
         (primary, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
         (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))
@@ -364,9 +363,9 @@ def _wide_pair_section(pair):
         fact("mutual_orbit", "Mutual orbit", _kms(pair.speed_kms), " (", _years(pair.period_years), " per orbit)"),
         fact("wobble", "Barycenter offset", offsets[0], ", ", offsets[1], " from the barycenter"),
         fact("primary_limit", "Planetary limit of the primary", f"{primary.name}'s planetary system is stable out to ",
-             _au(pair.primary_a_crit_au), f" due to {secondary.name}'s gravity."),
+             _au(primary.a_crit_au), f" due to {secondary.name}'s gravity."),
         fact("secondary_limit", "Planetary limit of the secondary", f"{secondary.name}'s planetary system is stable out to ",
-             _au(pair.secondary_a_crit_au), f" due to {primary.name}'s gravity."),
+             _au(secondary.a_crit_au), f" due to {primary.name}'s gravity."),
     ]
     return section("pair", None, f"{primary.name} and {secondary.name}", [facts("Wide binary system", rows)])
 
@@ -840,7 +839,9 @@ def describe(system):
         children = [_close_pair_section(system.star)]
         children += [_star_section(star) for star in system.stars[:2]] + _member_sections(system)
     elif system.binary_type == "wide":
-        children = [_wide_pair_section(system.wide_binary)]
+        heavier, lighter = ((system.secondary_star, system.primary_star) if system.secondary_star.mass > system.primary_star.mass
+                            else (system.primary_star, system.secondary_star))      # the pair's primary is the heavier star
+        children = [_wide_pair_section(system.pair_orbit, heavier, lighter)]
         for star, planets, comets in ((system.primary_star, system.primary.orbiters, system.comets),
                                       (system.secondary_star, system.secondary.orbiters, system.secondary_comets)):
             children.append(_star_section(star, [_body_section(body) for body in planets]
@@ -855,3 +856,17 @@ def describe(system):
 
     return model.document("system", _ref("system", system), system.name,
                           [section("system", _ref("system", system), system.name, blocks, children)])
+
+
+def describe_free_moon(moon):
+    """
+    The Document of a moon of a free planet (UX.138): the moon's own section, as a moon of a system has in `describe`, but with no
+    system around it. It circles a wanderer, which has no star, so it has no sky and no light of a star in its facts (`_sky_block`
+    finds no star); a moon's section holds nothing of the planet it circles beyond that.
+
+    Args:
+        moon (Planet): A moon loaded from its row (`db.store.load_free_moon`), its `db_id` set.
+    """
+    piece = _planet_section(moon, None)
+    return model.document("moon", _ref("moon", moon), moon.name, [piece])
+

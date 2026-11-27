@@ -347,8 +347,8 @@ site closed</strong>, says which step failed and how to open it, because the dat
 <p>A job whose worker was killed (the out-of-memory killer, a restart) used to stay &quot;running&quot; in Redis for ever and hold
 the update; the guard and every worker now clear such a job when they start. When a job is stuck some other way,
 <code>sudo ./update.sh --reset-jobs</code> (or <code>python3 -m planetgen.cli.reset_jobs</code> on its own, <code>--dry-run</code> to only look) stops
-what the guard lists, kills the queue workers on the machine, and empties the jobs table and the work lease of the
-control database and the queues in Redis (the RQ keys only: the admin's worker count and the caches stay). It cancels
+what the guard lists, asks the supervisor to stop every job it forked, and empties the jobs table and the work lease of the
+control database and the run records in Redis (and any keys an older release's RQ left; the caches stay). It cancels
 without asking, so use it when nothing needs to finish.</p>
 <p><code>python3 -m planetgen.cli.migrate</code> run by hand does the same when it has something to migrate (<code>--yes</code>
 works there too). <code>update.sh</code> never edits your Redis configuration or your Apache site.</p>

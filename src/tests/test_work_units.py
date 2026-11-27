@@ -557,8 +557,10 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
     assert expansion.plan == json.loads(json.dumps(expansion.plan))
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
     assert shape.to_json() == {key: value for key, value in expansion.plan.items()
-                                      if key not in ("filled", "outline_shells", "min_mass_solar", "row_totals")} \
+                                      if key not in ("filled", "outline_shells", "min_mass_solar", "min_mass_tiers", "row_totals")} \
         and len(shape.tasks) == len(expansion.units) > 1
+    # GEN.377: the tiers of the cut travel in the plan beside the shape (the units read them from `plan["detail"]`), one floor for each of the three tiers.
+    assert len(expansion.plan["min_mass_tiers"]) == 3 and all(floor > 0.0 for floor in expansion.plan["min_mass_tiers"])
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM phenomenon_scatter")
@@ -823,8 +825,12 @@ def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():
 def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units(mysql_config, monkeypatch, capsys):
     from planetgen.db import store
     from tests.bughunt_support import mysql_argv, run_cli
+    from tests import air_history_off
     from tests.test_galaxy_gen import _seed_skeleton
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 1)])
+    # TEST.843: the test reads the run's stage keys, the sectors it saved and the paths it linked, never a body's air, and the air history was most of the cost of a system
+    # (TEST.831): the sectors are the same without it, in less than the 3600 s the watchdog allows.
+    air_history_off.without_the_air_history(monkeypatch)
     runs = []
     real = wrapper.run
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])

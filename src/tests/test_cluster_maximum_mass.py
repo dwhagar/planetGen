@@ -54,10 +54,10 @@ def test_feedback_never_acts_before_the_first_supernova_and_limits_a_thin_slow_r
     assert cmm.collapsed_fraction(1.0e3, 3.0, SIGMA) == 1.0
 
 
-def test_the_cluster_maximum_is_a_tenth_of_the_bound_share_of_the_cloud_and_held_under_the_ceiling():
+def test_the_cluster_maximum_is_a_tenth_of_the_bound_share_of_the_cloud_with_no_ceiling():
     cloud = cmm.maximum_cloud_mass_sol(600.0, CMZ_KAPPA, SIGMA)
     assert cmm.maximum_cluster_mass_sol(600.0, CMZ_KAPPA, 0.5, SIGMA) == pytest.approx(0.1 * 0.5 * cloud)
-    assert cmm.maximum_cluster_mass_sol(5.0e3, CMZ_KAPPA, 0.9, SIGMA) == tuning.CLUSTER_MAX_MASS_CEILING_SOL
+    assert cmm.maximum_cluster_mass_sol(5.0e3, CMZ_KAPPA, 0.9, SIGMA) == pytest.approx(0.1 * 0.9 * cmm.maximum_cloud_mass_sol(5.0e3, CMZ_KAPPA, SIGMA))
     assert cmm.maximum_cluster_mass_sol(0.0, CMZ_KAPPA, 0.6, SIGMA) == 0.0
 
 
@@ -91,3 +91,12 @@ def test_a_capped_mass_function_draws_nothing_above_the_cap_and_makes_more_light
     assert evolution.initial_masses(uniform).max() > 1.0e5
     assert evolution.mean_initial_mass_sol(2.0e4) < evolution.mean_initial_mass_sol()
     assert evolution.mean_initial_mass_sol(1.0e9) == pytest.approx(evolution.mean_initial_mass_sol())
+
+
+def test_a_ring_with_more_gas_than_the_milky_ways_forms_clusters_the_milky_ways_footnote_does_not_allow():
+    """GEN.1842: [R3720] footnote 9 (a few 1e4, certainly under 1e5) is the Milky Way's sample, and the nuclear rings of other galaxies hold clusters of
+    mean log mass 6.1 to 7.1 (NGC 1097, NGC 1672, NGC 7469, [R5358: Table 3]); a ring of 3e3 solar masses per pc2 on the same rotation makes 8.6e5
+    by the relation, with no ceiling cutting it back to 1e5."""
+    mass = cmm.maximum_cluster_mass_sol(3.0e3, CMZ_KAPPA, 0.6, SIGMA)
+    assert mass == pytest.approx(0.1 * 0.6 * cmm.toomre_mass_sol(3.0e3, CMZ_KAPPA), rel=1.0e-9)
+    assert 5.0e5 < mass < 1.0e6

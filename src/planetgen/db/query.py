@@ -42,11 +42,11 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, scatter_epochs, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import belt_names, chart_ledger, compact_pairs, countcache, galaxy_counts, hostednebula, interests, kind_tables, nebula_blocks, point_columns, search_values
+from planetgen.db import belt_names, chart_ledger, orbit_trees, compact_pairs, countcache, galaxy_counts, hostednebula, interests, kind_tables, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import class_code, equipment, habitability, habitability_world, life_classes, life_scores, score_filters
+from planetgen.physics import class_code, equipment, planet_classes, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
 from planetgen.util import generator_epoch
 from planetgen.population import facility_ratings, facility_types, tech
@@ -89,7 +89,7 @@ from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
     NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
-    NAV_ISLAND_LINKS, PLANET_CLASSES,
+    NAV_ISLAND_LINKS,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.util import detmath
@@ -269,7 +269,7 @@ def virtual_sector_detail(conn, address):
     return {**{key: item[key] for key in ("id", "name", "edge_mpc", "edge_ly", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "shell_index",
                                           "band_index", "wedge_index", "placed", "uncharted", "virtual")},
             "system_count": 0, "star_count": 0, "interstellar_debris_count": 0, "systems": [], "phenomena": [], "neighbors": [],
-            "stats": sector_stats(conn, *address)}
+            "stats": sector_stats(conn, *address), "directive": None}
 
 
 def uncharted_cell_has_no_row(conn, address):
@@ -2637,7 +2637,24 @@ def sector_detail(conn, sector_id):
         "phenomena": phenomena_near_sector(conn, sector_id),
         "neighbors": sector_neighbors(conn, sector),
         "stats": sector_stats(conn, sector["shell_index"], sector["band_index"], sector["wedge_index"]),
+        "directive": sector_directive(conn, sector_id),
     }
+
+
+def sector_directive(conn, sector_id):
+    """
+    The directive a stored sector was drawn under and how the draw came out (GEN.179), or `None` for a sector drawn with
+    no directive or made before v277: `{"digest", "status", "attempts", "minimums": [{"key", "wanted", "got"}, ...]}`, the
+    minimums in key order.
+    """
+    row = conn.execute("SELECT directive_digest, status, attempts FROM sector_directives WHERE sector_id = ?",
+                       (sector_id,)).fetchone()
+    if row is None:
+        return None
+    minimums = conn.execute("SELECT minimum_key, wanted, got FROM sector_directive_minimums WHERE sector_id = ?"
+                            " ORDER BY minimum_key", (sector_id,)).fetchall()
+    return {"digest": row["directive_digest"], "status": row["status"], "attempts": row["attempts"],
+            "minimums": [{"key": m["minimum_key"], "wanted": m["wanted"], "got": m["got"]} for m in minimums]}
 
 
 SECTOR_STATS_FIELDS = (
@@ -3663,19 +3680,15 @@ def resolve_object(conn, kind, object_id):
         if star_id is None:
             return [0.0, 0.0, 0.0]
         row = conn.execute(
-            """
-            SELECT s.role, ss.binary_primary_position_x_km AS px, ss.binary_primary_position_y_km AS py,
-                   ss.binary_primary_position_z_km AS pz, ss.binary_secondary_position_x_km AS sx,
-                   ss.binary_secondary_position_y_km AS sy, ss.binary_secondary_position_z_km AS sz,
-                   s.offset_x_au, s.offset_y_au, s.offset_z_au
-            FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE s.id = ?
-            """, (star_id,)).fetchone()
+            "SELECT role, star_system_id, offset_x_au, offset_y_au, offset_z_au FROM stars WHERE id = ?", (star_id,)).fetchone()
         if row is None:
             return [0.0, 0.0, 0.0]
-        if row["role"] == "member":    # GEN.630: a star beyond the pair has no column of the system's; its stored offset
+        if row["role"] == "member":    # GEN.630: a star beyond the pair has no place of the pair's; its stored offset
             return [_au_to_km(row[f"offset_{axis}_au"] or 0.0) for axis in "xyz"]
-        values = (row["sx"], row["sy"], row["sz"]) if row["role"] == "secondary" else (row["px"], row["py"], row["pz"])
-        return [v or 0.0 for v in values]
+        pair = orbit_trees.pair_places_km(conn, row["star_system_id"])    # GEN.640: from the pair's node, as the update last left it
+        if pair is None:
+            return [0.0, 0.0, 0.0]
+        return list(pair["secondary_km"] if row["role"] == "secondary" else pair["primary_km"])
 
     def add(a, b):
         return [x + y for x, y in zip(a, b)]
@@ -3726,7 +3739,7 @@ def resolve_object(conn, kind, object_id):
                     parents.append({"ref": object_ref.format("planet", planet), "kind": "planet",
                                     "name": one("planets", planet, "name")["name"]})
             if host_kind is not None:
-                host_name = (belt_names.label(belt_names.numbers_for_belts(conn, [host_id])[host_id])
+                host_name = (belt_names.names_for_belts(conn, [host_id])[host_id]      # NAV.80: a trojan region takes no number; its name is its giant's
                              if host_kind == "belt" else one(host_table, host_id, "name")["name"])
                 parents.append({"ref": object_ref.format(host_kind, host_id), "kind": host_kind, "name": host_name})
         else:
@@ -3769,7 +3782,7 @@ def resolve_object(conn, kind, object_id):
                 positions["galaxy_pc"] = [rogue["center_x_pc"], rogue["center_y_pc"], rogue["center_z_pc"]]
         else:
             parents, positions = system_parents_and_positions(row["star_system_id"])
-        name = belt_names.label(belt_names.numbers_for_belts(conn, [object_id])[object_id]) if kind == "belt" else row["name"]
+        name = belt_names.names_for_belts(conn, [object_id])[object_id] if kind == "belt" else row["name"]      # NAV.80: a trojan region is named for its giant, not numbered
         if kind == "star":
             positions["system_km"] = star_offset(object_id)
         elif kind in ("planet", "comet"):
@@ -3906,7 +3919,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
             asteroid field also gets `composition` (`[{"component",
             "concentration"}]`, from `asteroid_field_composition`) and an
             interstellar comet `composition` (its components, from
-            `interstellar_comet_composition`), in their saved order.
+            `interstellar_comet_composition`) and `coma_species` (the gases of its coma, from `interstellar_comet_coma`), in their saved order.
 
     Raises:
         ValueError: If `phenomenon_type` isn't a recognized type, or no
@@ -3967,6 +3980,12 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         detail["composition"] = [
             comp["component"] for comp in conn.execute(
                 "SELECT component FROM interstellar_comet_composition"
+                " WHERE comet_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
+        ]
+        detail["coma_species"] = [      # GEN.455: the gases of an active comet's coma, water first, as the rows `interstellar_comet_coma` keeps them (none for an inactive comet)
+            {"species": row_["species"], "production_1au_per_s": row_["production_1au_per_s"], "scale_length_1au_km": row_["scale_length_1au_km"]}
+            for row_ in conn.execute(
+                "SELECT species, production_1au_per_s, scale_length_1au_km FROM interstellar_comet_coma"
                 " WHERE comet_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
         ]
     return detail
@@ -4450,6 +4469,7 @@ def system_detail(conn, system_id):
 
     cloud = containing_cloud(conn, system)
     open_space_au, heliopause_au = _heliopause_au(conn, system, cloud, stars)
+    pair = orbit_trees.pair_places_km(conn, system_id) if system["is_binary"] else None
 
     return {
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
@@ -4458,9 +4478,9 @@ def system_detail(conn, system_id):
         "binary_configuration": system["binary_configuration"],
         "binary_separation_km": system["binary_separation_km"],
         "binary_heliosphere_radius_km": system["binary_heliosphere_radius_km"],
-        "binary_mutual_position_x_km": system["binary_mutual_position_x_km"],
-        "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
-        "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
+        "binary_mutual_position_x_km": pair["mutual_km"][0] if pair else None,    # GEN.640: from the pair's node, as the update last left it
+        "binary_mutual_position_y_km": pair["mutual_km"][1] if pair else None,
+        "binary_mutual_position_z_km": pair["mutual_km"][2] if pair else None,
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
         "orbits": orbits,
@@ -6004,7 +6024,9 @@ SCATTERED_POINT_CLASSES = (
     ("black-hole", "supermassive", "black_hole", 1.0),
     ("black-hole", "intermediate", "black_hole", 0.8),
     ("black-hole", "stellar", "black_hole", 0.55),
+    ("black-hole", "stellar-pair", "black_hole", 0.55),      # GEN.263: a bound compact pair below the scatter's mass cut, sized as the class it is made of
     ("neutron-star", None, "neutron_star", 0.35),
+    ("neutron-star", "pair", "neutron_star", 0.35),
     ("neutron-star", "magnetar", "neutron_star", 0.35),
 )
 """tuple: `(scatter kind, subtype, map type, size share)` for the scattered
@@ -7245,9 +7267,10 @@ def _body_facet_rows(facet, conn):
 
 
 def _class_facet(conn, facet, word):
-    """The planet-class facet options of the stored `facet` counts (`class` or `moon_class`), labelled `Class X <word>`."""
+    """The planet-class facet options of the stored `facet` counts (`class` or `moon_class`), labelled `Class X <word>`; the tooltip is the class's own sentence (UX.150: GEN.1212 removed the stored `description` this read)."""
     return [{"value": row["v"], "label": f"Class {row['v']} {word}", "count": row["c"],
-             "tooltip": PLANET_CLASSES.get(row["v"], {}).get("description")} for row in _body_facet_rows(facet, conn)]
+             "tooltip": planet_classes.BY_LETTER[row["v"]].sentence if row["v"] in planet_classes.BY_LETTER else None}
+            for row in _body_facet_rows(facet, conn)]
 
 
 def _body_type_facet(conn, facet):

@@ -8,6 +8,7 @@ share the sector fill already takes off the component's cells, so no pre-placed 
 """
 
 import collections
+import dataclasses
 import datetime
 import math
 
@@ -18,7 +19,7 @@ from planetgen.db import store
 from planetgen.galaxy import remnant_density, component_field, components, scatter_limits, spherical
 from planetgen.galaxy.scatter_limits import ScatterLimits
 from planetgen.generation import bright_stars as brightStars
-from planetgen.generation import component_pass, phenomenon_scatter, run_plan
+from planetgen.generation import component_pass, phenomenon_scatter, run_plan, star_population
 from planetgen.physics import component_profiles, king
 from planetgen.util import draw
 from tests import test_gen_scatter_tiers as tiers
@@ -106,7 +107,8 @@ def test_a_stars_row_sits_in_its_cell_and_is_a_star_of_its_components_population
     for row in rows:
         address = spherical.sector_address_at(tuple(value / 1000.0 for value in row[3:6]), EDGE)
         assert address == tuple(row[:3])
-        assert row[12] >= FLOOR * brightStars.constants.SOLAR_LUMINOSITY * 0.999
+        # a cluster's own stars start at its own floor (GEN.161), every other population's at the galaxy's
+        assert row[12] >= star_population.population_floor(row[6], FLOOR) * brightStars.constants.SOLAR_LUMINOSITY * 0.999
 
 
 def test_the_same_seed_gives_the_same_stars_and_a_component_does_not_depend_on_the_others():
@@ -141,7 +143,8 @@ def test_each_stars_tier_is_the_one_of_the_place_it_lands_in():
     assert {limits.tier_at(row[0], row[1]) for row in rows} == {scatter_limits.HALO}
     for row in rows:
         tier = limits.tier_at(row[0], row[1])
-        assert row[12] >= bands[tier].min_luminosity_sol * brightStars.constants.SOLAR_LUMINOSITY * 0.999
+        floor = star_population.population_floor(row[6], bands[tier].min_luminosity_sol)    # the cluster's own floor (GEN.161)
+        assert row[12] >= floor * brightStars.constants.SOLAR_LUMINOSITY * 0.999
     wanted = component_pass.systems_of(component) * max(item["cluster"] for item in by_tier)
     assert len(rows) <= wanted * 1.3 + 20
 
@@ -169,13 +172,20 @@ def test_gen678_the_stars_a_component_is_expected_to_place_are_the_stars_its_tie
     assert dict(component_pass.kept_weights([component], fractions, tiered, EDGE)) == {component: kept}
 
 
-def test_gen678_a_component_in_a_tier_that_keeps_none_is_expected_to_place_none_though_its_candidates_are_many():
+def test_gen678_a_component_in_a_tier_that_keeps_less_is_expected_to_place_less_though_its_candidates_are_many():
+    """GEN.678: a satellite in the core tier keeps a small share of its candidates, the same satellite in the halo tier all of them. GEN.161: a
+    globular cluster keeps the same share in every tier (its giants and horizontal branch lie above its own floor, under every tier's), so the core
+    no longer leaves it to its sectors' fill."""
     tiered, fractions, bands = _tiered_pass()
-    inner = _cluster(mass=6.0e6, center=(10.0, 0.0, 5.0))
-    assert component_pass.kept_stars(inner, fractions, tiered, EDGE) == 0.0
+    core, halo = (10.0, 0.0, 5.0), (1000.0, 0.0, 6000.0)
+    inner, outer = _satellite(mass=5.0e8, half=300.0, center=core), _satellite(mass=5.0e8, half=300.0, center=halo)
+    assert 0.0 < component_pass.kept_stars(inner, fractions, tiered, EDGE) < 0.1 * component_pass.kept_stars(outer, fractions, tiered, EDGE)
     assert dict(component_pass.star_weights([inner], fractions, tiered))[inner] > 100.0
-    assert component_pass.kept_stars(inner, brightStars.band_fractions(FLOOR), None, EDGE) == pytest.approx(
-        dict(component_pass.star_weights([inner], brightStars.band_fractions(FLOOR)))[inner]), \
+    in_core, in_halo = _cluster(mass=6.0e6, center=core), _cluster(mass=6.0e6, center=halo)
+    assert component_pass.kept_stars(in_core, fractions, tiered, EDGE) == pytest.approx(component_pass.kept_stars(in_halo, fractions, tiered, EDGE))
+    assert component_pass.kept_stars(in_core, fractions, tiered, EDGE) > 100.0
+    assert component_pass.kept_stars(in_core, brightStars.band_fractions(FLOOR), None, EDGE) == pytest.approx(
+        dict(component_pass.star_weights([in_core], brightStars.band_fractions(FLOOR)))[in_core]), \
         "an untiered pass keeps the share it was given everywhere"
 
 
@@ -193,6 +203,17 @@ def test_the_stars_placed_in_a_cell_are_the_share_the_fill_takes_off_it():
     assert wanted > 20
     found = heavy[address] / 12
     assert found == pytest.approx(wanted, rel=0.35)
+
+
+def test_a_cluster_phenomenon_row_names_its_cluster_and_a_satellites_does_not():
+    """GEN.163: the last column of a scatter row is the id of the globular cluster it was drawn in."""
+    assert store.PHENOMENON_SCATTER_COLUMNS[-1] == "cluster_id" == phenomenon_scatter.PHENOMENON_SCATTER_COLUMNS[-1]
+    cluster = dataclasses.replace(_cluster(mass=4.0e6), id=41)
+    rows = list(component_pass.scatter_phenomena([cluster], EDGE, 3, min_mass_solar=1.0))
+    assert rows and {row[-1] for row in rows} == {41}
+    from tests.test_gen_magellanic_classes import SMC, WITH_SATELLITES
+    rows = list(component_pass.scatter_phenomena([dataclasses.replace(SMC, id=42)], EDGE, 3, min_mass_solar=1.0, shape=WITH_SATELLITES))
+    assert rows and {row[-1] for row in rows} == {None}
 
 
 def test_the_phenomena_of_a_component_are_its_systems_times_each_classs_rate():
@@ -397,7 +418,7 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
     expansion = run_plan.expand_scatter_phenomena(params)
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
     # The plan also says how many outline shells and what mass limit the stage's clock reads (PERF.212, `outline_shells`, `min_mass_solar`) and the row counts only the cut knows (OPS.123, `row_totals`): not the shape's.
-    plan = {key: value for key, value in expansion.plan.items() if key not in ("filled", "outline_shells", "min_mass_solar", "row_totals")}
+    plan = {key: value for key, value in expansion.plan.items() if key not in ("filled", "outline_shells", "min_mass_solar", "min_mass_tiers", "row_totals")}
     assert shape.to_json() == plan == json.loads(json.dumps(plan))
     assert len(shape.component_parts) > 2
     assert all(shape.tasks[key][0][2] <= 40000.0 * 1.0001 for key in shape.component_parts)

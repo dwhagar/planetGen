@@ -92,7 +92,7 @@ from planetgen.web.lib.tabledisplay import (
     to_plain_text,
 )
 
-from planetgen.names.bodies import node_pair_label
+from planetgen.names import tree_names
 from planetgen.physics import planet_class_text, planet_type, trojan_overlay, trojans
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
@@ -166,14 +166,17 @@ _BELT_ORBIT_GAP_PX = 2.0
 # physical model, unlike `starmap.py`'s spectral colors -- there's no
 # single physical quantity a planet class maps to the way a star's
 # spectral letter maps to a blackbody hue) to read as distinct from its
-# neighbors while still gesturing at the class's own flavor: A/B/E/K's
-# reds-and-rust for volcanic/molten worlds, C/D's muted greys for dead/icy
-# small bodies, F/G/H/L's earthy greens-and-tans for the barren-to-
-# vegetated progression, M/O/P's blues for the habitable "water world"
-# spread (M dark, O a brighter ocean blue, P pale glacier blue), I/J/T's
-# gas-giant palette, N/Q/V's outliers (Venus-hot mustard, an eccentric-
-# orbit violet, a high-gravity super-Earth magenta), and S's dark slate for
-# the barren rocky super-Earth.
+# neighbors while still gesturing at the class's own flavor: A/B/K's
+# reds-and-rust for volcanic and scorched worlds, R and Q's hot pinks and
+# salmons, C/D's muted greys for dead/icy small bodies, E/P/W's cold blues
+# (E deep-frozen, P pale glacier, W the steel between them), F/G/H/L's earthy
+# greens-and-tans for the barren-to-vegetated progression, M/O's blues for the
+# habitable "water world" spread (M dark, O a brighter ocean blue), I/J/T's
+# gas-giant palette, N/Z's hot dry mustard and tan (Venus-hot N, thin-air Z),
+# V's high-gravity magenta, S's dark slate for the barren rocky super-Earth,
+# and the four named families: U's haze brown (Titan), Y's acid yellow-green
+# and X's ammonia aqua. Every class letter has a color (`test_systemmap`
+# checks it), so no class reads as the grey default.
 _CLASS_COLORS = {
     "A": "#d9483f",
     "B": "#e8823a",
@@ -193,7 +196,14 @@ _CLASS_COLORS = {
     "P": "#a9d8f0",
     "S": "#5b6878",
     "T": "#7a86d9",
+    "Q": "#d06f6f",
+    "R": "#e86f9a",
+    "U": "#8c6d3f",
     "V": "#9c3f63",
+    "W": "#9bb0c8",
+    "X": "#5ec2a0",
+    "Y": "#c4d13a",
+    "Z": "#d6b08a",
 }
 _DEFAULT_CLASS_COLOR = "#8a8f9c"
 
@@ -1894,11 +1904,22 @@ def finite_row(row):
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
+def _stored_node_names(system, stars):
+    """`{node_no: name}` of the nodes of the stored tree (GEN.312, `names.tree_names`): the system's name and the node's path code, with the branch word of each wide split read back
+    from the names of the stars under it; empty where the names are not of that shape (a star renamed by hand)."""
+    nodes = system.get("orbits") or ()
+    if not nodes:
+        return {}
+    members = [(star.get("parent_node_no"), star.get("slot")) for star in stars]
+    words = tree_names.words_from_names(system["name"], nodes, members, [star.get("name") for star in stars], missing="~")
+    return {} if words is None else tree_names.name_tree(system["name"], nodes, members, words).nodes
+
+
 def _node_pair_hosts(system, stars, planets, belts=()):
     """
     GEN.332, slice A: the inner pair nodes of the tree that hold planets or belts (`planets.host_node_id`, `asteroid_belts.host_node_id`, slice C), each as `(host, its planets, its belts)` where `host` is a
     copy of the heaviest star of the node's subtree that stands for the pair as one body, as the generator's proxy does: the pair's name
-    (`names.bodies.node_pair_label`), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
+    (`names.tree_names`, GEN.312), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
     stars' center of mass, `id` and `scene_id` `node-<n>` and `map_role` "Pair". A node whose stars are not among `stars` (a system stored before the tree) is left out and its
     planets and belts stay where they were.
     """
@@ -1921,6 +1942,7 @@ def _node_pair_hosts(system, stars, planets, belts=()):
             found.extend(below(sub))
         return found
 
+    node_names = _stored_node_names(system, stars)
     hosts = []
     for node_no in sorted(set(by_node) | set(belts_of)):
         bodies = by_node.get(node_no, [])
@@ -1932,7 +1954,7 @@ def _node_pair_hosts(system, stars, planets, belts=()):
         lead = max(leaves, key=lambda star: star["mass_kg"] or 0.0)
         host = dict(lead)
         host.update({
-            "name": node_pair_label(system["name"], [star.get("name") or "" for star in leaves], node_no),
+            "name": node_names.get(node_no) or f"{system['name']} node {node_no}",
             "mass_kg": mass, "luminosity_w": light, "radius_km": max(star["radius_km"] or 0.0 for star in leaves),
             "temperature_k": sum((star["luminosity_w"] or 0.0) * (star["temperature_k"] or 0.0) for star in leaves) / light,
             "offset_x_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_x_au") or 0.0) for star in leaves) / mass,

@@ -59,7 +59,7 @@ def bodies_of(system):
     out = []
     sep = 0.1
     if system.binary_type == "wide":
-        sep = system.wide_binary.separation_au
+        sep = system.pair_orbit.separation_au
     elif system.binary_type is None and len(stars) > 1:
         sep = 100.0
     for index, star in enumerate(stars):

@@ -158,17 +158,6 @@ class UnknownEdges:
         return self._answers[key]
 
 
-def unknown_space_flags(conn, points_ly):
-    """
-    NAV.12: for each hop of a route, whether its straight line crosses a
-    sector that has not been generated (`unknown_cells`).
-
-    Returns:
-        list[bool]: One flag per hop (`len(points_ly) - 1`).
-    """
-    return [bool(cells) for cells in unknown_cells(conn, points_ly)]
-
-
 def _sectors_near(conn, start, end, distance, edge):
     """`{sector_id: (center, name)}` of every placed sector whose cell a
     system within `distance` of the segment can lie in."""

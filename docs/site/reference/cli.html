@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../" data-here="reference/cli.html"><a href="../index.html">Site index</a></nav>
 <main>
-<h1 id="command-line-reference">Command-line reference</h1><p class="meta">docs/reference/cli.md</p><details class="toc"><summary>On this page (33 headings)</summary><ul><li style="margin-left:0px"><a href="#subcommands">Subcommands</a></li><li style="margin-left:14px"><a href="#options">Options</a></li><li style="margin-left:14px"><a href="#system-specification-files">System specification files</a></li><li style="margin-left:14px"><a href="#sector-generation">Sector Generation</a></li><li style="margin-left:14px"><a href="#sector-level-exotic-phenomena">Sector-Level Exotic Phenomena</a></li><li style="margin-left:0px"><a href="#galaxy-generation">Galaxy Generation</a></li><li style="margin-left:14px"><a href="#parallel-generation">Parallel generation</a></li><li style="margin-left:14px"><a href="#size-and-time-estimates">Size and time estimates</a></li><li style="margin-left:0px"><a href="#exotic-phenomena-generation">Exotic Phenomena Generation</a></li><li style="margin-left:0px"><a href="#population">Population</a></li><li style="margin-left:0px"><a href="#fingerprint">Fingerprint</a></li><li style="margin-left:0px"><a href="#check-the-database">Check the database</a></li><li style="margin-left:0px"><a href="#version-keys">Version keys</a></li><li style="margin-left:0px"><a href="#benchmark">Benchmark</a></li><li style="margin-left:14px"><a href="#the-performance-suite">The performance suite</a></li><li style="margin-left:0px"><a href="#warm-the-caches">Warm the caches</a></li><li style="margin-left:0px"><a href="#stop-everything">Stop everything</a></li><li style="margin-left:0px"><a href="#helper-tools">Helper tools</a></li><li style="margin-left:14px"><a href="#tiles">tiles</a></li><li style="margin-left:14px"><a href="#orbits">orbits</a></li><li style="margin-left:14px"><a href="#worker">worker</a></li><li style="margin-left:14px"><a href="#query">query</a></li><li style="margin-left:14px"><a href="#migrate">migrate</a></li><li style="margin-left:14px"><a href="#datasets">datasets</a></li><li style="margin-left:14px"><a href="#reset">reset</a></li><li style="margin-left:14px"><a href="#lockouts">lockouts</a></li><li style="margin-left:14px"><a href="#lift_lockout">lift_lockout</a></li><li style="margin-left:14px"><a href="#forget_devices">forget_devices</a></li><li style="margin-left:14px"><a href="#accounts">accounts</a></li><li style="margin-left:14px"><a href="#reset_two_factor">reset_two_factor</a></li><li style="margin-left:14px"><a href="#config">config</a></li><li style="margin-left:14px"><a href="#backup">backup</a></li><li style="margin-left:0px"><a href="#planned-commands">Planned commands</a></li></ul></details>
+<h1 id="command-line-reference">Command-line reference</h1><p class="meta">docs/reference/cli.md</p><details class="toc"><summary>On this page (33 headings)</summary><ul><li style="margin-left:0px"><a href="#subcommands">Subcommands</a></li><li style="margin-left:14px"><a href="#options">Options</a></li><li style="margin-left:14px"><a href="#system-specification-files">System specification files</a></li><li style="margin-left:14px"><a href="#sector-generation">Sector Generation</a></li><li style="margin-left:14px"><a href="#sector-level-exotic-phenomena">Sector-Level Exotic Phenomena</a></li><li style="margin-left:0px"><a href="#galaxy-generation">Galaxy Generation</a></li><li style="margin-left:14px"><a href="#parallel-generation">Parallel generation</a></li><li style="margin-left:14px"><a href="#size-and-time-estimates">Size and time estimates</a></li><li style="margin-left:0px"><a href="#exotic-phenomena-generation">Exotic Phenomena Generation</a></li><li style="margin-left:0px"><a href="#population">Population</a></li><li style="margin-left:0px"><a href="#fingerprint">Fingerprint</a></li><li style="margin-left:0px"><a href="#check-the-database">Check the database</a></li><li style="margin-left:0px"><a href="#version-keys">Version keys</a></li><li style="margin-left:0px"><a href="#benchmark">Benchmark</a></li><li style="margin-left:14px"><a href="#the-performance-suite">The performance suite</a></li><li style="margin-left:0px"><a href="#warm-the-caches">Warm the caches</a></li><li style="margin-left:0px"><a href="#stop-everything">Stop everything</a></li><li style="margin-left:0px"><a href="#helper-tools">Helper tools</a></li><li style="margin-left:14px"><a href="#tiles">tiles</a></li><li style="margin-left:14px"><a href="#orbits">orbits</a></li><li style="margin-left:14px"><a href="#query">query</a></li><li style="margin-left:14px"><a href="#migrate">migrate</a></li><li style="margin-left:14px"><a href="#datasets">datasets</a></li><li style="margin-left:14px"><a href="#reset">reset</a></li><li style="margin-left:14px"><a href="#lockouts">lockouts</a></li><li style="margin-left:14px"><a href="#pressure">pressure</a></li><li style="margin-left:14px"><a href="#lift_lockout">lift_lockout</a></li><li style="margin-left:14px"><a href="#forget_devices">forget_devices</a></li><li style="margin-left:14px"><a href="#accounts">accounts</a></li><li style="margin-left:14px"><a href="#reset_two_factor">reset_two_factor</a></li><li style="margin-left:14px"><a href="#config">config</a></li><li style="margin-left:14px"><a href="#backup">backup</a></li><li style="margin-left:0px"><a href="#planned-commands">Planned commands</a></li></ul></details>
 <p>Every option of <code>planetgen</code>, the one entry point for every generator.
 For what planetGen is and a short tour, see the <a href="../repo/README.html">README</a>;
 for installing it, <a href="../repo/INSTALL.html">INSTALL.md</a>. The installer adds a
@@ -332,9 +332,8 @@ Each worker generates a whole sector and saves it in one transaction;
 the run prints each sector as it's saved, so sectors can finish out of
 order. <code>--workers N</code> sets the count (<code>PLANETGEN_WORKERS</code> does the same for
 every run), and <code>--workers 1</code> generates one sector at a time in the run's
-own process, as before. The workers are RQ workers on the Redis server
-at <code>redis.url</code> (<a href="config.html">config.md</a>), started by the run for its own
-tasks and gone when it finishes. Without a Redis server the run says so
+own process, as before. The workers are jobs the supervisor's launcher forks, one process each, with the Redis server
+at <code>redis.url</code> (<a href="config.html">config.md</a>) holding the run's record, and gone when the run finishes. Without a Redis server the run says so
 and generates one sector at a time. A task whose worker dies (killed, out
 of memory) runs once more on a fresh worker before the run fails. On a 4-core machine with MySQL local, 60 sectors
 of one ring of the old cylindrical grid took 16.5 s on one worker and 9.8 s on the default two (the grid has since changed; the speed per sector has not been measured again).</p>
@@ -606,10 +605,10 @@ section 5.13, rows 4 to 6). The plan prints what was drawn.</p>
 <tr>
 <td>Census</td>
 <td><code>--class-m</code></td>
-<td>how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water (a part of them a desert world's), the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; the class of every body still comes from its finished conditions and no class or count is forced (generation/abundance_tier)</td>
-<td>science, sparse, scattered, plentiful, abundant</td>
-<td>science (nothing is moved; what the generator's own laws give)</td>
-<td>Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census (placeholder)</td>
+<td>whether the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions past the science: ticked (abundant), the share given Earth-like water (a part of them a desert world's), the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; unticked (science), nothing is moved; the class of every body still comes from its finished conditions and no class or count is forced (generation/abundance_tier)</td>
+<td>science, abundant</td>
+<td>ticked, abundant (aim 1 Class M world per 10 Sun-like systems); a stand-alone system with no galaxy takes science</td>
+<td>Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census (placeholder)</td>
 </tr>
 <tr>
 <td>Census</td>
@@ -830,7 +829,7 @@ planetgen benchmark --suite --size small --steps plan,scatter-mass
 <h2 id="stop-everything">Stop everything</h2>
 <p><code>planetgen queue stop-all</code> (PERF.186) is the emergency stop, the same routine as the Stop everything button on the admin Queue page. It writes a hold in the state folder (<code>stopped.json</code>, which survives a restart of Redis, the web server and the host), cancels the Generate page's job and every live run, empties every queue, and ends every planetgen worker, job runner and command process on the host together with the processes they started (SIGTERM, then SIGKILL after five seconds, looking again for what the dying ones started). While the hold is on nothing starts: no worker, run, Generate job, orbital update or cache warm-up, and the site's map prefetch queues nothing; a worker that is still alive ends before it takes a job. <code>planetgen queue resume</code> lifts the hold (and the queue pause); <code>planetgen queue status</code> says whether it is on and how many planetgen processes run. <code>planetgen queue held</code> lists the runs held for a person (OPS.221: units failed for good, everything else is done; OPS.222: a generation run the update drained, held &quot;stopped for update&quot;) and <code>planetgen queue retry-held RUN_ID</code> queues their unfinished units again and takes the machine back for the run. <code>update.sh</code> drains a generation run instead of canceling it when the operator agrees to stop the work (OPS.222): the run is held &quot;stopped for update&quot;, each running unit stops at its next piece and goes back to waiting, and at the end of a good update the guard carries the run on (<code>held.resume_after_update</code>) and prints what it queued, unless the generator epoch changed with the update, when the run stays held and the output says so (run it again). A run started by systemd is still never stopped: the update refuses while one generates. Run it as root so every process can be ended; the pids it could not end are listed and the command exits 1. <code>--no-hold</code> ends everything but leaves no hold, which is what <code>sudo ./update.sh --kill-all</code> runs before the update guard. It works with no Redis answering, and <code>python3 -m planetgen.cli.queue stop-all</code> runs it with little else imported.</p>
 <h2 id="helper-tools">Helper tools</h2>
-<p>Besides <code>planetgen</code>, a few modules run on their own with <code>python3 -m</code>. Run them as the account that owns the install (the web server's user for <code>planetgen warm</code>, so Apache can read what it writes). <code>orbits</code>, <code>query</code>, <code>migrate</code>, <code>reset</code>, <code>forget_devices</code>, <code>reset_two_factor</code> and <code>accounts</code> take the same five database options: <code>--mysql-host</code>, <code>--mysql-port</code>, <code>--mysql-user</code>, <code>--mysql-password</code> and <code>--mysql-database</code>, each defaulting to its <code>PLANETGEN_MYSQL_*</code> variable (see <a href="config.html">config.md</a>). <code>worker</code>, <code>config</code>, <code>lockouts</code> and <code>lift_lockout</code> take no database options. <code>orbits</code> and <code>query</code> also take <code>--version</code>.</p>
+<p>Besides <code>planetgen</code>, a few modules run on their own with <code>python3 -m</code>. Run them as the account that owns the install (the web server's user for <code>planetgen warm</code>, so Apache can read what it writes). <code>orbits</code>, <code>query</code>, <code>migrate</code>, <code>reset</code>, <code>forget_devices</code>, <code>reset_two_factor</code> and <code>accounts</code> take the same five database options: <code>--mysql-host</code>, <code>--mysql-port</code>, <code>--mysql-user</code>, <code>--mysql-password</code> and <code>--mysql-database</code>, each defaulting to its <code>PLANETGEN_MYSQL_*</code> variable (see <a href="config.html">config.md</a>). <code>config</code>, <code>lockouts</code>, <code>lift_lockout</code> and <code>pressure</code> take no database options (<code>pressure</code> reads the control database the site is configured with). <code>orbits</code> and <code>query</code> also take <code>--version</code>.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -846,10 +845,6 @@ planetgen benchmark --suite --size small --steps plan,scatter-mass
 <tr>
 <td><code>python3 -m planetgen.cli.tiles</code></td>
 <td>Builds every node of the whole Galaxy Map into a new cache and swaps it in.</td>
-</tr>
-<tr>
-<td><code>python3 -m planetgen.cli.worker</code></td>
-<td>Runs one queue worker.</td>
 </tr>
 <tr>
 <td><code>python3 -m planetgen.cli.query</code></td>
@@ -870,6 +865,10 @@ planetgen benchmark --suite --size small --steps plan,scatter-mass
 <tr>
 <td><code>python3 -m planetgen.cli.lockouts</code></td>
 <td>Lists the login lockouts.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.pressure report</code></td>
+<td>Says what the memory controller's record of the host's pressure holds and the edges it gives.</td>
 </tr>
 <tr>
 <td><code>python3 -m planetgen.cli.lift_lockout</code></td>
@@ -905,17 +904,6 @@ planetgen benchmark --suite --size small --steps plan,scatter-mass
 <p>The positional update. Each planet, moon, star, binary pair, comet, facility and standalone phenomenon keeps its own clock (<code>epoch_unix</code>) and a time it next needs storing (<code>next_update_due</code>); a run moves only what is due, from its own epoch to now by the database server's clock, then refiles anything that drifted into another sector, refreshes containment (nebulae and remnants), nearest systems and location text, and recomputes the sector paths. A run prints how many years passed since the last one, what it moved and how many objects changed sector. It never moves anything backwards: if the server's clock went back it says so, moves nothing and restarts the clock. There is no <code>update-orbits</code> command; this is it. Run it from cron or by hand, as often as you like (a run with nothing due changes nothing):</p>
 <pre><code class="language-bash">python3 -m planetgen.cli.orbits
 </code></pre>
-<h3 id="worker">worker</h3>
-<p>One RQ worker, at the lowered priority generation workers run at. Only the Generate page's job starts one itself (OPS.235: a run's units and the maintenance lane are forked by the supervisor's launcher, and nothing starts RQ workers for them); run one by hand only to watch one. Redis is read from <code>--url</code>, else <code>PLANETGEN_REDIS_URL</code>, else <code>redis.url</code> in <code>config.json</code>.</p>
-<ul>
-<li><code>QUEUE ...</code>: the queues to serve, first one first (default: the bulk queue). A worker serves one kind of queue, the web queues or a run's own, never both. The site keeps lanes of its own: <code>planetgen-bulk</code> (a run's units, up to the admin's worker count) and <code>planetgen-maintenance</code> (the units of the cache warm-up and the database check, and the tile prefetch and rebuild: while a generation run is live <code>queue.maintenance_workers</code> workers, taken out of the admin's worker count, with a generation worker finishing its unit and leaving when the lane needs its place; with no generation run live the whole count; PERF.150). The site's short and long API jobs are not on a queue any more (OPS.230): the supervisor forks each as a light job (<code>queue/lightjobs.py</code>) on the interactive lane, or the long lane for a job expected to take longer than <code>queue.long_job_seconds</code> (a neighbourhood or a large settle), with the places <code>queue.interactive_workers</code> and <code>queue.long_workers</code> kept for them against the other lanes (PERF.151).</li>
-<li><code>--burst</code>: exit once the queues are empty.</li>
-<li><code>--idle-seconds &lt;int&gt;</code>: exit after this long without work (default 60; ignored with <code>--burst</code>).</li>
-<li><code>--name &lt;name&gt;</code>: the worker's name (default: RQ picks one).</li>
-<li><code>--url &lt;redis-url&gt;</code>: the Redis server.</li>
-</ul>
-<pre><code class="language-bash">python3 -m planetgen.cli.worker --burst
-</code></pre>
 <h3 id="query">query</h3>
 <p>Lists what is stored, read-only. The subcommands are <code>sectors</code> (the sectors with their size and system count), <code>systems</code>, <code>near</code>, <code>planets</code> and <code>moons</code>.</p>
 <ul>
@@ -944,6 +932,10 @@ python3 -m planetgen.cli.datasets status
 <p>For an admin locked out of the site. It lists what is locked and does nothing else; the lockouts live in Redis, on the rate-limit storage (<code>ratelimit.storage_uri</code>, else <code>redis.url</code>).</p>
 <pre><code class="language-bash">python3 -m planetgen.cli.lockouts
 </code></pre>
+<h3 id="pressure">pressure</h3>
+<p><code>report</code> reads the record the job engine's memory controller keeps of the host while a supervisor runs (OPS.249: one row a minute in the control database's <code>pressure_minutes</code>, with the slowest probe of the database in that minute, and the ledger's memory kills beside it). It says how many minutes the record holds and over how long (hours, minutes and seconds), how many memory kills no pressed reading came before and how many holds were not needed (the numbers the learning of the edges needs: three kills, or eight holds with four in five not needed and no kill), how many minutes carry a probe of the database, and the edges the record gives now. <code>--csv FILE</code> also writes every recorded minute of the last fourteen days to <code>FILE</code> and the times of the kills to <code>FILE</code> with <code>-kills</code> before its extension, so a gate or a trial run can keep its record beside its results. It only reads.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.pressure report --csv pressure-gate.csv
+</code></pre>
 <h3 id="lift_lockout">lift_lockout</h3>
 <p>Lifts login lockouts, on the same storage. One of these is needed:</p>
 <ul>
@@ -963,11 +955,13 @@ python3 -m planetgen.cli.datasets status
 <h3 id="config">config</h3>
 <p><code>config.json</code> is the one file that holds all program configuration, your own copy of <code>config.json.example</code>. <code>check</code> validates it the way the app reads it (an unknown key is an error) and exits 1 naming every field that does not fit. <code>docs</code> rewrites the generated parts, the option table in <a href="config.html">config.md</a>, <code>config.json.example</code> and <code>config.schema.json</code>, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.</p>
 <p><code>get [OPTION]</code> prints the value that applies and where it comes from (default, <code>config.json</code> or an environment variable; a secret shows only <code>(set)</code> or <code>(empty)</code>). <code>set OPTION=VALUE ...</code> and <code>unset OPTION ...</code> change <code>config.json</code> through the same writer as the Admin settings page (<a href="config.html#saving-settings">config.md</a>): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, <code>true</code> or a list and as text otherwise (<code>set site_name=&quot;My galaxy&quot; cache.max_mb=300</code>); <code>OPTION=-</code> reads it from standard input, which keeps a secret out of the shell history. <code>restore ARCHIVE</code> puts the settings of a backup archive back (<code>planetgen.cli.backup list</code> shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If <code>config.json</code> does not exist the command says so and creates nothing.</p>
+<p><code>retire</code> takes the options a release retired (<code>settings.RETIRED_OPTIONS</code>) out of <code>config.json</code> and nothing else: a backup, an audit row and a printed line for each. <code>./update.sh</code> runs it after the database migration, so <code>check</code> passes after an update without a hand edit.</p>
 <pre><code class="language-bash">python3 -m planetgen.cli.config check
 python3 -m planetgen.cli.config docs
 python3 -m planetgen.cli.config get cache.max_mb
 python3 -m planetgen.cli.config set cache.max_mb=300 site_name=&quot;My galaxy&quot;
 python3 -m planetgen.cli.config unset cache.max_mb
+python3 -m planetgen.cli.config retire
 python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
 </code></pre>
 <h3 id="backup">backup</h3>
@@ -1006,7 +1000,7 @@ python3 -m planetgen.cli.backup parts                   # the parts this build c
 </tr>
 </tbody>
 </table></div>
-<p>Work runs as RQ jobs on Redis from phase 0 (PERF.24), so <code>--workers</code> sets the RQ worker count.</p>
+<p>Work runs as jobs of the job ledger the supervisor forks (PERF.24; OPS.235: RQ is gone), so <code>--workers</code> sets how many run at once.</p>
 <p>Phase 2 also adds a daily maintenance run, <code>scripts/maintenance.sh</code>, set up as a
 scheduled job by install and update (OPS.16, OPS.17): the positional
 update (<code>planetgen.cli.orbits</code>). (The daily settings-file merge and the

@@ -372,7 +372,7 @@ def test_star_system_anchored_by_black_hole_skips_binary_generation():
     assert system.star is bh
     assert system.primary_star is bh
     assert system.binary_type is None
-    assert system.wide_binary is None
+    assert system.pair_orbit is None
     assert system.stars == [bh]
 
 

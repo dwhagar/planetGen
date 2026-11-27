@@ -40,7 +40,6 @@ from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.star import Star
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
-from planetgen.generation.wide_binary import WideBinaryPair
 
 # A small subset of the full 150-seed fuzz list -- a full StarSystem
 # generation (with binaries) is far more expensive per-iteration than the
@@ -212,6 +211,7 @@ def test_starsystem_close_binary_proxy_roundtrip_fuzz():
 
 
 def test_starsystem_wide_binary_pair_roundtrip_fuzz():
+    """GEN.640 slice b: the pair is read from its node, so the pair of a reloaded system is the same read of the same node."""
     def check(seed):
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = True
@@ -219,11 +219,8 @@ def test_starsystem_wide_binary_pair_roundtrip_fuzz():
         star_type = random.choice(_STAR_TYPES)
         cfg.STAR_TYPE = star_type
         system = StarSystem(system_config=cfg)
-        assert system.wide_binary is not None
-        _assert_roundtrip(
-            system.wide_binary, WideBinaryPair, f"WideBinaryPair seed={seed}",
-            cfg, system.primary_star, system.secondary_star,
-        )
+        assert system.pair_orbit is not None
+        assert StarSystem.from_dict(system.to_dict()).pair_orbit == system.pair_orbit, f"pair_orbit seed={seed}"
 
     from tests.bughunt_support import run_seeded
     run_seeded(check, seeds=_SEEDS)

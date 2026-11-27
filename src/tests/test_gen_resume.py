@@ -33,7 +33,7 @@ from planetgen import tuning
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 
 from tests import first_fill, worker_patches
-from tests.bughunt_support import mysql_argv, run_cli
+from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.test_bright_star_scatter import EDGE_PC, _scatter_args, _seed_galaxy
 from tests.test_galaxy_gen import _seed_skeleton
@@ -86,8 +86,15 @@ interrupted, resumed and whole; shells 2 and 3 took 30 to 54 sectors and 5 to 15
 _Interrupted = worker_patches.Interrupted
 
 
+def _sectors(argv):
+    """`planetgen sectors argv` with planet-less systems (TEST.828): these tests are about a run that stops before a save and carries on, which the sectors and the systems in them show, not what orbits the stars. The
+    planets and their air history were most of a sector's cost (about 30 s a sector with planets, three runs of 12 to 14 sectors a case), which put each case past its limit."""
+    with forced_system_config(PLANETS=False):
+        run_cli("sectors", argv)
+
+
 def _galaxy(config, mode_argv):
-    run_cli("sectors", [*mode_argv, "--num-systems", str(NUM_SYSTEMS), *mysql_argv(config)])
+    _sectors([*mode_argv, "--num-systems", str(NUM_SYSTEMS), *mysql_argv(config)])
 
 
 def _snapshot(config):
@@ -207,6 +214,46 @@ def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
     _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
 
 
+PLANET_SPAN = ["--shells", "1:1", "--bands", "0", "--wedges", "0:1"]
+"""list: Two sectors named as a span, the least a run can hold and still stop before one save and finish the other (TEST.828)."""
+
+
+def _planets(config):
+    """What the planets of each sector are, by address: the planets' orbit, type, mass, temperature, pressure and recorded air history, sorted (ids and names are of the database). The two lists of a wide pair both count their planets from 0, so the mass breaks the tie: without it the rows of one orbit index come in the order the server finds them, which differs between two runs of one sector."""
+    conn = store.get_connection(config)
+    try:
+        rows = conn.execute(
+            "SELECT s.shell_index, s.band_index, s.wedge_index, p.orbital_index, p.body_type, p.mass_kg, p.surface_temperature_k, p.atmospheric_pressure_pa, p.air_history"
+            " FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id JOIN sectors s ON s.id = ss.sector_id"
+            " ORDER BY s.shell_index, s.band_index, s.wedge_index, ss.id, p.orbital_index, p.mass_kg").fetchall()
+    finally:
+        conn.close()
+    return [tuple(row.values()) for row in rows]
+
+
+def test_a_run_stopped_before_a_save_resumes_with_the_planets_of_the_uninterrupted_run(
+        mysql_config, second_mysql_config, monkeypatch, tmp_path):
+    """TEST.828: the other cases build planet-less systems (a sector with planets costs about 30 s since the air history), so this one keeps the planets, with the least that still stops before a real save:
+    two sectors of one system each, the first save stopped, the second held and finished, then the run again. Its planets, with their air and their air history, are the uninterrupted run's."""
+    first_fill.without_the_deepest_floor(monkeypatch)
+    _seed_skeleton(second_mysql_config, shells=SHELLS)
+    run_cli("sectors", [*PLANET_SPAN, "--num-systems", "1", *mysql_argv(second_mysql_config)])
+    whole, *_rest = _snapshot(second_mysql_config)
+    planets = _planets(second_mysql_config)
+    assert len(whole) == 2 and planets, "the whole run should fill both sectors and make planets"
+    _seed_skeleton(mysql_config, shells=SHELLS)
+    with pytest.MonkeyPatch.context() as failing:
+        calls = _fail_on_call(failing, tmp_path, run_galaxy, "generate_and_save_sector_at", 1)
+        with pytest.raises(units.RunStopped, match="Interrupted.*The run is held"):
+            run_cli("sectors", [*PLANET_SPAN, "--num-systems", "1", *mysql_argv(mysql_config)])
+        assert worker_patches.count(calls) >= 1
+        partial, *_rest = _snapshot(mysql_config)
+        _check_held(mysql_config, partial, whole)
+    run_cli("sectors", [*PLANET_SPAN, "--num-systems", "1", *mysql_argv(mysql_config)])
+    assert _snapshot(mysql_config)[0] == whole
+    assert _planets(mysql_config) == planets
+
+
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
@@ -239,12 +286,10 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
     _seed_skeleton(mysql_config, shells=SHELLS)
     total = sum(wedge_count(1, band) for band in (-1, 0, 1))
     for _ in range(-(-total // 4)):
-        run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
-                           *mysql_argv(mysql_config)])
+        _sectors([*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS), *mysql_argv(mysql_config)])
     # One more step has nothing left to do.
     before, *_rest = _snapshot(mysql_config)
-    run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
-                       *mysql_argv(mysql_config)])
+    _sectors([*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS), *mysql_argv(mysql_config)])
     assert _snapshot(mysql_config)[0] == before
     assert len(before) == total
     _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
@@ -295,21 +340,23 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     # still reach the skipped sectors next door.
     monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", (5.0, 8.0))
     first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
-    _seed_galaxy(mysql_config)
-    args = run_galaxy._default_generation_args(config=mysql_config)
-    args.num_systems = 1
-    for address in PRE_FILLED:
-        run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    before = _sector_rows(mysql_config)
+    # TEST.828: planet-less systems, as the resume cases above (what the fill and the backfill build is counted by sector, not by what orbits)
+    with forced_system_config(PLANETS=False):
+        _seed_galaxy(mysql_config)
+        args = run_galaxy._default_generation_args(config=mysql_config)
+        args.num_systems = 1
+        for address in PRE_FILLED:
+            run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+        before = _sector_rows(mysql_config)
 
-    forced = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
-    assert forced["total"] > 0
-    assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
+        forced = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
+        assert forced["total"] > 0
+        assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
-    # The band's first wedges, around and between the skipped sectors.
-    run_cli("sectors", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
-                        *mysql_argv(mysql_config)])
-    run_cli("backfill", mysql_argv(mysql_config))
+        # The band's first wedges, around and between the skipped sectors.
+        run_cli("sectors", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
+                            *mysql_argv(mysql_config)])
+        run_cli("backfill", mysql_argv(mysql_config))
 
     after = _sector_rows(mysql_config)
     new = sorted(set(after) - set(before))

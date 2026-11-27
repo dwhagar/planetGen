@@ -53,7 +53,7 @@ NOT_AUDITED = {
     "admin": "administration pages carry no object", "update": "the state of the site update, no linked object", "auth": "accounts carry no object", "backups": "files, no object",
     "images": "files, no object", "settings": "settings, no object", "workqueue": "work runs, no object",
     "api.databases": "database names", "api.health": "a status", "api.job_status_route": "a job number",
-    "api.page_job_status_route": "a job number", "facility_types.facility_type": "a facility type table",
+    "api.page_job_status_route": "a job number", "api.lookup_job_route": "a job number and the lookup answer it ends with (the objects named by their references)", "facility_types.facility_type": "a facility type table",
     "facility_types.list_facility_types": "a facility type table",
     "api.facility": "no facility in the fixture; its `id` has an `ID_PATHS` rule",
     "api.nav_chart": "a drawing of `api.nav`, which is audited",
@@ -115,7 +115,7 @@ def test_every_get_endpoint_is_audited_or_has_a_reason_it_carries_no_link():
 
 AUDITED_ENDPOINTS = (
     "api.containers_list", "api.container_detail", "api.container_contents", "api.containers_at", "api.facility_list",
-    "api.facility_orbit", "api.galaxy_cell", "api.galaxy_changes_route", "api.galaxy_charted_regions_route", "api.generated",
+    "api.facility_orbit", "api.free_moon_description", "api.galaxy_cell", "api.galaxy_changes_route", "api.galaxy_charted_regions_route", "api.generated",
     "api.galaxy_locate_route", "api.galaxy_nebula_cover_route", "api.galaxy_nodes_route",
     "api.galaxy_phenomena", "api.galaxy_sectors", "api.galaxy_shape", "api.galaxy_stage_route", "api.galaxy_stamp_route",
     "api.galaxy_superbubbles", "api.galaxy_window_route", "api.lookup_route", "api.moon_life_air", "api.moon_life_readings",
@@ -220,7 +220,7 @@ def test_every_endpoint_answer_carries_object_ids_only(mysql_config):
         f"/api/object-lists/planet?sector_id={sector_id}", "/api/uncharted-systems", f"/api/planets/{planet['id']}/life-air",
         f"/api/planets/{planet['id']}/life-readings", f"/api/planets/{planet['id']}/habitable-species",
         f"/api/planets/{planet['id']}/species", f"/api/moons/{moon['id']}/life-air", f"/api/moons/{moon['id']}/life-readings",
-        f"/api/moons/{moon['id']}/habitable-species", "/api/polities", "/api/species", "/api/territories", "/api/population",
+        f"/api/moons/{moon['id']}/habitable-species", f"/api/moons/{moon['id']}/description", "/api/polities", "/api/species", "/api/territories", "/api/population",
     ]
     adapter = app.url_map.bind("localhost")
     reached, leaks, empty = set(), {}, []

@@ -93,7 +93,8 @@ def test_every_request_sends_the_standard_user_agent(cache):
 def test_the_user_agent_is_product_tokens_with_the_release_url_and_api_version():
     text = ua.user_agent()
     assert text == f"PlanetGen/{__version__} (+{REPO_URL}) PlanetGen-API/{API_VERSION}"
-    assert re.fullmatch(r"PlanetGen/\d+\.\d+\.\d+ \(\+https://\S+\) PlanetGen-API/\d+", text)
+    # RFC 9110: a product version is a token, and `+` is one of a token's characters, so the release with its build stamp (`8.0.4845+db280.gen150.api14`, OPS.64) is valid as it stands
+    assert re.fullmatch(r"PlanetGen/\d+\.\d+\.\d+(\+[A-Za-z0-9.]+)? \(\+https://\S+\) PlanetGen-API/\d+", text)
 
 
 def test_a_wrong_hash_is_not_kept_and_names_both_hashes(cache):
@@ -282,7 +283,7 @@ def test_the_scripts_run_the_download_step_at_setup():
     common, update, install = [(root / name).read_text() for name in ("scripts/deploy-common.sh", "update.sh", "install.sh")]
     assert "run_cli datasets fetch" in common
     assert "ensure_datasets" in update and "ensure_datasets" in install
-    assert update.index("ensure_nltk_words") < update.index("ensure_datasets") < update.index("log_stage 4 9")
+    assert update.index("ensure_nltk_words") < update.index("ensure_datasets") < update.index("Migrating the configured MySQL database")      # the download is done before the database is migrated
 
 
 # ---- datasets that keep compact files derived from a large archive ----

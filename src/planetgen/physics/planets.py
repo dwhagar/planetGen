@@ -20,12 +20,13 @@ and moon in a system after all of them have been generated.
 """
 
 import contextlib
+import dataclasses
 import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, hot_cloud_deck, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_heating, tidal_spin, air_final, venus_spin
 from planetgen.physics import hill_perturbers, planet_moons, trojan_bodies, trojans
-from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, exosphere, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -785,6 +786,8 @@ def _calculate_atmospheric_conditions(planet, distance_override=None, host_eccen
     ore_deposits.generate(planet)
     # GEN.1377, GEN.1420: the isotope record of the elements the body holds (own streams, no draw of the run's)
     isotope_record.generate(planet)
+    # GEN.455 part B: the exosphere of a body with no air at all (own stream, no draw of the run's)
+    exosphere.generate(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
     # GEN.1577: where a giant's hot-condensate clouds sit and the most each trace gas can hold, from its profile and its star's gas (no draw)
@@ -877,6 +880,7 @@ def refresh_at_final_age(body):
         phosphorus_budget.generate(body)        # GEN.1367: the heat, the water and the ground moved
         ore_deposits.generate(body)         # GEN.1380: the heat, the water and the ground moved
         isotope_record.generate(body)       # GEN.1377: the air and the interior moved
+        exosphere.generate(body)            # GEN.455 part B: the air, the heat and the ground moved
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
     envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air
@@ -1066,7 +1070,14 @@ def finish_orbit_oddities(planet):
         bool: Whether the eccentricity moved.
     """
     before = planet.eccentricity
+    old_inclination, old_node = planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0
     apply_orbit_oddities(planet)
+    new_inclination, new_node = planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0
+    if (new_inclination, new_node) != (old_inclination, old_node):
+        # a row that turns the plane (W4, the polar orbit) draws its angle again, and the secular exchange or the Kozai pump has moved the plane since the first draw: the body is turned onto it
+        # the way they turn it, so the position, the spin and the moons follow the elements (turn_orbit_plane)
+        planet.orbital_inclination_deg, planet.orbital_ascending_node_deg = old_inclination, old_node
+        turn_orbit_plane(planet, new_inclination, new_node)
     moved = abs(planet.eccentricity - before)
     if moved <= ECCENTRICITY_SETTLE_TOLERANCE:
         if moved > 0.0:
@@ -1074,6 +1085,22 @@ def finish_orbit_oddities(planet):
         return False
     remake_after_orbit_change(planet)
     return True
+
+
+def turn_orbit_plane(planet, inclination_deg, node_deg):
+    """
+    Turns the orbital plane of a planet to `inclination_deg` and `node_deg` and takes the planet with it: it keeps its place along the orbit (the argument of latitude) and its periapsis, its
+    spin axis and its moons follow the plane (`carry_spin_with_orbit`, the moons are written back in the planet's equator first, `release_moons`). The steps the secular exchange and the Kozai
+    pump take when they turn a plane (`secular_exchange`, `kozai_pump_planets`), for a row of the oddity table that turns it after them (W4). No draws.
+    """
+    old_inclination, old_node = planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0
+    arg_periapsis_deg = math.degrees(planet.orbit_from_vector()["arg_periapsis"])
+    phase = body_state.argument_of_latitude_deg((planet.position_x, planet.position_y, planet.position_z), old_inclination, old_node)
+    if getattr(planet, "moons", None):
+        release_moons(planet)
+    planet.orbital_inclination_deg, planet.orbital_ascending_node_deg = inclination_deg, node_deg
+    carry_spin_with_orbit(planet, old_inclination, old_node)
+    update_orbital_position(planet, phase, arg_periapsis_deg)
 
 
 def follow_orbit_change(planet):
@@ -1450,6 +1477,9 @@ def kozai_pump_planets(star, planets, ledger=None):
         outcome = result.outcome
         if outcome is None or not outcome.cycles:
             continue
+        cap = orbit_elements.max_planet_eccentricity(body.distance, star, body)      # the bound every orbit of a planet is drawn within (and the one the checks hold it to): a cycle that carries it past never leaves the planet there
+        if outcome.eccentricity_now > cap and not outcome.lost:
+            outcome = dataclasses.replace(outcome, eccentricity_now=cap)
         body.build.kozai = outcome
         if outcome.lost:
             lost.append(body)

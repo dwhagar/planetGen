@@ -526,9 +526,10 @@ def _crumbs(page):
 
 
 def _raw_query(page):
-    """The address's query without the camera it carries once the view is still (MAP.228)."""
+    """The address's query without the camera it carries once the view is still (MAP.228) and without `whole=1`, which
+    the tests add to open the whole galaxy (MAP.189) and the address keeps."""
     return "&".join(part for part in urlparse(page.url).query.split("&")
-                    if part and not part.startswith("cam=") and part != "hide=" + HIDE_NAMES)
+                    if part and not part.startswith("cam=") and part not in ("hide=" + HIDE_NAMES, "whole=1"))
 
 
 def _stage(page):
@@ -607,11 +608,13 @@ def _pin_window(page, height=434):
 }""" % height)
 
 
-def _open_galaxy(page, base, query="", wall_icons=False):
+def _open_galaxy(page, base, query="", wall_icons=False, flown_in=False):
     """Opens the Galaxy Map; the icons on the walls of an opened sector (MAP.327) are left out unless `wall_icons`, as
     they sit over the points the tests look for."""
     if not wall_icons:
         page.add_init_script(NO_WALL_ICONS)
+    if not flown_in:      # MAP.189: the map opens flown in to the largest charted region; the tests that look at the whole galaxy ask for it (`flown_in` is the test of the flight)
+        query += ("&" if "?" in query else "?") + "whole=1"
     _open(page, f"{base}/galaxy{query}", GALAXY_CANVAS)
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
@@ -2585,6 +2588,34 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     target = after["target"]
     assert max(abs(target[0] - star["x"]), abs(target[1] - star["y"]), abs(target[2] - star["z"])) < 0.05, (target, star)
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
+
+
+def test_a_double_click_on_a_star_flies_to_it_and_opens_its_information(page, dense_site):
+    """MAP.140: a double click on a star goes there and pulls up its information: the camera lands on it and the panel
+    names it and offers the way in, as a single click on it would, and a single click alone only selects (no flight)."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().length > 20", timeout=20000)
+    stars = [s for s in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()") if s["visible"]]
+    chosen = next(s for s in stars if all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 30 for o in stars if o is not s)
+                  and abs(s["x"] - 400) + abs(s["y"] - 300) > 120)
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    where = (box["x"] + chosen["x"], box["y"] + chosen["y"])
+    before = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    page.mouse.click(*where)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')", timeout=20000)
+    single = page.locator("#galaxymap3d-info h3").inner_text()
+    assert single
+    assert not page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyMoving()")
+    page.mouse.dblclick(*where)
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    star = next(s for s in DENSE_STARS if s["id"] == chosen["id"])
+    assert max(abs(after["target"][i] - star[axis]) for i, axis in enumerate("xyz")) < 0.05, (after["target"], star)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == single, "the information stays open on the star"
+    assert page.locator("#galaxymap3d-info").is_visible()
+    assert after["dist"] <= before["dist"] + 1e-6
 
 
 def test_stars_glow_brighter_they_do_not_grow_bigger_and_their_colour_follows_their_temperature(page, dense_site):
@@ -6778,3 +6809,17 @@ def test_the_stars_of_a_wide_pair_are_linked_as_one_system(page, dense_site):
         _settle(page)
     assert math.hypot(one["x"] - other["x"], one["y"] - other["y"]) < MIN_LINK_PX, "the view never went far enough out"
     page.wait_for_function(f"() => ({links})().filter((line) => line.system === '{first['system_id']}').length === 0", timeout=20000)
+
+
+def test_the_galaxy_map_opens_flown_in_to_the_largest_charted_region_and_zooms_out_to_the_whole_galaxy(page, map_site):
+    """MAP.189 (GitHub issue 1232): with sectors charted the first frame frames the largest charted region (the first of the charted-regions list), the camera at a distance
+    that fills the view with its sphere, and not the whole galaxy from the origin; Whole galaxy is still a click away."""
+    from tests.map_site_support import FixtureApi
+    largest = FixtureApi().get_galaxy_charted_regions(None)["regions"][0]
+    _open_galaxy(page, map_site, flown_in=True)
+    camera = _camera(page)
+    assert all(abs(got - want) < 1e-6 * max(1.0, abs(want)) for got, want in zip(camera["target"], largest["center"])), (camera["target"], largest["center"])
+    assert largest["radius"] < camera["dist"] < 8 * largest["radius"], (camera["dist"], largest["radius"])
+    page.locator('#galaxymap3d-controls [data-action="reset"]').click()
+    whole = _camera(page)
+    assert whole["dist"] > 20 * camera["dist"], (whole["dist"], camera["dist"])

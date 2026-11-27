@@ -51,12 +51,29 @@ def _direction(stream):
     return rho * math.cos(phi), rho * math.sin(phi), z
 
 
+def _halo_mass_integral(u):
+    """The antiderivative, in `u = 1 + D / Dc`, of `D**2 * (1 + D / Dc)**-gamma` over `Dc**3`: the number of halo clusters inside `D` up to a constant."""
+    gamma = tuning.CLUSTER_HALO_SLOPE
+    return u ** (3.0 - gamma) / (3.0 - gamma) - 2.0 * u ** (2.0 - gamma) / (2.0 - gamma) + u ** (1.0 - gamma) / (1.0 - gamma)
+
+
 def _halo_distance(stream):
-    """A distance from the center for a density falling as r**-3.5 between the halo's limits: the number inside r grows
-    as r**-0.5 away from the inner limit, which inverts exactly."""
+    """
+    A distance from the center for the metal-poor halo group, whose density is the cored power law `(1 + D / Dc)**-gamma`
+    (`tuning.CLUSTER_HALO_SLOPE`, `CLUSTER_HALO_CORE_PC`; GEN.297, [R5363]) between the halo's limits. One uniform in, the
+    distance by bisection on the cumulative number (60 halvings, so the same draw gives the same distance anywhere).
+    """
     low, high = tuning.CLUSTER_HALO_RADIUS_RANGE_PC
-    shrink = 1.0 - (low / high) ** 0.5
-    return low * (1.0 - stream.random() * shrink) ** -2.0
+    core = tuning.CLUSTER_HALO_CORE_PC
+    below, above = _halo_mass_integral(1.0 + low / core), _halo_mass_integral(1.0 + high / core)
+    target = below + stream.random() * (above - below)
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        if _halo_mass_integral(1.0 + middle / core) < target:
+            low = middle
+        else:
+            high = middle
+    return 0.5 * (low + high)
 
 
 def _bulge_distance(stream):

@@ -25,6 +25,7 @@ import time
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation import phenomenon_cuts as phenomenonCuts
 from planetgen.generation import bodybeat
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, engine, itemfile, splitter, units as queueUnits, wrapper
@@ -345,6 +346,9 @@ def _fill_context(args, address):
         if settings is not None:
             phenomena = store.phenomena_for_sector(conn, *address)
             seed, min_mass_solar = settings
+            if min_mass_solar is not None:
+                # GEN.377: the cut of the sector's own band (the core, the baseline or the halo), as the scatter placed its phenomena.
+                min_mass_solar = phenomenonCuts.Cuts.of(skeleton, min_mass_solar).cut_at(address[0], address[1])
             if min_mass_solar is not None and not resolution.capped and not store.sector_holds_below_cut_remnants(conn, address, min_mass_solar):
                 # GEN.168: what the scatter left below its cut, at the
                 # density it used (the plan's, not this sector's own roll). A capped cell makes no remnant of its
@@ -1574,7 +1578,7 @@ def settle_named_sectors(sector_ids, config, expand=True):
     return _settle_on_queue(args, _database_now(config), extra={"sector_ids": sector_ids, "expand": expand})
 
 
-def _cell_to_generate(address, config, link=True):
+def _cell_to_generate(address, config, link=True, directive=None):
     """
     What generating the sector of grid cell `address` takes (`regenerate_sector_cell`): the
     answer already when there is nothing to generate, else the arguments, the center and the sector edge to generate with.
@@ -1619,6 +1623,8 @@ def _cell_to_generate(address, config, link=True):
     args.density = sector_profile(address, skeleton).density
     args.num_systems = None
     args.link_later = not link
+    if directive:
+        args.directive = list(directive)
     return None, args, position_pc, qualifies, skeleton.edge_pc
 
 
@@ -1640,16 +1646,17 @@ def _refresh_block_totals(config, address):
         log.warning(f"Adding the sector at {_format_address(address)} to the block totals failed: {exc}")
 
 
-def regenerate_sector_cell(address, config):
+def regenerate_sector_cell(address, config, directive=None):
     """
     Generates the sector of grid cell `address` again as the runs of an API job (PERF.119; the new sector of
     `api_jobs.regenerate_sector`, whose old one is deleted): the sector as a run of `generate-sectors` and the bright-star
-    backfill around it as a run of `scatter-backfill`. The caller settles the paths.
+    backfill around it as a run of `scatter-backfill`. The caller settles the paths. `directive` (`--directive` texts) draws the sector
+    under the directive a stored record names (DB.17: a sector that was drawn under one is drawn again under it).
 
     Returns:
         dict: `sector_id` and `sector_name` of the new sector (`None` when the cell is beyond the grid's reach).
     """
-    early, args, position_pc, _qualifies, edge_pc = _cell_to_generate(address, config)
+    early, args, position_pc, _qualifies, edge_pc = _cell_to_generate(address, config, directive=directive)
     if early is not None:
         return {"sector_id": early["sector_id"], "sector_name": early["sector_name"]}
     args.workers = 1
@@ -2217,21 +2224,6 @@ def _report_fill_order(candidates, edge_pc):
     log.normal(f"Fill order: {len(candidates):,} sector(s), {steps - jumps:,} of {steps:,} steps ({(steps - jumps) / steps:.1%}) "
                f"between neighboring sectors; {jumps:,} jump(s) where the ball cuts the curve"
                + (f", {mean:.1f} sector edges on average and {longest:.1f} at most." if jumps else "."))
-
-
-def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
-    """
-    The not-yet-generated sectors among `candidates`
-    (`_neighborhood_candidates`), as `_submit_batch` items, in
-    the order `candidates` came (the fill order of GEN.101: the center first, then
-    outward); `suffix` may hold `{distance}` (pc).
-
-    Returns:
-        tuple: `(batch, already_existed, skipped)`.
-    """
-    pending = _Pending.of_candidates(args, candidates, occupied, batch_density, suffix, skip)
-    batch = list(pending.items())
-    return batch, pending.existed, pending.skipped
 
 
 def _neighborhood_center(args):

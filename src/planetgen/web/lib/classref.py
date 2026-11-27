@@ -363,7 +363,7 @@ def _asteroid_field():
 
 def _black_hole():
     ranges = {
-        "stellar": pc.BLACK_HOLE_MASS_RANGE_SOLAR,
+        "stellar": (pc.BLACK_HOLE_MASS_RANGE_SOLAR[0], pc.BLACK_HOLE_MASS_TOP_SOLAR),   # 5 to 20 at the sun's metals, up to the top where they are few (GEN.554)
         "intermediate": pc.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
     }
     origins = {

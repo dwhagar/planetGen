@@ -102,7 +102,9 @@ def assert_ages_never_exceed_lifespan(system):
 
 
 def _assert_no_overlap_within(objects):
-    objects = [obj for obj in objects if getattr(obj, "belt_rank", None) is None]       # GEN.1510: a body promoted from a belt orbits in it, not in a slot
+    objects = [obj for obj in objects if getattr(obj, "belt_rank", None) is None and getattr(obj, "lagrange_point", None) is None]
+    # GEN.1510: a body promoted from a belt orbits in it, not in a slot; GEN.1150, GEN.1151: a trojan (a planet or a swarm at its host's L4 or L5)
+    # shares the host's distance by design and is no spacing slot (`StarSystem.validate_system` skips it the same way)
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
         gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
@@ -193,7 +195,7 @@ def assert_no_belt_overlap_all_pairs(system):
     binary-separation reasoning), which is exercised separately below.
     """
     for planet_list in (system.primary.orbiters, (system.secondary.orbiters if system.secondary else [])):
-        belts = [obj for obj in planet_list if obj.body_type == 'a']
+        belts = [obj for obj in planet_list if obj.body_type == 'a' and getattr(obj, "lagrange_point", None) is None]    # a trojan swarm sits at its host's orbit (GEN.1150)
 
         for i, belt in enumerate(belts):
             for other in belts[i + 1:]:
@@ -203,7 +205,8 @@ def assert_no_belt_overlap_all_pairs(system):
                     f"and [{other.lower_limit}, {other.upper_limit}]"
                 )
             for planet in planet_list:
-                if planet.body_type == 'a' or getattr(planet, "belt_rank", None) is not None:   # GEN.1510: a body promoted from the belt orbits in it
+                if (planet.body_type == 'a' or getattr(planet, "belt_rank", None) is not None   # GEN.1510: a body promoted from the belt orbits in it
+                        or getattr(planet, "lagrange_point", None) is not None):                 # GEN.1151: a trojan planet shares its host's distance
                     continue
                 inside = belt.lower_limit < planet.distance < belt.upper_limit
                 assert not inside, (
@@ -241,7 +244,7 @@ def assert_cross_star_clearance_holds(system):
     outer_p = max(system.primary.orbiters, key=edge_au)
     outer_s = max(system.secondary.orbiters, key=edge_au)
 
-    a_bin = system.wide_binary.separation_au
+    a_bin = system.pair_orbit.separation_au
     worst_case_gap_au = a_bin - edge_au(outer_p) - edge_au(outer_s)
 
     if outer_p.body_type == 'a' or outer_s.body_type == 'a':
