@@ -29,7 +29,7 @@ of `docs/design/research/gap-filling-plan.md` section 6.23.
 
 import math
 
-from scipy import integrate
+from scipy import integrate, optimize
 
 from planetgen.physics import aquifers, constants, hydrosphere, tidal_rheology
 
@@ -51,6 +51,32 @@ OWN_FLUX_FALLBACK_W_M2 = 1.0e-3
 """float: The heat flux of an icy body whose rock's heat is not known (the radiogenic flux of the icy moons is 1e-3 to 1e-2 W/m2). Source tier T6, tweak level L1."""
 MIN_FLUX_W_M2 = 1.0e-6
 """float: The least heat flux the shell is given, W/m2 (`hydrosphere` uses the same floor)."""
+
+MEMBRANE_FACTOR = 2.0
+"""float: `8 (1 + nu) / (5 + nu)` of the membrane parameter of a thin shell on an ocean (Beuthe 2015, [R5376], Eq. 71 and Table 5, read in the arXiv text), for the Poisson ratio `nu = 1/3` of cold ice: 2. Source tier T1, tweak level L0."""
+MIN_SHELL_FLUX_W_M2 = MIN_FLUX_W_M2
+"""float: The flux below which the shell's thickness is not worked out (it is thicker than the body, and `membrane_parameter` takes the whole radius)."""
+
+
+def membrane_parameter(mass_kg, radius_m, flux_w_m2, top_k, base_k=aquifers.WATER_MELTING_K):
+    """
+    `Lambda` of a shell on an ocean, the stiffness of the shell against the tide (GEN.1877): `8 (1 + nu) / (5 + nu) * mu / (rho g R) * d / R`, with `mu` the rigidity of ice, `rho` the body's mean density, `g`
+    its surface gravity, and `d` the thickness of the shell the flux `flux_w_m2` makes (`(A / F) ln(base / top)`, as `hydrosphere.ice_shell_thickness_km`), never more than the radius. A shell that is thin
+    and soft against the body's gravity (`Lambda` near 0) follows the ocean, as the old treatment assumed for every body; a small body, with a gravity far under a moon's, has a shell that bends little under
+    its tide (`Lambda` of 1 or more).
+    """
+    if top_k >= base_k:
+        return 0.0
+    thickness_m = min(hydrosphere.ICE_CONDUCTIVITY_A_W_M / max(flux_w_m2, MIN_SHELL_FLUX_W_M2) * math.log(base_k / top_k), radius_m)
+    density = mass_kg / (4.0 / 3.0 * math.pi * radius_m ** 3)
+    gravity = constants.G * mass_kg / radius_m ** 2
+    return MEMBRANE_FACTOR * tidal_rheology.ICE.rigidity_pa / (density * gravity * radius_m) * thickness_m / radius_m
+
+
+def tide_response(h2, parameter):
+    """The radial Love number of a shell of membrane parameter `parameter` on an ocean whose fluid response is `h2`: `h2 / (1 + h2 Lambda)` (Beuthe 2015, [R5376], the static membrane limit)."""
+    return h2 / (1.0 + h2 * parameter)
+
 
 _ICE_ETA0_PA_S = tidal_rheology.arrhenius_prefactor(tidal_rheology.ICE_MELTING_VISCOSITY_PA_S, tidal_rheology.ICE_MELTING_K, tidal_rheology.ICE_ACTIVATION_J_MOL)
 """float: The prefactor of the ice's Arrhenius viscosity, pinned at its melting point (the same number for every call of `loss_modulus_pa`)."""
@@ -85,11 +111,22 @@ def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentric
     if eccentricity <= 0.0 or top_k >= base_k:
         return own, 0.0
     rate = math.sqrt(constants.G * host_mass_kg / semi_major_axis_m ** 3)
-    h2 = 1.0 + love_k2(mass_kg, radius_m, rate)
-    strain = STRAIN_FACTOR * 3.0 * eccentricity * h2 * (host_mass_kg / mass_kg) * (radius_m / semi_major_axis_m) ** 3
-    c = 0.5 * rate * strain ** 2 * hydrosphere.ICE_CONDUCTIVITY_A_W_M * dissipation_integral_pa(top_k, base_k, rate)
-    tide = 2.0 * c / (own + math.sqrt(own ** 2 + 4.0 * c))      # F - F_own without the cancellation
-    return own + tide, 4.0 * math.pi * radius_m ** 2 * tide
+    fluid_h2 = 1.0 + love_k2(mass_kg, radius_m, rate)
+    integral = dissipation_integral_pa(top_k, base_k, rate)
+
+    def power_term(flux):
+        """`c` of the shell that a flux `flux` makes: the strain is the ocean's tide as far as the shell, as thick as that flux makes it, lets it bend (GEN.1877)."""
+        h2 = tide_response(fluid_h2, membrane_parameter(mass_kg, radius_m, flux, top_k, base_k))
+        strain = STRAIN_FACTOR * 3.0 * eccentricity * h2 * (host_mass_kg / mass_kg) * (radius_m / semi_major_axis_m) ** 3
+        return 0.5 * rate * strain ** 2 * hydrosphere.ICE_CONDUCTIVITY_A_W_M * integral
+
+    # the shell thins as the flux rises, so it stiffens less: F = own + c(F) / F has its root between `own` and the root for the c of a shell that never stiffens, where c(upper) is at most that c
+    unstiffened = 0.5 * rate * (STRAIN_FACTOR * 3.0 * eccentricity * fluid_h2 * (host_mass_kg / mass_kg) * (radius_m / semi_major_axis_m) ** 3) ** 2 * hydrosphere.ICE_CONDUCTIVITY_A_W_M * integral
+    upper = own + 2.0 * unstiffened / (own + math.sqrt(own ** 2 + 4.0 * unstiffened))
+    if upper - own <= 1.0e-12 * upper:
+        return own, 0.0
+    flux = optimize.brentq(lambda f: f - own - power_term(f) / f, own, upper, xtol=1.0e-12 * upper, rtol=1.0e-10)
+    return flux, 4.0 * math.pi * radius_m ** 2 * (flux - own)
 
 
 def k2_over_q(mass_kg, radius_m, frequency_rad_s, flux_w_m2, top_k, base_k=aquifers.WATER_MELTING_K):
@@ -101,8 +138,8 @@ def k2_over_q(mass_kg, radius_m, frequency_rad_s, flux_w_m2, top_k, base_k=aquif
     integral = dissipation_integral_pa(top_k, base_k, frequency_rad_s)
     if integral <= 0.0:
         return 0.0
-    h2 = 1.0 + love_k2(mass_kg, radius_m, frequency_rad_s)
     flux = max(flux_w_m2, MIN_FLUX_W_M2)
+    h2 = tide_response(1.0 + love_k2(mass_kg, radius_m, frequency_rad_s), membrane_parameter(mass_kg, radius_m, flux, top_k, base_k))      # GEN.1877: the shell bends as far as its stiffness lets it
     shell = (4.0 * math.pi / 3.0 * ENERGY_RATIO * STRAIN_FACTOR ** 2 * h2 ** 2 * radius_m ** 3 * hydrosphere.ICE_CONDUCTIVITY_A_W_M * integral
              / (flux * constants.G * mass_kg ** 2))
     return min(shell, MAX_K2_OVER_Q)
