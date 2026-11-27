@@ -13,6 +13,7 @@ import uuid
 
 import pymysql
 
+from tests import dbpool
 from planetgen.db import store
 
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
@@ -168,7 +169,7 @@ def scratch_database(beside):
     """A second throwaway database on the same server as the `MySQLConfig`
     `beside` (a test's `mysql_config`), dropped after."""
     server_kwargs = dict(host=beside.host, port=beside.port, user=beside.user, password=beside.password)
-    name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+    name = dbpool.owned_name("planetgen_test_")
     admin = pymysql.connect(**server_kwargs)
     try:
         with admin.cursor() as cur:
