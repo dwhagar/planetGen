@@ -2,6 +2,64 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4849+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A rocky body's air history asks for its interior heat at a hundred ages and each is no longer run from the formation: the box takes up the run of an earlier age, 4 times faster, with the same results to the last bit.
+
+### Fixed
+- PERF.289: building a system with planets took 12 to 38 s where it took 3 to 12 s before the air history (GEN.1745), and in a profile a quarter of the history's time was the mantle box (`interior_heat.heat`) run again from the formation for each of the history's ages (about 220 runs for each body with air). The steps of the box do not depend on the age asked for except the one that lands on it, so a run now keeps the steps and the states of the box (every 16th step, the core copied) and an older or younger age takes it up at the last step it shares and goes on from there. Same output: 8,100 results (60 bodies with and without a tide, three orders of ages) are equal to the last bit to the runs from the formation, and the new test compares the two in whatever order the ages come. Heat for those 60 bodies went from 15.1 s to 3.9 s.
+
+generation-output: unchanged
+
+## [8.0.4848+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A test run no longer leaves its control database behind, and the next run drops the databases a killed run left
+
+### Fixed
+
+- TEST.852: test runs left `pgtest_control_*` databases behind: one lane box held 1,216 of them (8.2 GB) and ran out of disk. Every pytest process makes a control database at its start (`_ledger_control_database`, OPS.216), and only the tests that used the MySQL server dropped it, so a process whose tests needed none left one each time; a process killed by a gate's time limit or by the kernel never reached its teardown at all. The fixture now drops the process's control database at its own end, whether or not a test used it. The names of the test databases (the control one, the worker's, a test's fresh and scratch ones) now carry the machine and the process (`tests/dbpool.OWNER`, `owned_name`), and the first fixture of a run drops those of this machine whose process is gone (`dbpool.drop_abandoned`); once an hour per machine it also drops the databases with no owner in the name (a run before this change, the site galaxy's) whose newest table is over 12 hours old, which is longer than any run of a gate. The new `tests/test_abandoned_test_databases.py` runs a real pytest process on a test that needs no server and holds that no database of that process remains, drops the database of a process that was killed, and leaves another process's and another machine's alone. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4847+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The tests that read the release number take the build stamp the version has carried since OPS.64
+
+### Fixed
+
+- TEST.850: eight tests were red on main since OPS.64 (PR 7315, 8.0.4653) made `__version__` read like `8.0.4845+db280.gen150.api14`. `test_version_key.py::test_the_running_code_has_a_key` split the whole string on dots (the product's `galaxy/version_key.py` already reads the release before the `+`, so the product is right and only the test changes). Five tests of the same file (`test_every_run_that_changes_the_galaxy_is_recorded`, `test_the_history_never_stops_a_run`, `test_a_run_writes_its_seed_and_version_first`, `test_a_plan_names_the_seed_it_was_given_or_none_yet`, `test_the_line_is_first_in_a_debug_file_too`) ran a real command against the test database as its control database without the control schema, so a run's ledger table `engine_runs` was missing: `engine_runs` is a control-schema table (OPS.215) and not a migration's drop, so the helper `_generate` makes the control schema first, as the `control_config` fixture does. `test_datasets_fetch.py::test_the_user_agent_is_product_tokens_with_the_release_url_and_api_version` matched the release as three numbers; the sent `User-Agent` is valid with the stamp (RFC 9110 product versions are tokens and `+` is a token character), so the pattern accepts it. `test_the_scripts_run_the_download_step_at_setup` named a stage line (`log_stage 4 9`) that `update.sh` no longer has; it now holds the download before the step that migrates the database. The other readers of the version (`fmt.static_url`, the version sync tests, `bump_version.py`, the release numbers in the API and TODO tables) were looked at: they read the whole string, the stamped release or a release number, not the stamp as a number. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4846+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The train gate ends a file's pytest that has gone idle, with a stack dump of every process in the log, instead of waiting out the whole limit.
+
+### Fixed
+
+- A file the gate ran under `pytest -n 2` sometimes left its controller idle for 50 minutes or more after a test passed its 1500 s limit, with no worker running, and the lane lost the time. The gate now runs each file's pytest in a session of its own and looks at it every 10 seconds: when no process of it has used processor time and it has written nothing for 600 seconds, the gate writes the stacks of every process (py-spy) and the wait channel of each into the file's log and ends the run (code 125), so the next stall names what it waits on.
+- A file that passes the gate's `--limit` is now ended together with every worker and child process it started (code 124). Before, only the controller was ended and the xdist workers kept running through the next file.
+
+## [8.0.4845+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The static URL tests expect the version the way the URL carries it, with the plus quoted
+
+### Fixed
+
+- TEST.849: `test_page_shell.py::test_static_url_appends_package_version_and_the_static_fingerprint` and `test_static_url_keeps_subdirectories` were red on main. `static_url` has quoted the version in the query since the fingerprint of the static files (`quote(token, safe='')`); the tests compared with the bare `__version__`, which held no plus until OPS.64 (PR 7315, 8.0.4653) made it `8.0.4653+db...gen...api...`. A raw plus in a query reads as a space, so the encoded `%2B` is the right form and `static_url` stays as it is; both tests now expect `quote(__version__, safe='')`. Guard files run on the change: `test_page_shell.py`, `test_fmt_bad_numbers.py`, `test_fuzz_text_rendering.py` (959 passed). Tests only.
+
+generation-output: unchanged
+
+## [8.0.4844+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The follow-the-warm-up test waits for the warm-up's run to be written and for the follower to be watching, not for a clock
+
+### Changed
+
+- TEST.846: `test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing` waited for any maintenance run and then half a second, and held the family for 30 s; on a loaded machine the follower could come before the run had its title and steps (it then says "No cache warm-up is running" and ends) or the held family let go before anyone watched. The test now waits until the run is the warm-up's with its steps written, releases the family only when the follower has attached (`wrapper.follow` called), and holds it until then with no short timeout. No retry.
+
+generation-output: unchanged
+
 ## [8.0.4843+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The life-air API test now says what the route documents: a lifeless world with a stored air history answers from that record.

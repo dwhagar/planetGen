@@ -26,6 +26,8 @@ The merge train's gate: the test files a train must pass, run one file at a time
   (`mkdir` of `DIR/<file>.claim` is the claim, and it either works or tells the lane another one has it), so a lane that is fast or
   idle takes more files and a lane that dies leaves one claim to release (`status --release-older SECONDS`). A lane writes its own
   results file; `status`, `reds` and `learn` read all of them.
+* A file's pytest runs in a session of its own (TEST.847). Past `--limit` seconds the gate ends it and every process it started (code 124); when no process of it has used processor time and it has written
+  nothing for `STALL_S` (600 s) the gate writes what each process is doing (py-spy stacks) into the file's log and ends it (code 125), so a controller left idle by workers that are gone no longer holds the gate for 50 minutes.
 * `reds` prints only the failures that `scripts/data/known_reds.json` does not list (a red that is red on a clean main is known and
   is not the train's), and says which known reds passed (their entry is stale).
 * `known` records a clean-main red with the reason; run the gate once from a clean `origin/main` worktree and `reds` from that
@@ -41,6 +43,7 @@ import argparse
 import json
 import os
 import re
+import signal
 import statistics
 import subprocess
 import sys
@@ -82,6 +85,10 @@ SLOW_CENSUS = ("test_prevalence", "test_fuzz_system_generation", "test_fuzz_plan
 """tuple: Name parts of the files the gate leaves to the census run and the end-of-version bug hunt."""
 
 DEFAULT_LIMIT_S = 3400
+STALL_S = 600
+"""int: Seconds a file's pytest may show no output and use no processor (the whole tree of its processes) before the gate takes it to be stalled, dumps what each process is doing into the file's log and ends it (TEST.847)."""
+POLL_S = 10.0
+"""float: How often the gate looks at a running file."""
 """int: Seconds one file may take before the gate gives up on it."""
 
 
@@ -212,6 +219,122 @@ def status(files, claims, results):
     return out
 
 
+def _tree(pid):
+    """`pid` and every descendant of it, and the members of its process group, from /proc (empty where /proc is not there)."""
+    parents, groups = {}, {}
+    try:
+        names = os.listdir("/proc")
+    except OSError:
+        return [pid]
+    for name in names:
+        if not name.isdigit():
+            continue
+        try:
+            with open(f"/proc/{name}/stat", "rb") as handle:
+                text = handle.read().decode("utf-8", "replace")
+            fields = text[text.rindex(")") + 2:].split()
+            parents[int(name)], groups[int(name)] = int(fields[1]), int(fields[2])      # ppid, pgrp
+        except (OSError, ValueError, IndexError):
+            continue
+    found = {pid}
+    grew = True
+    while grew:
+        grew = False
+        for child, parent in parents.items():
+            if child not in found and (parent in found or groups.get(child) == pid):
+                found.add(child)
+                grew = True
+    return sorted(found)
+
+
+def _cpu_ticks(pids):
+    """The processor time, in clock ticks, the processes in `pids` have used so far (user and system, themselves and their finished children)."""
+    total = 0
+    for pid in pids:
+        try:
+            with open(f"/proc/{pid}/stat", "rb") as handle:
+                text = handle.read().decode("utf-8", "replace")
+            fields = text[text.rindex(")") + 2:].split()
+            total += sum(int(fields[index]) for index in (11, 12, 13, 14))               # utime, stime, cutime, cstime
+        except (OSError, ValueError, IndexError):
+            continue
+    return total
+
+
+def _dump(pids, handle):
+    """Writes what each process in `pids` is doing to `handle`: its command line, the kernel's wait channel and, where py-spy is installed, its Python stacks."""
+    import shutil
+    spy = shutil.which("py-spy")
+    for pid in pids:
+        try:
+            with open(f"/proc/{pid}/cmdline", "rb") as source:
+                command = source.read().replace(b"\0", b" ").decode("utf-8", "replace")[:300]
+            with open(f"/proc/{pid}/wchan", "rb") as source:
+                wait = source.read().decode("utf-8", "replace")
+        except OSError:
+            continue
+        handle.write(f"\n--- process {pid} (waiting in {wait or 'nothing'}): {command}\n")
+        handle.flush()
+        if spy and "python" in command:
+            try:
+                result = subprocess.run([spy, "dump", "--pid", str(pid)], capture_output=True, text=True, timeout=60, check=False)
+                handle.write(result.stdout + result.stderr)
+            except (OSError, subprocess.SubprocessError) as error:
+                handle.write(f"(py-spy failed: {error})\n")
+    handle.flush()
+
+
+def _end(process, pids):
+    """Ends the pytest of a file and everything it started: its group, and each descendant that left the group."""
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except OSError:
+        pass
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+    process.wait()
+
+
+def run_pytest(command, cwd, env, handle, limit, stall=STALL_S, poll=POLL_S):
+    """
+    Runs one file's pytest, writing its output to `handle`, and returns its exit code: 124 when it ran past `limit` seconds, 125 when it stalled.
+
+    TEST.847: `subprocess.run(timeout=limit)` ended only the pytest controller after `limit` seconds, left its xdist workers running, and waited the whole
+    `limit` on a run whose workers were gone or stuck (the controller sat idle for 50 minutes past the 1500 s test limit in two trains). The run is in a session
+    of its own now, looked at every `poll` seconds: when `stall` seconds pass with no new output and no processor time used by any process of it, the stacks of
+    every process (py-spy) are written to the log, so the next stall names what it waits on, and the whole tree is ended.
+    """
+    process = subprocess.Popen(command, cwd=cwd, env=env, stdout=handle, stderr=subprocess.STDOUT, start_new_session=True)
+    started = time.monotonic()
+    seen = (-1, -1)
+    last_move = started
+    while True:
+        try:
+            return process.wait(timeout=poll)
+        except subprocess.TimeoutExpired:
+            pass
+        now = time.monotonic()
+        pids = _tree(process.pid)
+        if now - started >= limit:
+            _dump(pids, handle)
+            _end(process, pids)
+            handle.write(f"\nthe gate gave up after {limit} s\n")
+            return 124
+        handle.flush()
+        state = (os.fstat(handle.fileno()).st_size, _cpu_ticks(pids))
+        if state != seen:
+            seen, last_move = state, now
+        elif now - last_move >= stall:
+            handle.write("\nWhat each process of this run was doing when the gate stopped it:\n")
+            _dump(pids, handle)
+            _end(process, pids)
+            handle.write(f"\nthe gate stopped this run: no output and no processor time in any of its {len(pids)} processes for {stall:.0f} s (TEST.847)\n")
+            return 125
+
+
 def run(files, results, shard=(1, 1), workers=3, limit=DEFAULT_LIMIT_S, logdir=None, say=print, claims=None, owner=None, slot=None):
     """Runs the files of `shard` (k, n) one at a time, appending a line per file to `results`; files already there are skipped.
 
@@ -248,14 +371,8 @@ def run(files, results, shard=(1, 1), workers=3, limit=DEFAULT_LIMIT_S, logdir=N
         log = os.path.join(logdir, path.replace("/", "_") + ".log")
         started = time.monotonic()
         with open(log, "w", encoding="utf-8") as handle:
-            try:
-                code = subprocess.run(
-                    [sys.executable, "-m", "pytest", path, "-n", str(workers), "--dist", "worksteal", "--tb=short", "-rfE",
-                     "-o", f"timeout={min(limit, 1500)}", "-p", "no:cacheprovider", "-q"],
-                    cwd=SRC, env=env, stdout=handle, stderr=subprocess.STDOUT, timeout=limit).returncode
-            except subprocess.TimeoutExpired:
-                code = 124
-                handle.write(f"\nthe gate gave up after {limit} s\n")
+            code = run_pytest([sys.executable, "-m", "pytest", path, "-n", str(workers), "--dist", "worksteal", "--tb=short", "-rfE",
+                               "-o", f"timeout={min(limit, 1500)}", "-p", "no:cacheprovider", "-q"], SRC, env, handle, limit)
         seconds = time.monotonic() - started
         with open(log, encoding="utf-8", errors="replace") as handle:
             last = (handle.read().strip().splitlines() or [""])[-1][:100]

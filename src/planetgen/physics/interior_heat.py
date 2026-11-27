@@ -51,8 +51,11 @@ against the mantle and is not followed, so its radiogenic heat counts with the m
 hydrosphere is made before it, and reads the heat of a stagnant lid) and a row from before GEN.721 are stagnant.
 """
 
+import collections
+import copy
 import functools
 import math
+import threading
 from dataclasses import dataclass
 
 from planetgen import tuning
@@ -424,7 +427,70 @@ def _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w)
     return Heat(total_w, now_w, 0.0, surface_k, total_w / area_m2, made_w_gy * GY_S + molten_w * age_gy * GY_S, molten_w)
 
 
-def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
+_RUN_SNAPSHOT_EVERY = 16
+"""int: The steps between two states of the box a `_Run` keeps to take the run up from (PERF.289). Not physical: an engineering size defined here, the memory a run costs against the steps it makes again; it changes no result."""
+_RUN_MEMORY = 64
+"""int: How many bodies' runs a thread remembers (PERF.289). Not physical: a cache size defined here; it changes no result."""
+
+
+class _Run:
+    """
+    One run of the mantle box (`heat`, one of its `cool` calls) that later calls at other ages take up (PERF.289). The steps of the box do not depend on the age asked for, except
+    the one that lands on it (its length, `min(step, age - t)`) and the core's flush of the stride on that last step, so a run to an older age holds, until the step that
+    landed on its own age, exactly the steps a run to a younger age makes. `add` records each step (its start time, the length the box would take without the age, the length taken and
+    whether the age flushed the core); `resume` finds the last state kept (`snapshots`, every `_RUN_SNAPSHOT_EVERY` steps) that a new age shares, by checking every step before it
+    would be taken as it was; `cut` forgets the steps from where the new run takes over. The state is restored whole (the core copied), so the result is the one a run from
+    the formation gives, bit for bit.
+    """
+
+    __slots__ = ("times", "free", "taken", "flushed", "snapshots")
+
+    def __init__(self):
+        self.times, self.free, self.taken, self.flushed, self.snapshots = [], [], [], [], {}
+
+    def add(self, t, free_h, h, flushed):
+        self.times.append(t)
+        self.free.append(free_h)
+        self.taken.append(h)
+        self.flushed.append(flushed)
+
+    def resume(self, age_gy):
+        """`(step index, state)` of the last kept state that a run to `age_gy` shares, or `None` when it shares none past the start."""
+        best = None
+        for index in range(len(self.times) - 1):
+            t, h = self.times[index], self.taken[index]
+            if not t < age_gy or min(self.free[index], age_gy - t) != h or (t + h >= age_gy) != self.flushed[index]:
+                break
+            if index + 1 in self.snapshots:
+                best = index + 1
+        return None if best is None else (best, self.snapshots[best])
+
+    def cut(self, index):
+        """Forgets the steps from `index` on (the run that took this one up makes them again, for its own age) and the states after it."""
+        del self.times[index:], self.free[index:], self.taken[index:], self.flushed[index:]
+        for key in [key for key in self.snapshots if key > index]:
+            del self.snapshots[key]
+
+
+_run_memory = threading.local()
+
+
+def _runs_of(key):
+    """The runs (`_Run` by kind) kept for the body of `key` in this thread (the arguments of `heat_flow` but the age), the least recently used body's forgotten past `_RUN_MEMORY`."""
+    bodies = getattr(_run_memory, "bodies", None)
+    if bodies is None:
+        bodies = _run_memory.bodies = collections.OrderedDict()
+    found = bodies.get(key)
+    if found is None:
+        found = bodies[key] = {}
+        while len(bodies) > _RUN_MEMORY:
+            bodies.popitem(last=False)
+    else:
+        bodies.move_to_end(key)
+    return found
+
+
+def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K, runs=None):
     """
     The interior's heat at `age_gy`: the one-box model above integrated from the formation of the body.
 
@@ -440,6 +506,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             heat there than it conducts the body is melt-limited and holds that temperature (Io).
         lid (str): `STAGNANT` or `MOBILE`, the regime that sets the heat flux law (GEN.721).
         surface_k (float): The surface temperature the mantle's drop is measured against (a mobile lid) and the body starts from (GEN.735).
+        runs (dict, optional): The runs of the box already made for this body at other ages (`_Run`, PERF.289), which this call takes up from the last step they share with its age and adds to; `None` runs the box from the formation.
 
     Returns:
         Heat: Zero heat for a body with no silicate or no core-and-mantle to convect.
@@ -484,6 +551,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         ceiling with more heat made than it could carry (the melt-limited state).
         """
         top_k = min(ceiling_k, cap_k)
+        run = None if runs is None else runs.setdefault((tide is not None, top_k), _Run())
 
         def clipped(kelvin):
             # a strong tide moves the temperature past the cap within one step, and a stage beyond the range of the viscosity law makes no sense
@@ -504,11 +572,22 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         if core:
             core.start(temperature)
         core_steps = 0
+        core_from_t = core_from_k = core_h = None
         # the radiogenic power at the start of a step is that at the end of the one before, and the two middle stages share one time;
         # the flux at the start is the one the last step ended with (PERF.201: the same values, each worked out once)
         radiogenic_start = radiogenic_w(0.0)
         flux = flux_at(temperature)
+        index = 0
+        if run is not None:
+            found = run.resume(age_gy)       # PERF.289: the steps this age shares with a run already made are not made again
+            if found is not None:
+                index, (t, step, temperature, released_j, held, saved_core, core_steps, core_from_t, core_from_k, core_h, radiogenic_start, flux) = found
+                core = None if saved_core is None else copy.copy(saved_core)
+            run.cut(index)
         while t < age_gy:
+            if run is not None and index % _RUN_SNAPSHOT_EVERY == 0 and index not in run.snapshots:
+                run.snapshots[index] = (t, step, temperature, released_j, held, None if core is None else copy.copy(core), core_steps, core_from_t, core_from_k, core_h,
+                                        radiogenic_start, flux)
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
             if flux <= flux_at.conduction(temperature):
                 # PERF.277: a flux that is the conduction floor changes with the temperature by the floor's own slope, not by the viscosity law's
@@ -517,10 +596,11 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
                 stiffness = FLOOR_STIFFNESS_MARGIN * GY_S * area_dry_m2 / capacity * flux_at.conduction_slope
             else:
                 stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
-            h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
+            free_h = min(step, 1.0 / stiffness if stiffness > 0.0 else step)       # the step the box takes when the age is not what ends it
             k1 = rate(radiogenic_start, temperature, flux * area_dry_m2 if surface_k <= temperature <= top_k else None)
             if tide is not None and k1 != 0.0 and not (temperature >= top_k and k1 > 0.0):   # a mantle held on its ceiling goes no further
-                h = min(h, TIDE_STEP_LIMIT_K / abs(k1))
+                free_h = min(free_h, TIDE_STEP_LIMIT_K / abs(k1))
+            h = min(free_h, age_gy - t)
             radiogenic_middle = radiogenic_w(t + 0.5 * h)
             radiogenic_end = radiogenic_w(t + h)
             k2 = rate(radiogenic_middle, temperature + 0.5 * h * k1)
@@ -529,6 +609,9 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             # a step can overshoot the cold end as well as the cap: below the surface the viscosity law runs on a negative or tiny exponent
             # and the flux (and so the stiffness) is astronomical, which collapses the step to nothing (GEN.866)
             before = temperature
+            if run is not None:
+                run.add(t, free_h, h, t + h >= age_gy)
+            index += 1
             raw_k = temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
             temperature = clipped(raw_k)
             held = raw_k > top_k
@@ -599,7 +682,8 @@ def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None,
     and the tide's decay-time loops ask for the same body again with the same forcing (about two calls in three of a system are repeats), so the answer is the
     same object the first call returned, bit for bit.
     """
-    return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing, lid, surface_k)
+    return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing, lid, surface_k,
+                runs=_runs_of((content, interior, mass_kg, radius_km, rock, forcing, lid, surface_k)))
 
 
 def tide_temperature_k(body):

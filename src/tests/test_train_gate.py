@@ -5,6 +5,8 @@
 import importlib.util
 import os
 import pathlib
+import sys
+import time
 
 import pytest
 
@@ -88,10 +90,7 @@ def test_the_status_counts_done_failed_running_and_waiting_and_a_dead_lanes_clai
 def test_two_lanes_running_on_one_claims_folder_run_each_file_once(tmp_path, monkeypatch):
     ran = []
 
-    class Done:
-        returncode = 0
-
-    monkeypatch.setattr(gate.subprocess, "run", lambda command, **kw: ran.append(command[3]) or Done())
+    monkeypatch.setattr(gate, "run_pytest", lambda command, cwd, env, handle, limit: ran.append(command[3]) or 0)
     monkeypatch.setattr(gate, "DURATIONS", str(tmp_path / "d.json"))
     files = ["tests/test_a.py", "tests/test_b.py", "tests/test_c.py"]
     claims = str(tmp_path / "claims")
@@ -117,13 +116,45 @@ def test_a_gate_with_a_slot_runs_its_pytest_on_that_slots_databases_with_at_most
     """TEST.724: two gates on one machine each take a slot, so they never share a Redis database."""
     seen = []
 
-    class Done:
-        returncode = 0
-
-    monkeypatch.setattr(gate.subprocess, "run", lambda command, **kw: seen.append((command, kw["env"])) or Done())
+    monkeypatch.setattr(gate, "run_pytest", lambda command, cwd, env, handle, limit: seen.append((command, env)) or 0)
     monkeypatch.setattr(gate, "DURATIONS", str(tmp_path / "d.json"))
     gate.run(["tests/test_a.py"], str(tmp_path / "r.txt"), workers=8, slot=2, say=lambda line: None)
     command, env = seen[0]
     assert env["PLANETGEN_TEST_REDIS_SLOT"] == "2" and command[command.index("-n") + 1] == "3"
     with pytest.raises(SystemExit):
         gate.run(["tests/test_a.py"], str(tmp_path / "r2.txt"), slot=9, say=lambda line: None)
+
+
+def _spawn_log(tmp_path):
+    return open(tmp_path / "log.txt", "w+", encoding="utf-8")
+
+
+def test_a_run_that_ends_by_itself_gives_its_exit_code(tmp_path):
+    with _spawn_log(tmp_path) as handle:
+        code = gate.run_pytest([sys.executable, "-c", "print('done'); raise SystemExit(3)"], str(tmp_path), dict(os.environ), handle, limit=60, stall=60, poll=0.2)
+    assert code == 3 and "done" in (tmp_path / "log.txt").read_text()
+
+
+def test_a_run_whose_processes_all_sit_idle_is_stopped_with_what_each_was_waiting_on(tmp_path):
+    """TEST.847: a controller idle with its workers gone or stuck is ended after the stall time, the processes it started with it, and the log says so."""
+    marker = tmp_path / "child.pid"
+    program = ("import subprocess, sys, time\n"
+               f"child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(600)'])\n"
+               f"open({str(marker)!r}, 'w').write(str(child.pid))\n"
+               "time.sleep(600)\n")
+    started = time.monotonic()
+    with _spawn_log(tmp_path) as handle:
+        code = gate.run_pytest([sys.executable, "-c", program], str(tmp_path), dict(os.environ), handle, limit=300, stall=2.0, poll=0.3)
+    assert code == 125 and time.monotonic() - started < 60
+    text = (tmp_path / "log.txt").read_text()
+    assert "gate stopped this run" in text and "process" in text
+    child = int(marker.read_text())
+    time.sleep(0.5)
+    assert not pathlib.Path(f"/proc/{child}").exists() or "Z" in pathlib.Path(f"/proc/{child}/stat").read_text().rsplit(")", 1)[1].split()[0]
+
+
+def test_a_busy_run_is_not_stalled_and_one_past_its_limit_is_ended_with_its_children(tmp_path):
+    program = "while True:\n    sum(range(10000))\n"
+    with _spawn_log(tmp_path) as handle:
+        code = gate.run_pytest([sys.executable, "-c", program], str(tmp_path), dict(os.environ), handle, limit=3, stall=1.0, poll=0.3)
+    assert code == 124 and "gave up after 3 s" in (tmp_path / "log.txt").read_text()

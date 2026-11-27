@@ -25,6 +25,7 @@ can still run everything else.
 """
 
 import functools
+import contextlib
 import os
 import re
 import shutil
@@ -131,7 +132,7 @@ os.environ.setdefault(_db.SQL_MODE_ENV_VAR, _db.STRICT_SQL_MODE)
 # the session ends (`_drop_session_control_database` below). It doesn't
 # start with the `planetgen` prefix, so `/api/databases` never lists it.
 _XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "main")
-SESSION_CONTROL_DATABASE = f"pgtest_control_{_XDIST_WORKER}_{uuid.uuid4().hex[:8]}"
+SESSION_CONTROL_DATABASE = dbpool.owned_name(f"pgtest_control_{_XDIST_WORKER}_", uuid.uuid4().hex[:8])
 os.environ[_db.CONTROL_DB_ENV_VAR] = SESSION_CONTROL_DATABASE
 
 
@@ -328,8 +329,12 @@ def _ledger_control_database():
     OPS.216: a run's plan is rows of the job ledger in the control database (`queue/planrows.py`), so a test that runs a stage needs the session's control database to
     exist with its tables. Made here once for the process, when a MySQL server can be reached (a test that needs none does not).
     """
+    made = False
     try:
         kwargs = _test_server_kwargs()
+        # TEST.852: the databases of runs that were killed before their teardown (a gate's time limit, an out-of-memory kill) are dropped by the next run to start
+        with contextlib.suppress(Exception):
+            dbpool.drop_abandoned(kwargs)
         raw = pymysql.connect(**kwargs, connect_timeout=3)
         try:
             with raw.cursor() as cur:
@@ -337,11 +342,19 @@ def _ledger_control_database():
             raw.commit()
         finally:
             raw.close()
+        made = True
         from planetgen.db import store
         store.get_control_connection(store.MySQLConfig(database=SESSION_CONTROL_DATABASE, **kwargs), ensure_schema=True).close()
     except Exception:  # noqa: BLE001 -- no server: the tests that need one skip themselves
         pass
     yield
+    if made:
+        # TEST.852: the process's control database is made here for every process, and was dropped only by the tests that used the MySQL server (`_mysql_server_available`), so a process
+        # of tests that needed none left one behind each time
+        with contextlib.suppress(Exception):
+            from planetgen.db import store
+            store.close_pool(store.MySQLConfig(database=SESSION_CONTROL_DATABASE, **kwargs))
+            dbpool.drop_database(kwargs, SESSION_CONTROL_DATABASE)
 
 
 @pytest.fixture(scope="session")
@@ -411,7 +424,7 @@ def fresh_mysql_config(_mysql_server_available):
         MySQLConfig: Points at the fresh, empty database.
     """
     kwargs = _test_server_kwargs()
-    db_name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+    db_name = dbpool.owned_name("planetgen_test_")
 
     admin_conn = pymysql.connect(**kwargs)
     try:
