@@ -116,3 +116,14 @@ def test_a_ceres_size_water_rich_body_has_a_k2_over_q_of_a_small_icy_body_and_do
     value = icy_tide.k2_over_q(mass, radius, 2.0 * n, 5.0e-3, 100.0)
     assert 1.0e-5 < value < 0.05
     assert icy_tide.k2_over_q(mass, radius, n, icy_tide.MIN_FLUX_W_M2, 100.0) < icy_tide.MAX_K2_OVER_Q      # the cap is no longer what holds a small body's dissipation down
+
+
+def test_a_shell_too_soft_to_stiffen_or_under_a_flux_far_above_its_tide_still_has_a_root():
+    """GEN.1877: the root of the shell's flux is bracketed between the body's own flux and the flux of a shell that never stiffens, and a planet of 1.4 Earth masses on a 0.05 eccentric orbit with a hot core
+    (0.17 W/m2 of its own) has the root at one end of the bracket to rounding: the solver returns it and does not stop on `f(a) and f(b) must have different signs`."""
+    args = (8.179160326918523e24, 7356705.139548859, 1.8825206419931903e30, 238089383810.29495, 0.04998278655356463, 0.16625108096761834, 100.0)
+    flux, power = icy_tide.flux_from_tide(*args)
+    assert args[5] <= flux < 2.0 * args[5] and power >= 0.0 and math.isfinite(flux)
+    for scale in (0.0, 1.0e-12, 1.0e-6, 1.0, 1.0e6):
+        flux, power = icy_tide.flux_from_tide(*args[:4], args[4] * scale, *args[5:])
+        assert args[5] <= flux and power >= 0.0 and math.isfinite(flux)

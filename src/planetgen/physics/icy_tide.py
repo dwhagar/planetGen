@@ -125,7 +125,16 @@ def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentric
     upper = own + 2.0 * unstiffened / (own + math.sqrt(own ** 2 + 4.0 * unstiffened))
     if upper - own <= 1.0e-12 * upper:
         return own, 0.0
-    flux = optimize.brentq(lambda f: f - own - power_term(f) / f, own, upper, xtol=1.0e-12 * upper, rtol=1.0e-10)
+    def residual(flux):
+        return flux - own - power_term(flux) / flux
+
+    # a shell too soft to stiffen has its root at `upper` to rounding, and one whose tide is far under its own flux at `own`: the bracket's ends can be the root
+    if residual(upper) <= 0.0:
+        flux = upper
+    elif residual(own) >= 0.0:
+        flux = own
+    else:
+        flux = optimize.brentq(residual, own, upper, xtol=1.0e-12 * upper, rtol=1.0e-10)
     return flux, 4.0 * math.pi * radius_m ** 2 * (flux - own)
 
 
