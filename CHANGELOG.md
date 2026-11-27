@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4821+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Cache warm-up: a few pages that do not answer are named and the warm-up goes on
+
+### Fixed
+
+- OPS.312: the cache warm-up held at Warm phenomena for good because two pages did not answer (a black hole page answered 404, a rogue planet page 502), the family failed and the search phase never ran. A page that does not answer is now asked once more, then named, with what it said, in the line of its phase on the Queue page's warm-up (and in the activity log, `warm.pages_failed`), and the warm-up goes on to its next phases. Only a unit in which no page answered at all fails, as before.
+- Probing a generated galaxy for the cause: every listed phenomenon page answered except a neutron star filed without an ID of its own (the list prints its row number, which the page cannot read); the two pages of the Queue page's warm-up are not reproduced on generated data, so the line now says what the page said.
+
 ## [8.0.4820+db279.gen150.api14] - 2026-11-26
 
 **Headline:** The giant-tilt test reads Sun-like stars, so it finds its four gas giants again.
