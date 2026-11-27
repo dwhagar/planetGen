@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4822+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Galaxy Map: the wheel reaches any star you can pick, and opens its system
+
+### Fixed
+
+- MAP.434: the wheel stalled short of the star it was aimed at. At the floor of the zoom range (the view's distance cannot shrink any more) a step moved nothing, because the camera was carried toward the pointed-at thing only by the share the zoom shrank. The share the floor takes from a step is now made up by moving the camera along the ray to that thing (it stays under the pointer), so the wheel arrives at the star. A faint, drawn, pickable star stopped the wheel 9.4 pc short of it before.
+- MAP.435: the wheel could not open the system of a drawn star that lies in a block next to the open sector (the open sector held none of its stars, so there was nothing to enter). The wheel now enters the system of the drawn star under the pointer when the open sector has none near it (`drawnSystemNear`, and `host.systemHref` for its page).
+
+### Changed
+
+- `test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system` aims at a star the map draws and can pick (`galaxyPickableStars`), followed by its system's id as the camera comes in, and skips with its reason when the map never draws that star; the system-handover tests wait for the camera to rest between ticks, as the wheel's steps now carry on at the floor and ticks sent faster than the camera outrun the system scene's load.
+- `test_web_browser_fixture_maps.py` reads the address without `whole=1` (the flag the tests add to open the whole galaxy, MAP.189, which the address keeps): four tests of the address (`window_stage_zooms_in_and_back_out`, `opens_a_sector_in_place`, `opens_an_uncharted_sector...`, `back_forward_and_url_state`) were red on main since MAP.189 for that one flag.
+
+## [8.0.4821+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Cache warm-up: a few pages that do not answer are named and the warm-up goes on
+
+### Fixed
+
+- OPS.312: the cache warm-up held at Warm phenomena for good because two pages did not answer (a black hole page answered 404, a rogue planet page 502), the family failed and the search phase never ran. A page that does not answer is now asked once more, then named, with what it said, in the line of its phase on the Queue page's warm-up (and in the activity log, `warm.pages_failed`), and the warm-up goes on to its next phases. Only a unit in which no page answered at all fails, as before.
+- Probing a generated galaxy for the cause: every listed phenomenon page answered except a neutron star filed without an ID of its own (the list prints its row number, which the page cannot read); the two pages of the Queue page's warm-up are not reproduced on generated data, so the line now says what the page said.
+
 ## [8.0.4820+db279.gen150.api14] - 2026-11-26
 
 **Headline:** The giant-tilt test reads Sun-like stars, so it finds its four gas giants again.
