@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4835+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The read-back test compares a planet's irregular moons to a rounding, the way it already compares every other float.
+
+### Fixed
+- `test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from` compared the stored irregular set (a dict of moons) for exact equality, while it compares every other float to 1e-12. An irregular moon is stored in km and g/cm3 and read back in AU and kg/m3, so a distance or density comes back one rounding off (59.96918180368469 AU read back as 59.969181803684684). The test now recurses into the set and holds each value to the same 1e-12, and takes its comet from a system asked to hold one (the physics gives few stars comets, so 60 seeds may hold none); the store and the generator are unchanged, and a missing or extra key still fails.
+
+generation-output: unchanged
+
 ## [8.0.4834+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The class filters in search show each class's description again, every class has a marker colour on the system map, and the class words and docs match the rules.
