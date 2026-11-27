@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4836+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The 36-sector galaxy run test builds its sectors without the air history record, so it fits its time limit
+
+### Fixed
+
+- TEST.843: `test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units` (36 sectors through the real queue) ran past its 3600 s limit alone on a 4-core box and was ended by the watchdog (3840 s) on main and on Train 63; stack samples put 58 percent of its time in the air solve and 31 percent in the air history. The test reads stage keys, sector counts and linked paths, never a body's air, so it builds its sectors without the air history record (`tests/air_history_off.py`, TEST.831, as the site galaxy of TEST.835 does). Tests only, no product change.
+
+generation-output: unchanged
+
 ## [8.0.4835+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The read-back test compares a planet's irregular moons to a rounding, the way it already compares every other float.
