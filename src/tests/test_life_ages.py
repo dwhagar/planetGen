@@ -31,21 +31,24 @@ def test_the_impact_that_kills_the_threshold_share_is_the_one_the_earth_has_at_t
     assert air_events.impact_kill_share(diameter) == pytest.approx(0.30)
     assert air_events.impact_rate_per_gyr(diameter, air_events.constants.EARTH_RADIUS_M) == pytest.approx(100.0)          # once per 10 Myr
     assert life_ages.smallest_impact_km(0.65) > life_ages.smallest_impact_km(0.30) > life_ages.smallest_impact_km(0.15)
+    assert life_ages.AGE_KILL_THRESHOLD == 0.60          # the Boss's pick of 11:18 PM EST 11-26 (GEN.1852), the Big Five's rate: once per 72 Myr, an impactor of about 10 km
+    assert 10.0 < life_ages.smallest_impact_km() < 11.0
 
 
 def test_only_the_events_that_kill_enough_end_a_life_age_and_the_ones_inside_a_recovery_lag_are_one_extinction():
     events = [_event(1.0, share=0.2), _event(1.5, air_events.FLOOD_BASALT, 0.4), _event(1.5 + 0.5 * air_events.RECOVERY_GYR, share=0.5), _event(2.0, share=0.35), _event(9.0, share=0.9)]
-    found = life_ages.extinctions_of(events, 0.5, 4.0)
+    found = life_ages.extinctions_of(events, 0.5, 4.0, threshold=0.30)
     assert found == [(1.5, air_events.IMPACT, 0.5), (2.0, air_events.IMPACT, 0.35)]
+    assert life_ages.extinctions_of(events, 0.5, 10.0) == [(9.0, air_events.IMPACT, 0.9)]          # the default is 0.60 (GEN.1852): only the end-Permian-size kill is left
     assert life_ages.extinctions_of(events, 0.5, 4.0, threshold=0.45) == [(1.5 + 0.5 * air_events.RECOVERY_GYR, air_events.IMPACT, 0.5)]
-    assert life_ages.extinctions_of(events, 1.6, 1.9) == []
+    assert life_ages.extinctions_of(events, 1.6, 1.9, threshold=0.30) == []
 
 
 def test_the_ages_run_from_the_start_of_life_one_recovery_lag_after_each_extinction_to_the_star_s_age(monkeypatch):
     body = _a_rocky_world()
     events = [_event(1.0), _event(2.0, air_events.FLOOD_BASALT, 0.43)]
     monkeypatch.setattr(air_events, "events_of", lambda body_, start, end, min_impact_km=5.0: events)
-    ages = life_ages.ages_of(body, 0.7)
+    ages = life_ages.ages_of(body, 0.7, threshold=0.30)
     assert [age.number for age in ages] == [1, 2, 3]
     assert ages[0] == life_ages.LifeAge(1, 0.7, 1.0, air_events.IMPACT, 0.4)
     assert ages[1].start_gyr == pytest.approx(1.0 + air_events.RECOVERY_GYR) and ages[1].end_gyr == 2.0 and ages[1].cause == air_events.FLOOD_BASALT
