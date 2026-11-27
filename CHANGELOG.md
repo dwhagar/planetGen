@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4841+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Galaxy Map has a mini map showing the whole galaxy and where you are looking from
+
+### Added
+- The Galaxy Map has a mini map (MAP.75): a small square in the bottom right corner showing the whole galaxy from the direction you are looking, with a cross where the view is centered and a line to your eye. It is a second, locked camera on the map's own renderer, so it never zooms and costs no second WebGL context. It is left out on a canvas too small for it and on the Sector Map.
+
+generation-output: unchanged
+
 ## [8.0.4840+db280.gen150.api14] - 2026-11-27
 
 **Headline:** A bare local name's search job now has a memory claim, and six functions nothing called are gone.
