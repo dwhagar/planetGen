@@ -643,16 +643,18 @@ def companion_state(placed, rng=draw):
     return companion_state_at(placed, rng.random())
 
 
-def same_class_companions(kind, recycled_share=0.0):
+def same_class_companions(kind, recycled_share=0.0, tables=None):
     """
     The expected number of companions of the placed object's own kind per placed object of `kind`
     (`black-hole`, `neutron-star`, ...): the odds of a black hole's black-hole companion, a neutron star's
     neutron-star one (young and recycled pulsars weighted by `recycled_share`). The scatter divides a class's
     object rate by `1 + this`, since a row is a system keyed by its placed object and its same-class companions
-    are objects of the class too (multi-star-systems.md 6.4).
+    are objects of the class too (multi-star-systems.md 6.4). `tables` is the companion odds to read (`MEMBER_STATE_BY_PLACED` when `None`; a cluster's, GEN.330).
     """
+    table = MEMBER_STATE_BY_PLACED if tables is None else tables
+
     def odds(placed_class_name, state):
-        return MEMBER_STATE_BY_PLACED.get(placed_class_name, {}).get(state, (0.0,))[0]
+        return table.get(placed_class_name, {}).get(state, (0.0,))[0]
     if kind == "neutron-star":
         return (1.0 - recycled_share) * odds("neutron-star", kind) + recycled_share * odds("recycled-pulsar", kind)
     return odds(kind, kind)

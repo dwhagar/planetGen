@@ -1,0 +1,5 @@
+**Headline:** The black holes, neutron stars and millisecond pulsars of a globular cluster now have companions at the cluster's own rates, not the field's.
+
+### Changed
+
+- A scattered black hole, neutron star or millisecond pulsar that belongs to a globular cluster draws its companion at the cluster's odds (GEN.330, stand-ins CB1 to CB5, section 6.340, `generation/cluster_compact_binaries.py`): a black hole holds a star 10 percent of the time (the field's is 1), a millisecond pulsar has a companion 80 percent of the time and a neutron star 2.5 percent, and a black hole has a black hole at a share that follows the cluster's half-mass density up to 5 percent. The system is as old as the cluster, and a pair wider than the cluster's hard-soft orbit (the same rule as its planets, `cluster_unbinding.hard_soft_axis_au`) is not drawn. The cluster's rows per system follow its own odds (`phenomenon_scatter.cluster_rate_ratio`). A field row is drawn as before. The cluster's pulsar count by encounter rate is GEN.1844.

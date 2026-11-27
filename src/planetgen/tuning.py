@@ -1167,6 +1167,20 @@ PLANET_HOST_MAX_MASS_SOLAR = 10.0
 """float: The birth mass of a star at and above which it holds no planets (GEN.1866, registry row PH1 of 6.338): 10 solar masses, the upper edge of the hosts seen. b Cen (AB) (6 to 10 solar masses, one giant at 556 AU) and mu2 Sco
 (about 9) are the heaviest stars with a planet found, and the radial-velocity occurrence of giants falls off above about 2.5 to 3 solar masses, so a star at the cut holds none. The decline between 3 and 10 is not modelled
 (the replacement row). A star at the cut keeps its belts, the debris of what was there. A config that asks for a class or lists its slots overrides it. Second-hand citations ([R2172, R5368, R5369, R5370]; the papers are not read). [Stand-in 6.338 PH1, tier T3, tweak L1.]"""
+CLUSTER_BLACK_HOLE_STAR_ODDS = 0.10
+"""float: The share of the stellar-mass black holes of a globular cluster that have a star for a companion (GEN.330, registry row CB1 of 6.340): 10 percent, the design's default for the cluster rate that replaces the field's 1 percent
+(`multistar.MEMBER_STATE_BY_PLACED`). The three detached black hole candidates of NGC 3201 among its roughly 100 black holes are the observed anchor (multi-star-systems.md 13.4), second hand. A cluster row draws its companion at this rate and a field row at the field's."""
+CLUSTER_MILLISECOND_PULSAR_COMPANION_ODDS = 0.80
+"""float: The share of the millisecond pulsars of a globular cluster that have a companion (GEN.330, registry row CB2 of 6.340): 80 percent, the design's default, against the field's 78 percent (the sum of `MEMBER_STATE_BY_PLACED["recycled-pulsar"]`). Two thirds of
+the field's companions are white dwarfs, and the cluster keeps the field's proportions among its other states; only the neutron-star share is raised (`CLUSTER_MILLISECOND_PULSAR_NEUTRON_STAR_ODDS`)."""
+CLUSTER_MILLISECOND_PULSAR_NEUTRON_STAR_ODDS = 0.025
+"""float: The share of the millisecond pulsars of a globular cluster that have a neutron star for a companion (GEN.330, registry row CB3 of 6.340): 2.5 percent against the field's 0.2 percent. A cluster's pulsars are recycled in a binary and swapped by passing stars until a heavy
+companion is left, so more of them end in a pair of neutron stars than in the field (a handful of the 100-odd binary pulsars of the clusters; educated guess, the catalogue not read)."""
+CLUSTER_BLACK_HOLE_PAIR_MAX_ODDS = 0.05
+"""float: The most black holes that have a black hole for a companion in a cluster, as a share of the cluster's black holes (GEN.330, registry row CB4 of 6.340): 5 percent, the dense-core limit of `cluster_compact_binaries.black_hole_pair_odds`. A hard pair of black holes
+in a core is dynamical (it forms by three-body and exchange encounters, whose rate follows the density) and the cluster ejects most of them, so the share saturates; the field's 0.2 percent has no density to follow."""
+CLUSTER_BLACK_HOLE_PAIR_DENSITY_REFERENCE_SOLAR_PC3 = 1000.0
+"""float: The half-mass density, solar masses per cubic parsec, at which a cluster's share of black holes with a black hole is half its maximum (GEN.330, registry row CB5 of 6.340): 1,000, between the typical cluster (2e5 solar masses, 5 pc, 190) and a compact one (1e6, 3 pc, 4,400); the typical one reaches a sixth of the maximum. The form `x / (1 + x)` in the density over this is an educated guess; the dependence is on density, as the design says."""
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface

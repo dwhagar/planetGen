@@ -76,6 +76,13 @@ def soft(semi_major_axis_au, host_mass_msun, speed_km_s):
     return math.sqrt(_G_PC_KM2_S2_PER_MSUN * host_mass_msun / (semi_major_axis_au * _AU_PC)) < speed_km_s
 
 
+def hard_soft_axis_au(host_mass_msun, speed_km_s):
+    """The orbit at which `soft` turns over, AU: the semi-major axis whose circular speed about `host_mass_msun` is `speed_km_s`, `G M / V^2` (GEN.330: a pair wider than this is soft against the cluster's encounters and is ionised)."""
+    if not host_mass_msun > 0.0 or not speed_km_s > 0.0:
+        raise ClusterUnbindingError("the mass and speed must be positive")
+    return _G_PC_KM2_S2_PER_MSUN * host_mass_msun / speed_km_s ** 2 / _AU_PC
+
+
 @finite_domain()
 def cross_section_au2(semi_major_axis_au, star_mass_msun, speed_km_s):
     """The cross section to unbind a planet, AU^2: `(40 pi / 3) G m a / V^2` ([R4184] eq. 36)."""

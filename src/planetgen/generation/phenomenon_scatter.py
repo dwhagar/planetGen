@@ -46,7 +46,7 @@ from planetgen.galaxy import remnant_density, density, nebula_field, profile, re
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation import bright_stars, multistar
+from planetgen.generation import bright_stars, cluster_compact_binaries, multistar
 from planetgen.generation.phenomenon_cuts import as_cuts
 from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen.generation.phenomena import registry
@@ -235,7 +235,7 @@ NEUTRON_STAR_RECYCLED_SHARE = tuning.PULSAR_RECYCLED_CHANCE * tuning.PULSAR_RATE
 """float: The share of scattered neutron stars that are recycled millisecond pulsars (pulsing, then recycled)."""
 
 
-def row_density_divisor(kind, subtype):
+def row_density_divisor(kind, subtype, cluster=None):
     """
     `1 + p_placed`, the divisor of a class's object rate for the scatter (multi-star-systems.md 6.4): a row is a
     system keyed by its placed object, and the same-class companions of the placed objects are objects of the class
@@ -245,7 +245,7 @@ def row_density_divisor(kind, subtype):
     placed = PLACED_KINDS.get((kind, subtype))
     if placed is None or kind == "planetary-nebula":      # a white dwarf companion is not a planetary nebula
         return 1.0
-    return 1.0 + multistar.same_class_companions(placed, NEUTRON_STAR_RECYCLED_SHARE if placed == "neutron-star" else 0.0)
+    return 1.0 + multistar.same_class_companions(placed, NEUTRON_STAR_RECYCLED_SHARE if placed == "neutron-star" else 0.0, cluster_compact_binaries.tables(cluster))
 
 
 PAIR_COMPANIONS = {"neutron-star": ("neutron-star",), "black-hole": ("black-hole", "neutron-star")}
@@ -254,30 +254,41 @@ black hole or neutron star. A black hole with a neutron star is keyed by the bla
 (`MEMBER_STATE_BY_PLACED`) is not a pair row of its own."""
 
 
-def _pair_table(placed_kind, recycled):
-    """`{state: odds}` of the compact companions a placed object of `placed_kind` has (`PAIR_COMPANIONS`); a millisecond pulsar's table when `recycled`."""
-    table = multistar.MEMBER_STATE_BY_PLACED["recycled-pulsar" if recycled else placed_kind]
+def _pair_table(placed_kind, recycled, cluster=None):
+    """`{state: odds}` of the compact companions a placed object of `placed_kind` has (`PAIR_COMPANIONS`); a millisecond pulsar's table when `recycled`; the cluster's odds for a `cluster` (GEN.330)."""
+    table = cluster_compact_binaries.tables(cluster)["recycled-pulsar" if recycled else placed_kind]
     return {state: table[state][0] for state in PAIR_COMPANIONS[placed_kind]}
 
 
-def pair_odds(kind, subtype):
+def pair_odds(kind, subtype, cluster=None):
     """The expected number of compact pairs per object of the class a pair class is made of, below the cut: the odds of each compact companion of the placed object,
     young and recycled neutron stars weighted by `NEUTRON_STAR_RECYCLED_SHARE` (the rows of the class are systems keyed by their placed object, so this is the rows
     per object, multi-star-systems.md 6.4)."""
     placed = PLACED_KINDS[(kind, base_subtype(kind, subtype))]
     if placed != "neutron-star":
-        return sum(_pair_table(placed, False).values())
+        return sum(_pair_table(placed, False, cluster).values())
     share = NEUTRON_STAR_RECYCLED_SHARE
-    return (1.0 - share) * sum(_pair_table(placed, False).values()) + share * sum(_pair_table(placed, True).values())
+    return (1.0 - share) * sum(_pair_table(placed, False, cluster).values()) + share * sum(_pair_table(placed, True, cluster).values())
 
 
-def pair_recycled_share(kind, subtype):
+def pair_recycled_share(kind, subtype, cluster=None):
     """The share of the pair rows of a neutron-star class that are millisecond pulsars: the recycled share times the recycled pulsar's odds of a compact companion, over the
     pair rows' odds (a pair row has a companion, so the recycled share of the rows is not the share of the neutron stars). 0 for a class that is not neutron stars."""
     placed = PLACED_KINDS[(kind, base_subtype(kind, subtype))]
     if placed != "neutron-star":
         return 0.0
-    return NEUTRON_STAR_RECYCLED_SHARE * sum(_pair_table(placed, True).values()) / pair_odds(kind, subtype)
+    return NEUTRON_STAR_RECYCLED_SHARE * sum(_pair_table(placed, True, cluster).values()) / pair_odds(kind, subtype, cluster)
+
+
+def cluster_rate_ratio(kind, subtype, cluster):
+    """
+    What a globular cluster's compact-binary odds (GEN.330, `cluster_compact_binaries`) do to a class's rate of rows per system: the field's row divisor over the cluster's (a row is a system keyed by its placed object, so
+    the more of a class's objects are companions the fewer rows there are) and, for a promoted pair class, the cluster's odds of a compact companion over the field's (`pair_odds`). 1 for a class with neither.
+    """
+    ratio = row_density_divisor(kind, subtype) / row_density_divisor(kind, subtype, cluster)
+    if is_pair(kind, subtype):
+        ratio *= pair_odds(kind, subtype, cluster) / pair_odds(kind, subtype)
+    return ratio
 
 
 def fill_share(kind, subtype):

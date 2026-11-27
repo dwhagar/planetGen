@@ -34,10 +34,11 @@ import collections
 import dataclasses
 import functools
 import itertools
+import math
 
 from planetgen import tuning
 from planetgen.db import contention, scatter_systems, store
-from planetgen.generation import multistar, phenomenon_scatter
+from planetgen.generation import cluster_compact_binaries, multistar, phenomenon_scatter
 from planetgen.physics import imf, remnant_mass
 from planetgen.physics import stellar_evolution as evolution, unit_registry as units
 from planetgen.util import draw
@@ -73,10 +74,11 @@ def screen_unit(seed, question="companion"):
 
 
 @functools.lru_cache(maxsize=None)
-def _odds(placed_kind, recycled, planetary_nebula):
-    """`(total, ((state, cumulative upper bound), ...))` of a placed class's companion table."""
+def _odds(placed_kind, recycled, planetary_nebula, cluster_key=None):
+    """`(total, ((state, cumulative upper bound), ...))` of a placed class's companion table; `cluster_key` is `(mass, half-mass radius)` of the cluster whose table it is (GEN.330), `None` for the field's."""
     probe = multistar.Placed(placed_kind, 1.0, recycled=recycled, planetary_nebula=planetary_nebula)
-    table = multistar.MEMBER_STATE_BY_PLACED.get(multistar.placed_class(probe), {})
+    tables = multistar.MEMBER_STATE_BY_PLACED if cluster_key is None else cluster_compact_binaries.tables_of(*cluster_key)
+    table = tables.get(multistar.placed_class(probe), {})
     steps, running = [], 0.0
     for state, (default, _low, _high) in table.items():
         running += default
@@ -84,21 +86,27 @@ def _odds(placed_kind, recycled, planetary_nebula):
     return running, tuple(steps)
 
 
-def phenomenon_companion(kind, subtype, seed):
+def _cluster_key(cluster):
+    """The hashable key of a cluster for `_odds`: its mass and half-mass radius, the two numbers its companion odds depend on; `None` for no cluster."""
+    return None if cluster is None else (float(cluster.mass_solar), float(cluster.half_mass_radius_pc))
+
+
+def phenomenon_companion(kind, subtype, seed, cluster=None):
     """
     The screen of one phenomenon row: `(placed_kind, recycled, state)` when the row has a companion, else `None`.
     `placed_kind` is the `multistar.Placed` kind, `recycled` whether a neutron star is a millisecond pulsar, `state`
     the companion state (`star`, `black-hole`, ...). A class without a tree (`phenomenon_scatter.PLACED_KINDS`) is
-    never a hit. The odds are `multistar.MEMBER_STATE_BY_PLACED`'s, walked with the row's `screen_unit`.
+    never a hit. The odds are `multistar.MEMBER_STATE_BY_PLACED`'s, walked with the row's `screen_unit`; a row of a globular cluster (`cluster`, its `galaxy.components.Component`) takes the cluster's
+    (`cluster_compact_binaries.tables`, GEN.330).
     """
     if phenomenon_scatter.is_pair(kind, subtype):
-        return _pair_companion(kind, subtype, seed)
+        return _pair_companion(kind, subtype, seed, cluster)
     placed_kind = phenomenon_scatter.PLACED_KINDS.get((kind, subtype))
     if placed_kind is None:
         return None
     recycled = (placed_kind == "neutron-star"
                 and screen_unit(seed, "recycled") < phenomenon_scatter.NEUTRON_STAR_RECYCLED_SHARE)
-    total, steps = _odds(placed_kind, recycled, kind == "planetary-nebula")
+    total, steps = _odds(placed_kind, recycled, kind == "planetary-nebula", _cluster_key(cluster))
     pick = screen_unit(seed)
     if pick >= total:
         return None
@@ -108,7 +116,7 @@ def phenomenon_companion(kind, subtype, seed):
     return None
 
 
-def _pair_companion(kind, subtype, seed):
+def _pair_companion(kind, subtype, seed, cluster=None):
     """
     The companion of a promoted compact pair row (GEN.263): always a hit, whose state is picked among the compact companions of the placed object
     (`phenomenon_scatter.PAIR_COMPANIONS`) by the odds the class table gives each, with the row's own `screen_unit`. A neutron star of a pair row is a millisecond pulsar
@@ -116,8 +124,8 @@ def _pair_companion(kind, subtype, seed):
     """
     placed_kind = phenomenon_scatter.PLACED_KINDS[(kind, phenomenon_scatter.base_subtype(kind, subtype))]
     recycled = (placed_kind == "neutron-star"
-                and screen_unit(seed, "recycled") < phenomenon_scatter.pair_recycled_share(kind, subtype))
-    odds = phenomenon_scatter._pair_table(placed_kind, recycled)
+                and screen_unit(seed, "recycled") < phenomenon_scatter.pair_recycled_share(kind, subtype, cluster))
+    odds = phenomenon_scatter._pair_table(placed_kind, recycled, cluster)
     pick = screen_unit(seed) * sum(odds.values())
     running = 0.0
     for state, share in odds.items():
@@ -138,16 +146,21 @@ def _planetary_nebula_star(rng):
     return multistar.Placed("white-dwarf", mass, initial, planetary_nebula=True), age_yr
 
 
-def phenomenon_tree(row):
+def phenomenon_tree(row, cluster=None):
     """
     The member tree of one `phenomenon_scatter` row (`store.PHENOMENON_SCATTER_COLUMNS` order), or `None` when the
     row has no companion or no room for one. A compact object's system age is drawn from the compact remnant age
     range (`tuning.COMPACT_REMNANT_AGE_RANGE_GY`, the age the fill gives such a remnant); a planetary nebula's from its
     progenitor's life.
+
+    Args:
+        row (tuple): The row.
+        cluster (galaxy.components.Component, optional): The globular cluster the row belongs to (its `cluster_id`), when it has one (GEN.330): the companion is drawn at the cluster's odds
+            (`cluster_compact_binaries.tables`), the system is as old as the cluster, and a pair wider than the cluster keeps (`cluster_compact_binaries.axis_limit_au`) is not drawn. `None`: the field's.
     """
     kind, subtype = row[_PHENOMENON_COLUMN["kind"]], row[_PHENOMENON_COLUMN["subtype"]]
     seed = row[_PHENOMENON_COLUMN["seed"]]
-    hit = phenomenon_companion(kind, subtype, seed)
+    hit = phenomenon_companion(kind, subtype, seed, cluster)
     if hit is None:
         return None
     placed_kind, recycled, state = hit
@@ -160,7 +173,11 @@ def phenomenon_tree(row):
             return None
         placed = multistar.Placed(placed_kind, float(mass), recycled=recycled)
         age_yr = rng.uniform(*tuning.COMPACT_REMNANT_AGE_RANGE_GY) * 1.0e9
-    tree = multistar.draw_member_tree(placed, age_yr, rng, companion=state)
+    max_axis_au = math.inf
+    if cluster is not None and kind != "planetary-nebula":
+        age_yr = float(cluster.age_gy) * 1.0e9              # the cluster's stars were born together
+        max_axis_au = cluster_compact_binaries.axis_limit_au(cluster, placed.mass_solar)
+    tree = multistar.draw_member_tree(placed, age_yr, rng, companion=state, max_axis_au=max_axis_au)
     return tree if tree.nodes else None
 
 
@@ -201,14 +218,29 @@ def star_tree(row):
     return tree
 
 
-def star_trees(rows):
-    """`[(index, tree), ...]` for the rows of `rows` (`store.BRIGHT_STAR_COLUMNS` order) that have members."""
+def star_trees(rows, conn=None):
+    """`[(index, tree), ...]` for the rows of `rows` (`store.BRIGHT_STAR_COLUMNS` order) that have members. `conn` is read by `phenomenon_trees` and not here (the writers pass it to both)."""
     return [(i, tree) for i, row in enumerate(rows) if (tree := star_tree(row)) is not None]
 
 
-def phenomenon_trees(rows):
-    """`[(index, tree), ...]` for the rows of `rows` (`store.PHENOMENON_SCATTER_COLUMNS` order) that have members."""
-    return [(i, tree) for i, row in enumerate(rows) if (tree := phenomenon_tree(row)) is not None]
+def phenomenon_trees(rows, conn=None):
+    """
+    `[(index, tree), ...]` for the rows of `rows` (`store.PHENOMENON_SCATTER_COLUMNS` order) that have members. With a connection, a row of a globular cluster is drawn at its cluster's odds
+    (`phenomenon_tree`, GEN.330): the clusters of the batch are read once, by id; without one (or a cluster the table does not hold) every row is the field's.
+    """
+    clusters = _clusters_of(conn, rows)
+    cluster_at = _PHENOMENON_COLUMN["cluster_id"]
+    return [(i, tree) for i, row in enumerate(rows) if (tree := phenomenon_tree(row, clusters.get(row[cluster_at]))) is not None]
+
+
+def _clusters_of(conn, rows):
+    """`{id: Component}` of the globular clusters the `rows` (`store.PHENOMENON_SCATTER_COLUMNS` order) name in their `cluster_id`; empty without a connection or a cluster."""
+    if conn is None:
+        return {}
+    ids = {row[_PHENOMENON_COLUMN["cluster_id"]] for row in rows} - {None}
+    if not ids:
+        return {}
+    return {each.id: each for each in store.get_galaxy_components(conn, kind="cluster", ids=ids)}
 
 
 def default_epoch_unix(conn):
@@ -240,7 +272,7 @@ def _write(conn, table, rows, trees_of, seed_index, insert, epoch_unix, batch_si
         batch = list(itertools.islice(rows, batch_size))
         if not batch:
             return Written(written, systems)
-        hits = trees_of(batch)
+        hits = trees_of(batch, conn)
         top = conn.execute(f"SELECT COALESCE(MAX(id), 0) AS top FROM {table}").fetchone()["top"] if hits else 0
         written += insert(conn, batch)
         if not hits:
@@ -345,7 +377,7 @@ def write_once(conn, write, rows, epoch_unix, label="Scatter write"):
     conn.commit()           # a connection that just read has a transaction open: the check must see what the earlier try committed
     found = [_landed(conn, table, row, seed_index) for row in (rows[0], rows[-1])]
     if all(found):
-        return Written(len(rows), len(trees_of(rows)))
+        return Written(len(rows), len(trees_of(rows, conn)))
     if any(found):
         raise RuntimeError(f"{label}: a batch of {len(rows):,} rows is in {table} in part (its first row is {'there' if found[0] else 'not there'} and its last {'there' if found[1] else 'not there'})")
     return write_committed(conn, write, rows, epoch_unix, label)

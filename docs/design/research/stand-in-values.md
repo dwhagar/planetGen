@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2056 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2061 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2029 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2034 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 137 | 72 | 12 | 10 | 0 | 231 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 258 | 146 | 42 | 85 | 8 | 539 |
+| T6 | 260 | 146 | 42 | 88 | 8 | 544 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1168 | 435 | 108 | 279 | 66 | 2056 |
+| All | 1170 | 435 | 108 | 282 | 66 | 2061 |
 
 ## How the labels were given
 
@@ -3666,3 +3666,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | PH1 | B | T3 | L1 | `tuning.PLANET_HOST_MAX_MASS_SOLAR` 10: a star of 10 solar masses at birth or more holds no planet; below it the generator is unchanged | 6 to 15 solar masses | stars with a birth mass at and above the cut, single or the primary of a pair | a planet found around a single star over 10 solar masses, or a disk survey of O stars with disks past 1 Myr | a smooth decline of the share of stars that hold giants from 3 to 10 solar masses (the radial-velocity occurrence falls off above about 2.5 to 3), and a formation-time model of the disks of the O and early B stars | b Cen (AB)b: host 6 to 10 solar masses, one giant at 556 AU [R5369]; mu2 Sco b: host about 9 solar masses [R5370]; the occurrence of giants falls above 2.5 to 3 solar masses [R2172, R5368]; all second hand, the papers not read; the generator holds no giant-core growth time and the disk law is flat above 1.3 solar masses, so the cut cannot be derived from them | predicted only | - | - |
+
+## 6.340 Stand-ins of the compact binaries of the globular clusters (GEN.330)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CB1 | P | T6 | L0 | `tuning.CLUSTER_BLACK_HOLE_STAR_ODDS` 0.10: the share of a cluster's black holes that have a star for a companion (the field's is 0.01) | 0.03 to 0.2 | black holes of a globular cluster | a spectroscopic survey of a cluster that finds black holes with a star well under 3 percent or over 20 percent of its black holes | the observed share of the cluster black holes in binaries from a radial-velocity survey of several clusters | the design's default (multi-star-systems.md 13.4); NGC 3201: three detached black hole candidates among about 100 black holes in the cluster (the detected ones only, a lower bound), second hand, the paper not read; a cluster's core swaps a black hole's companion for a heavier star | predicted only | - | - |
+| CB2 | P | T6 | L0 | `tuning.CLUSTER_MILLISECOND_PULSAR_COMPANION_ODDS` 0.80: the share of a cluster's millisecond pulsars that have a companion (the field's is 0.78) | 0.5 to 0.9 | millisecond pulsars of a globular cluster | the binary fraction of the cluster pulsars, counted from a pulsar catalogue, outside 50 to 90 percent | the catalogue's own count of binary and isolated pulsars of the clusters | the design's default (multi-star-systems.md 13.4); the dynamical formation of the cluster pulsars by exchange into a binary that recycles them [R2046]; second hand, the catalogue not read | predicted only | - | - |
+| CB3 | P | T6 | L3 | `tuning.CLUSTER_MILLISECOND_PULSAR_NEUTRON_STAR_ODDS` 0.025: the share of a cluster's millisecond pulsars that have a neutron star for a companion (the field's is 0.002); the other states keep the field's proportions inside the rest | 0.01 to 0.05 | millisecond pulsars of a globular cluster | the share of cluster pulsars with a neutron-star companion, counted from the catalogue, outside 1 to 5 percent | the catalogue's own count of the double neutron star systems of the clusters | an educated guess: the design says "a higher neutron-star share" and gives no number; exchange encounters leave the heavier companion, so a few percent end beside a neutron star; hand-set between the field's value and the dozen or so double neutron star candidates among the cluster binaries, second hand | predicted only | - | - |
+| CB4 | P | T6 | L3 | `tuning.CLUSTER_BLACK_HOLE_PAIR_MAX_ODDS` 0.05: the most black holes that have a black hole for a companion in a cluster, as a share of its black holes | 0.02 to 0.15 | black holes of a globular cluster | the share of cluster black holes in black hole pairs, from the merger-rate and the black hole count of the clusters, over 15 percent or under 1 percent | the pair share of a cluster black hole population from a cluster simulation or from the observed gravitational wave merger rate of the clusters | an educated guess: a pair of black holes in a core forms dynamically and most pairs are ejected, so the share saturates; the field's 0.2 percent is below the sparse clusters' and under a fortieth of this | predicted only | - | - |
+| CB5 | P | T6 | L3 | `tuning.CLUSTER_BLACK_HOLE_PAIR_DENSITY_REFERENCE_SOLAR_PC3` 1000: the half-mass density at which a cluster's black hole pair share is half its maximum, in the form `x / (1 + x)` | 300 to 3000 | black holes of a globular cluster | the black hole pair share does not rise with density across the clusters of a simulation | a density law of the pair share from the simulations of cluster black holes | an educated guess: the three-body and exchange rate rises with the density, and the form saturates; the design asks for the pairs "from the cluster density" and gives no law; between the half-mass density of a typical cluster (190 solar masses per cubic parsec) and a compact one (4,400) | predicted only | - | - |

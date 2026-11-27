@@ -397,8 +397,10 @@ def _class_mean(component, kind, subtype, rate, shape):
     """The Poisson mean of one class in one component: its systems times the rate per system, times the component's
     factor for the class (GEN.528): the planetary nebulae's old-star share, the magnetars' young share of the
     satellite's systems, the stellar-mass black holes' metallicity factor of the component's populations (GEN.563). A satellite's supernova remnants take the rate times
-    their star-formation factor (`supernova_remnant_factor`, GEN.1191)."""
+    their star-formation factor (`supernova_remnant_factor`, GEN.1191). A globular cluster's classes take the rows per system its own companion odds give (`phenomenon_scatter.cluster_rate_ratio`, GEN.330)."""
     mean = systems_of(component) * rate
+    if component.kind == "cluster":
+        mean *= phenomenon_scatter.cluster_rate_ratio(kind, subtype, component)       # GEN.330: the cluster's compact-binary odds, not the field's
     if kind == "black-hole" and subtype == "stellar":
         mean *= remnant_density.component_factor(component_field.population_shares(component),
                                                     None if shape is None else shape.structure)

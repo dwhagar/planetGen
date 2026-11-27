@@ -80461,6 +80461,204 @@
       ],
       "slug": "6-338-stand-in-of-the-heaviest-star-that-holds-planets-gen-1866",
       "title": "Stand-in of the heaviest star that holds planets (GEN.1866)"
+    },
+    {
+      "key": "6.340",
+      "number": "6.340",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_BLACK_HOLE_STAR_ODDS 0.10: the share of a cluster's black holes that have a star for a companion (the field's is 0.01)"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "black holes of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "a spectroscopic survey of a cluster that finds black holes with a star well under 3 percent or over 20 percent of its black holes"
+            ],
+            [
+              "What replaces it",
+              "the observed share of the cluster black holes in binaries from a radial-velocity survey of several clusters"
+            ],
+            [
+              "Evidence",
+              "the design's default (multi-star-systems.md 13.4); NGC 3201: three detached black hole candidates among about 100 black holes in the cluster (the detected ones only, a lower bound), second hand, the paper not read; a cluster's core swaps a black hole's companion for a heavier star"
+            ]
+          ],
+          "id": "CB1",
+          "key": "6.340:CB1",
+          "kind": "P",
+          "slug": "6-340-cb1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLACK_HOLE_STAR_ODDS 0.10: the share of a cluster's black holes that have a star for a companion (the field's is 0.01)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_MILLISECOND_PULSAR_COMPANION_ODDS 0.80: the share of a cluster's millisecond pulsars that have a companion (the field's is 0.78)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 0.9"
+            ],
+            [
+              "Where it holds",
+              "millisecond pulsars of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "the binary fraction of the cluster pulsars, counted from a pulsar catalogue, outside 50 to 90 percent"
+            ],
+            [
+              "What replaces it",
+              "the catalogue's own count of binary and isolated pulsars of the clusters"
+            ],
+            [
+              "Evidence",
+              "the design's default (multi-star-systems.md 13.4); the dynamical formation of the cluster pulsars by exchange into a binary that recycles them [R2046]; second hand, the catalogue not read"
+            ]
+          ],
+          "id": "CB2",
+          "key": "6.340:CB2",
+          "kind": "P",
+          "slug": "6-340-cb2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_MILLISECOND_PULSAR_COMPANION_ODDS 0.80: the share of a cluster's millisecond pulsars that have a companion (the field's is 0.78)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_MILLISECOND_PULSAR_NEUTRON_STAR_ODDS 0.025: the share of a cluster's millisecond pulsars that have a neutron star for a companion (the field's is 0.002); the other states keep the field's proportions inside the rest"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "millisecond pulsars of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "the share of cluster pulsars with a neutron-star companion, counted from the catalogue, outside 1 to 5 percent"
+            ],
+            [
+              "What replaces it",
+              "the catalogue's own count of the double neutron star systems of the clusters"
+            ],
+            [
+              "Evidence",
+              "an educated guess: the design says \"a higher neutron-star share\" and gives no number; exchange encounters leave the heavier companion, so a few percent end beside a neutron star; hand-set between the field's value and the dozen or so double neutron star candidates among the cluster binaries, second hand"
+            ]
+          ],
+          "id": "CB3",
+          "key": "6.340:CB3",
+          "kind": "P",
+          "slug": "6-340-cb3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CLUSTER_MILLISECOND_PULSAR_NEUTRON_STAR_ODDS 0.025: the share of a cluster's millisecond pulsars that have a neutron star for a companion (the field's is 0.002); the other states keep the field's proportions inside the rest"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_BLACK_HOLE_PAIR_MAX_ODDS 0.05: the most black holes that have a black hole for a companion in a cluster, as a share of its black holes"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.15"
+            ],
+            [
+              "Where it holds",
+              "black holes of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "the share of cluster black holes in black hole pairs, from the merger-rate and the black hole count of the clusters, over 15 percent or under 1 percent"
+            ],
+            [
+              "What replaces it",
+              "the pair share of a cluster black hole population from a cluster simulation or from the observed gravitational wave merger rate of the clusters"
+            ],
+            [
+              "Evidence",
+              "an educated guess: a pair of black holes in a core forms dynamically and most pairs are ejected, so the share saturates; the field's 0.2 percent is below the sparse clusters' and under a fortieth of this"
+            ]
+          ],
+          "id": "CB4",
+          "key": "6.340:CB4",
+          "kind": "P",
+          "slug": "6-340-cb4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLACK_HOLE_PAIR_MAX_ODDS 0.05: the most black holes that have a black hole for a companion in a cluster, as a share of its black holes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_BLACK_HOLE_PAIR_DENSITY_REFERENCE_SOLAR_PC3 1000: the half-mass density at which a cluster's black hole pair share is half its maximum, in the form x / (1 + x)"
+            ],
+            [
+              "The range it moves in",
+              "300 to 3000"
+            ],
+            [
+              "Where it holds",
+              "black holes of a globular cluster"
+            ],
+            [
+              "What would show it wrong",
+              "the black hole pair share does not rise with density across the clusters of a simulation"
+            ],
+            [
+              "What replaces it",
+              "a density law of the pair share from the simulations of cluster black holes"
+            ],
+            [
+              "Evidence",
+              "an educated guess: the three-body and exchange rate rises with the density, and the form saturates; the design asks for the pairs \"from the cluster density\" and gives no law; between the half-mass density of a typical cluster (190 solar masses per cubic parsec) and a compact one (4,400)"
+            ]
+          ],
+          "id": "CB5",
+          "key": "6.340:CB5",
+          "kind": "P",
+          "slug": "6-340-cb5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CLUSTER_BLACK_HOLE_PAIR_DENSITY_REFERENCE_SOLAR_PC3 1000: the half-mass density at which a cluster's black hole pair share is half its maximum, in the form x / (1 + x)"
+        }
+      ],
+      "slug": "6-340-stand-ins-of-the-compact-binaries-of-the-globular-clusters-gen-330",
+      "title": "Stand-ins of the compact binaries of the globular clusters (GEN.330)"
     }
   ]
 }
