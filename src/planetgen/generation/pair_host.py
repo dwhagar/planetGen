@@ -212,7 +212,7 @@ class PairHost(StellarObject):
 
     @property
     def pair_orbit(self):
-        """The orbit of the pair (`pair_orbit.PairOrbit`), read from its node on each use: the axis, plane, period, phase and each star's place about the centre of mass."""
+        """The orbit of the pair (`pair_orbit.PairOrbit`), read from its node on each use: the axis, plane, period, phase and each star's place about the center of mass."""
         return pair_orbit.pair_orbit(self.orbit_node, self._primary.mass, self._secondary.mass, self.turned)
 
     def to_dict(self):

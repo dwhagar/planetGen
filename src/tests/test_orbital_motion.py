@@ -631,7 +631,7 @@ def test_serializable_fields_include_reflex_offset_attributes():
 def test_binary_primary_and_secondary_positions_sum_to_mutual_position(wide):
     """
     Both binary stars visibly orbit their common barycenter, not one fixed while the other circles it: the secondary's place about the
-    centre of mass is the primary's plus the secondary's place about the primary (`pair_orbit.PairOrbit`, read from the pair's node for
+    center of mass is the primary's plus the secondary's place about the primary (`pair_orbit.PairOrbit`, read from the pair's node for
     a close pair's host and for a wide pair alike, GEN.640), and since the secondary's mass is sampled as a genuinely comparable 0.1-0.8x
     the primary's, the primary's own offset is never negligible.
     """
