@@ -73,7 +73,7 @@ def scattered_fractions(min_mass_solar, structure):
     reach's rows per unit of stellar density, which the expected-count estimates of `bright_stars` take as the
     fractions of one tier. With cuts that differ by place (GEN.377) the lowest cut's, an upper bound."""
     total = {population: 0.0 for population in POPULATIONS}
-    for kind, subtype, rate in phenomenon_scatter._scattered_rates(as_cuts(min_mass_solar).lowest):
+    for kind, subtype, rate in phenomenon_scatter._scattered_rates(as_cuts(min_mass_solar).lowest, as_cuts(min_mass_solar).highest):
         for population, fraction in class_fractions(kind, subtype, structure).items():
             total[population] += rate * fraction
     return [total]
@@ -154,14 +154,17 @@ def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, stream
             kept = np.nonzero(uniform[4] * bound[pick] < weight)[0]
             addresses = [sector_address_at(tuple(float(value) / MPC_PER_PC for value in mpc[:, index]), edge_pc)
                          for index in kept.tolist()]
+            # GEN.554: a stellar-mass black hole's mass follows the metals of its place
+            stretch = (remnant_density.stretch_array(*(mpc[:, kept] / MPC_PER_PC), shape)
+                       if phenomenon_scatter._stretched(kind, subtype) else None)
             if tiered:
                 tier_of = [cuts.limits.tier_at(address[0], address[1]) for address in addresses]
                 share = np.array(phenomenon_scatter.tier_shares(kind, subtype, cuts))[tier_of]
                 thinned = (uniform[6][kept] >= share).tolist()
-                masses = phenomenon_scatter._masses(kind, subtype, np.array(cuts.tiers)[tier_of], uniform[5][kept])
+                masses = phenomenon_scatter._masses(kind, subtype, np.array(cuts.tiers)[tier_of], uniform[5][kept], stretch)
             else:
                 thinned = None
-                masses = phenomenon_scatter._masses(kind, subtype, cuts.tiers[0], uniform[5][kept])
+                masses = phenomenon_scatter._masses(kind, subtype, cuts.tiers[0], uniform[5][kept], stretch)
             seeds = rng.randbits_list(63, len(kept))
             for position, index in enumerate(kept.tolist()):
                 point = mpc[:, index]
@@ -187,7 +190,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         tuple: One row per object, in `PHENOMENON_SCATTER_COLUMNS` order.
     """
     cuts = as_cuts(min_mass_solar)
-    rates = phenomenon_scatter._scattered_rates(cuts.lowest)
+    rates = phenomenon_scatter._scattered_rates(cuts.lowest, cuts.highest)
     if not rates:
         return
     groups = object_first.ReachGroups.for_shell(shell_index, high_band, edge_pc)
@@ -201,7 +204,7 @@ def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, 
     """The phenomena of shells `first_shell .. last_shell`, all beyond the outline and so far out that each holds
     almost none (`far_shells`), drawn together from the stream `{seed}:phenomena:far:{first_shell}`."""
     cuts = as_cuts(min_mass_solar)
-    rates = phenomenon_scatter._scattered_rates(cuts.lowest)
+    rates = phenomenon_scatter._scattered_rates(cuts.lowest, cuts.highest)
     if not rates or last_shell < first_shell:
         return
     groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)

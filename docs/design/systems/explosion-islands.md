@@ -29,7 +29,7 @@ A draw with a galaxy's structure around it could take that galaxy's share at its
 
 - **[stand-in]** The nesting of the windows above the islands (the top of the range first) is not sourced; it only has to hold `F`, and it makes the heaviest stars fail first, as at low metallicity (O'Connor and Ott: black holes for "MZAMS >~ 30 Msun").
 - The direct-collapse flag of a black hole with no progenitor (a scatter row) keeps the hole mass rule (`DIRECT_COLLAPSE_HOLE_SOL`, 20 solar masses, **[stand-in]**).
-- **[stand-in]** Remnant masses are unchanged: the black hole's mass is still uniform over 5 to 20 and the neutron star's over 1.1 to 2.2 solar masses. A mass that follows the progenitor (helium core 7.7 to 9.2, Sukhbold) is a later slice with the mass law (card 6 of `black-hole-density.md`).
+- **[stand-in]** The neutron star's mass is unchanged (over 1.1 to 2.2 solar masses, the verified Gaussian). The black hole's is uniform over 5 to 20 at the sun's metals and follows the metals of its place beyond that (`black-hole-mass-by-metals.md`, GEN.554, stand-in BHM1); a mass that follows the progenitor itself (helium core 7.7 to 9.2, Sukhbold) stays a later slice (card 6 of `black-hole-density.md`).
 - The magnetar rate keeps the tuning rate as a **[stand-in]** (GEN.554's later slice). The empirical placement of `remnant_distribution` is unchanged. Rotation, binaries and the metallicity shift of the windows ([R2845]'s carbon-oxygen core windows) are not modelled.
 
 ## Tests

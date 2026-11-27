@@ -115,8 +115,8 @@ Notes on how slots interact with the rest of generation:
 
 ## Planet classes
 
-These are the class letters valid for `slots[].planet_class`: every letter below (Q is the only reserved letter and is
-not valid). A class is not drawn first. It is read off the finished body: the generator builds the whole planet (mass,
+These are the class letters valid for `slots[].planet_class`: every letter below (no letter is reserved now:
+Q names the hot world again, GEN.1618). A class is not drawn first. It is read off the finished body: the generator builds the whole planet (mass,
 make, air, temperature, water), then gives it the class it fits best. Every class has its own conditions in
 `src/planetgen/physics/data/planet_class_fit.json`; a condition just outside its edge lowers the match instead of ruling
 the class out, and the class with the highest match wins (a tie goes to the class with more conditions, then to the
@@ -134,7 +134,7 @@ web interface lists them for each letter.
 
 | Class | Name | Type | Main conditions |
 |---|---|---|---|
-| `T` | Gas dwarf | gas giant | Under 10 Earth masses. A rocky body with a hydrogen and helium envelope of 0.5 percent of its mass or more is judged by the giant classes. |
+| `T` | Gas dwarf | gas giant | Hydrogen 30 percent or more of the air and under 10 Earth masses, a thick hydrogen and helium envelope over a solid interior. |
 | `I` | Ice giant | gas giant | 10 to 35 Earth masses. |
 | `J` | Gas giant | gas giant | 35 Earth masses or more. |
 | `D` | Small airless world | terrestrial | No air (under 10 Pa), round, under 0.1 Earth masses. A body under a roundness ratio of 1 is an Asteroid and has no class. |
@@ -153,9 +153,9 @@ web interface lists them for each letter.
 | `B` | Small hot world | terrestrial | Air, under 0.5 g, a mean surface above freezing. |
 | `F` | Anoxic world | terrestrial | Oxygen under 3 kPa, carbon dioxide under 20 percent of the air, 273.15 to 400 K, 0.5 to 1.4 g. |
 | `G` | Carbon dioxide world | terrestrial | Carbon dioxide 20 percent or more of the air, 273.15 to 400 K, 0.5 to 2 g. |
-| `O` | Ocean world | terrestrial | M's too wet: water over 80 percent of the surface, mean 275 to 312 K, oxygen 16 to 35.5 kPa. |
+| `O` | Ocean world | terrestrial | M's too wet: water over 95 percent of the surface (a global ocean with at most islands), mean 275 to 312 K, oxygen 16 to 35.5 kPa. |
 | `H` | Desert world | terrestrial | M's too dry: under 20 percent water with groundwater, mean 275 to 315 K, oxygen 16 to 35.5 kPa. |
-| `M` | Temperate world | terrestrial | Mean 275 to 305 K, liquid water over 20 to 80 percent of the surface, oxygen 16 to 35.5 kPa, carbon dioxide under 1 kPa, air 50 to 250 kPa, 0.75 to 2 g. |
+| `M` | Temperate world | terrestrial | Mean 275 to 305 K, liquid water over 20 to 95 percent of the surface, oxygen 16 to 35.5 kPa, carbon dioxide under 1 kPa, air 50 to 250 kPa, 0.75 to 2 g. |
 | `R` | Hothouse world | terrestrial | M's too hot: mean 312 to 345 K, wet bulb 31 C or more. |
 | `Z` | Hot thin-air world | terrestrial | 340 to 1500 K, air of 1 to 10 kPa, no ocean, 0.5 to 2 g. |
 | `U` | Methane-ethane world | terrestrial | 91 to 130 K, air of 50 to 500 kPa with methane, methane-ethane liquid stable, seas of methane or ethane stored over half a percent of the surface. |

@@ -166,14 +166,17 @@ _BELT_ORBIT_GAP_PX = 2.0
 # physical model, unlike `starmap.py`'s spectral colors -- there's no
 # single physical quantity a planet class maps to the way a star's
 # spectral letter maps to a blackbody hue) to read as distinct from its
-# neighbors while still gesturing at the class's own flavor: A/B/E/K's
-# reds-and-rust for volcanic/molten worlds, C/D's muted greys for dead/icy
-# small bodies, F/G/H/L's earthy greens-and-tans for the barren-to-
-# vegetated progression, M/O/P's blues for the habitable "water world"
-# spread (M dark, O a brighter ocean blue, P pale glacier blue), I/J/T's
-# gas-giant palette, N/Q/V's outliers (Venus-hot mustard, an eccentric-
-# orbit violet, a high-gravity super-Earth magenta), and S's dark slate for
-# the barren rocky super-Earth.
+# neighbors while still gesturing at the class's own flavor: A/B/K's
+# reds-and-rust for volcanic and scorched worlds, R and Q's hot pinks and
+# salmons, C/D's muted greys for dead/icy small bodies, E/P/W's cold blues
+# (E deep-frozen, P pale glacier, W the steel between them), F/G/H/L's earthy
+# greens-and-tans for the barren-to-vegetated progression, M/O's blues for the
+# habitable "water world" spread (M dark, O a brighter ocean blue), I/J/T's
+# gas-giant palette, N/Z's hot dry mustard and tan (Venus-hot N, thin-air Z),
+# V's high-gravity magenta, S's dark slate for the barren rocky super-Earth,
+# and the four named families: U's haze brown (Titan), Y's acid yellow-green
+# and X's ammonia aqua. Every class letter has a color (`test_systemmap`
+# checks it), so no class reads as the grey default.
 _CLASS_COLORS = {
     "A": "#d9483f",
     "B": "#e8823a",
@@ -193,7 +196,14 @@ _CLASS_COLORS = {
     "P": "#a9d8f0",
     "S": "#5b6878",
     "T": "#7a86d9",
+    "Q": "#d06f6f",
+    "R": "#e86f9a",
+    "U": "#8c6d3f",
     "V": "#9c3f63",
+    "W": "#9bb0c8",
+    "X": "#5ec2a0",
+    "Y": "#c4d13a",
+    "Z": "#d6b08a",
 }
 _DEFAULT_CLASS_COLOR = "#8a8f9c"
 

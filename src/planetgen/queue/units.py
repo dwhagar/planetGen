@@ -416,11 +416,6 @@ def _end_stage(conn, run_id, stage, wrapper, sleep=time.sleep):
         conn.delete(lease)
 
 
-def open_job_id(run_id, index):
-    """The RQ job id of the opening of stage `index` (cancel, PERF.99)."""
-    return f"{run_id}-open{index}"
-
-
 def enqueue_open(conn, run_id, index):
     """
     Queues the opening of stage `index` of the run (PERF.254, OPS.228): the cut of the stage into its units, and of each stage after it that has no units, as a job of its own that the supervisor's launcher hands out

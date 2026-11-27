@@ -13,6 +13,8 @@ stars, the belts or comets of a star), the rendered example (star, planet and mo
 summary tree of the body's children. A planet or moon also shows its PHI-6 symbols and habitability chips under the title,
 and an admin has that body's Admin menu in the action bar (Regenerate, Change class, Delete; the page takes the POST).
 
+A moon of a free planet (a wanderer, DB.94) has no system, so no neighbours, rendered example or Admin menu, and a link to its free planet where the system link goes. Its words are built from its own row (`describe.describe_free_moon`, `GET /api/moons/<id>/description`, UX.138): the same section a moon of a system has, without a sky, since a free planet has no star. The page shows them in the About, Habitability and Properties sections the other moons have.
+
 ## The region (not built, UX.231)
 
 The at-a-glance block will say "in Vang Zarh Region" for a sector or object whose position lies in a charted region (a 9-block with a `region_stats` row, `../galaxy/named-regions.md`), and nothing when it lies in none. Until UX.231 the pages say nothing of regions.

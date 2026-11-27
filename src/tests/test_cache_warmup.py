@@ -184,17 +184,38 @@ def test_a_cap_leaves_the_rest_and_says_so(galaxy):
     assert "1 left out by the cap" in result["line"]
 
 
-def test_a_page_that_does_not_answer_fails_the_family(galaxy, monkeypatch):
+def test_a_family_in_which_no_page_answers_fails(galaxy, monkeypatch):
+    """OPS.312: the site or its data is down when not one page of a family answers: the family fails, naming the pages."""
+    class Down:
+        status_code = 500
+
+        def get_data(self, as_text=False):
+            return "down"
+
+        def get_json(self, *args, **kwargs):
+            return {}
+
+    monkeypatch.setattr(warmup._Visitor, "visit", lambda self, path: (self.failed.append(f"{path} answered 500"), setattr(self, "pages", self.pages + 1), Down())[2])
+    with pytest.raises(warmup.WarmupFailed) as failure:
+        _warm(galaxy, "systems")
+    assert "did not answer" in str(failure.value)
+
+
+def test_a_page_that_does_not_answer_is_named_and_the_warm_up_goes_on(galaxy, monkeypatch):
+    """OPS.312: one page that does not answer (a listed object with no page, a server error) is asked again, then named in the family's line with what it said, and the family does not fail."""
     real = apiclient.get_system
+    asked = []
 
     def broken(db, system_id):
         if system_id == galaxy.system_pids[0]:
+            asked.append(system_id)
             raise apiclient.ApiError("boom", status_code=500)
         return real(db, system_id)
     monkeypatch.setattr(apiclient, "get_system", broken)
-    with pytest.raises(warmup.WarmupFailed) as failure:
-        _warm(galaxy, "systems")
-    assert "did not answer" in str(failure.value) and galaxy.system_pids[0] in str(failure.value)
+    result = _warm(galaxy, "systems")
+    assert len(asked) >= 2, "the page was asked for again"
+    assert len(result["failed"]) == 1 and galaxy.system_pids[0] in result["failed"][0]
+    assert "did not answer" in result["line"] and galaxy.system_pids[0] in result["line"]
 
 
 def test_an_unknown_family_is_refused(galaxy):
@@ -601,6 +622,18 @@ def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_ma
     now[0] = 15.1
     assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 100 ms."]
     assert tally.finish() == [], "each phase is reported once"
+
+
+def test_a_phase_names_the_pages_that_did_not_answer_in_its_line_and_result():
+    """OPS.312: the Queue page shows the phase's line, so the pages that did not answer are in it, with what they answered."""
+    now = [0.0]
+    tally = warmup.PhaseTally(["phenomena", "search"], clock=lambda: now[0])
+    failed = ["/phenomenon/black_hole/A answered 404 (no black_hole with ID A)", "/phenomenon/rogue_planet/B answered 502"]
+    tally.add("phenomena", {"built": 40, "cached": 2, "warmed": 42, "seconds": 3.0, "failed": failed})
+    result = tally.result("objects")
+    assert result["failed"] == 2
+    assert "2 pages did not answer: /phenomenon/black_hole/A answered 404 (no black_hole with ID A); /phenomenon/rogue_planet/B answered 502." in result["line"]
+    assert tally.result("search") is None or tally.result("search")["failed"] == 0
 
 
 def test_the_deep_node_command_is_cut_into_chunks_and_the_map_then_finds_every_node_stored(galaxy, node_levels,
@@ -1154,17 +1187,27 @@ def test_follow_says_so_when_no_warm_up_is_running(script, capsys):
     assert script.ran == [], "following starts nothing"
 
 
-def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(script, redis_server, capsys):
+def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(script, redis_server, capsys, monkeypatch):
     """PERF.235: `planetgen warm --follow` in a second session watches a running warm-up from its run record to its end."""
     import threading
     release = threading.Event()
     real = warmup.warm_family
 
     def held(db, family, cap=None, app=None, config=None, window=None, report=None):
-        release.wait(30)
+        release.wait(600)       # TEST.846: held until the follower is watching (the helper sets it); a failure sets it in `finally`
         return real(db, family, cap=cap, app=app, config=config)
 
     errors, seen = [], {}
+    # TEST.846: the real event the release waits on: the follower has found the run and is watching it (not a half second after its thread
+    # started, which a loaded machine's slow start of a second warm-up run overran, and the held family let go before anyone watched).
+    attached = threading.Event()
+    real_follow = warm_cli.wrapper.follow
+
+    def watching(*args, **kwargs):
+        attached.set()
+        return real_follow(*args, **kwargs)
+
+    monkeypatch.setattr(warm_cli.wrapper, "follow", watching)
 
     def follower():
         try:
@@ -1175,12 +1218,19 @@ def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(s
     def watch_then_release():
         conn = redisqueue.connect(redis_server)
         deadline = time.monotonic() + 30
-        while runrecord.active_run(conn, runrecord.MAINTENANCE) is None and time.monotonic() < deadline:
+        # TEST.846: until the run is the warm-up's, with its steps written (a follower that comes between the run's start and its title or its
+        # steps finds "No cache warm-up is running" and ends at once: the race a loaded machine showed).
+        def warm_run_is_written():
+            run_id = runrecord.active_run(conn, runrecord.MAINTENANCE)
+            run = runrecord.read_run(conn, run_id) if run_id else None
+            return bool(run) and run.get("title") == warm_cli.RUN_TITLE and bool(runrecord.read_steps(conn, run_id))
+
+        while not warm_run_is_written() and time.monotonic() < deadline:
             time.sleep(0.05)
         watcher = threading.Thread(target=follower)
         watcher.start()
-        time.sleep(0.5)
-        seen["waiting"] = watcher.is_alive()        # the follower waits for the held family
+        attached.wait(120)
+        seen["waiting"] = attached.is_set() and watcher.is_alive()        # the follower waits for the held family
         release.set()
         watcher.join(60)
         seen["ended"] = not watcher.is_alive()

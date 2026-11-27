@@ -288,9 +288,9 @@
     {
       "letter": "O",
       "name": "Ocean world",
-      "phrase": "an ocean world with air you could breathe, its surface mostly liquid water",
+      "phrase": "an ocean world with air you could breathe, its surface nearly all liquid water",
       "kind": "t",
-      "sentence": "An ocean world, the oxygen-water world too wet: water covers most of the surface, at a mild mean surface temperature.",
+      "sentence": "An ocean world, the oxygen-water world too wet: water covers nearly all of the surface, with at most islands, at a mild mean surface temperature.",
       "basis": "design stand-in (GEN.1142, GEN.1570, registry CL6): the liquid sea covers 95 percent or more, Boss's edge (was 80 percent, 90 before that)"
     },
     {
@@ -346,7 +346,7 @@
       "name": "Ammonia-water world",
       "phrase": "an ammonia-water world, its ocean often under an ice lid",
       "kind": "t",
-      "sentence": "An ammonia-water world: a body with a cover of ammonia and water, often under an ice lid, with a thin air or none.",
+      "sentence": "An ammonia-water world: a body with a cover of ammonia and water, often under an ice lid, with an air above it or none.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     }
   ],

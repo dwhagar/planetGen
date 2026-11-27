@@ -14,6 +14,7 @@ scatter and its per-sector bands.
 import collections
 import concurrent.futures
 import dataclasses
+import itertools
 import math
 import multiprocessing
 import os
@@ -2011,7 +2012,8 @@ def scatter_shells_do(unit_args, piece, ctx):
         components = ctx.kept("components", lambda: _galaxy_components(ctx.config))
         fractions, pass_bands = brightStars.pass_of(tiered, min_luminosity, max_luminosity, mass_range)
         these, slices = componentPass.chosen(components, unit_args["component_parts"])
-        rows = componentPass.scatter_stars(these, edge_pc, seed, fractions, pass_bands, tiered=tiered, skip_addresses=skip, slices=slices)
+        rows = itertools.chain(componentPass.scatter_stars(these, edge_pc, seed, fractions, pass_bands, tiered=tiered, skip_addresses=skip, slices=slices),
+                               componentPass.scatter_blue_stragglers(these, edge_pc, seed, skip_addresses=skip, slices=slices))
     ctx.step(f"Stars of {'the components' if key == COMPONENT_TASK_SHELL else 'shell ' + format(key, ',')}", expected_by_shell.get(key))
     counts = {population: 0 for population in brightStars.POPULATIONS}
     types = collections.Counter()

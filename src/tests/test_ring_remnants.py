@@ -9,11 +9,13 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
+from planetgen.galaxy import remnant_density
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import ring_remnants, run_galaxy, run_plan
 from planetgen.generation import scatter_companions
 from tests import first_fill
+from tests.anchor_masses import anchor_mass
 from tests.test_phenomenon_scatter import EDGE_PC, E_VALUE, SHAPE, _rows, _scatter_args, _seed_galaxy
 
 CUT = 20.0
@@ -45,10 +47,15 @@ def test_the_ring_rows_are_the_fills_own_draw_in_the_sectors_own_cell():
     # a point the cell's redraws could not find is left out, so a count is at most the draw's and nearly always equal to it
     assert all(got.get(key, 0) <= count for key, count in wanted.items())
     assert sum(got.values()) >= 0.95 * sum(wanted.values())
+    stretch = remnant_density.place_stretch(_cell_center(address), SHAPE)
     for row in rows:
         low, high = next(bounds for kind, subtype, bounds, _count in draws if (kind, subtype) == (row["kind"], row["subtype"]))
-        assert low <= row["mass_solar"] <= high
-        assert row["mass_solar"] < CUT
+        # The cut is in the anchor law's masses (GEN.554): a stellar-mass hole's mass is its rank in the law stretched to the place's span.
+        mass = row["mass_solar"]
+        if (row["kind"], row["subtype"]) == ("black-hole", "stellar"):
+            mass = tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0] + (mass - tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0]) / stretch
+        assert low <= mass <= high
+        assert mass < CUT
 
 
 def test_the_ring_rows_repeat_with_the_seed_and_the_sector_and_none_come_from_a_cut_under_every_mass_law():
@@ -80,7 +87,7 @@ def _backfill(mysql_config, addresses, mass=2.0):
 
 def _remnants_in(mysql_config, address):
     return [row for row in _rows(mysql_config, "shell_index = %d AND band_index = %d AND wedge_index = %d AND mass_solar < %r" % (*address, CUT))
-            if row["kind"] in store.BELOW_CUT_REMNANT_KINDS]
+            if row["kind"] in store.BELOW_CUT_REMNANT_KINDS and row["subtype"] not in store.NOT_REMNANT_SUBTYPES]
 
 
 def test_the_phenomena_unit_draws_the_ring_sectors_remnants_and_counts_their_classes(mysql_config):
@@ -91,8 +98,8 @@ def test_the_phenomena_unit_draws_the_ring_sectors_remnants_and_counts_their_cla
     try:
         held = store.addresses_holding_below_cut_remnants(conn, CUT)
         classes = {(row["kind"], row["subtype"]): row["unbuilt"] for row in store.phenomenon_scatter_classes(conn)}
-        total = conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? AND kind IN ('neutron-star', 'black-hole') AND COALESCE(subtype, '') <> 'magnetar'", (CUT,)).fetchone()["n"]
-        stored = {kind: count for kind, count in ((row["kind"], row["n"]) for row in conn.execute("SELECT kind, COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? GROUP BY kind", (CUT,)).fetchall())}
+        total = conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? AND kind IN ('neutron-star', 'black-hole') AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair')", (CUT,)).fetchone()["n"]
+        stored = {kind: count for kind, count in ((row["kind"], row["n"]) for row in conn.execute("SELECT kind, COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? AND COALESCE(subtype, '') NOT IN ('pair', 'stellar-pair') GROUP BY kind", (CUT,)).fetchall())}
     finally:
         conn.close()
     assert held == set(RING), "each ring sector holds some, and a sector no backfill touched holds none"
@@ -179,7 +186,7 @@ def test_gen377_a_ring_sector_draws_what_lies_under_its_own_bands_cut(mysql_conf
         by_number = ring_remnants.rows_for(conn, skeleton, limits, 7, 12.0, RING, held=set())
         by_cuts = ring_remnants.rows_for(conn, skeleton, limits, 7, _cuts(12.0), RING, held=set())
         assert by_cuts == by_number and by_cuts
-        assert all(row[12] < 12.0 for row in by_cuts if row[3] in store.BELOW_CUT_REMNANT_KINDS)
+        assert all(anchor_mass(row, skeleton.shape, sector_position_pc(*row[:3], skeleton.edge_pc)) < 12.0 for row in by_cuts if row[3] in store.BELOW_CUT_REMNANT_KINDS)      # the cut is in the anchor law's masses (GEN.554)
         assert by_cuts != ring_remnants.rows_for(conn, skeleton, limits, 7, 20.0, RING, held=set())
     finally:
         conn.close()

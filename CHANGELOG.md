@@ -2,6 +2,341 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4849+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A rocky body's air history asks for its interior heat at a hundred ages and each is no longer run from the formation: the box takes up the run of an earlier age, 4 times faster, with the same results to the last bit.
+
+### Fixed
+- PERF.289: building a system with planets took 12 to 38 s where it took 3 to 12 s before the air history (GEN.1745), and in a profile a quarter of the history's time was the mantle box (`interior_heat.heat`) run again from the formation for each of the history's ages (about 220 runs for each body with air). The steps of the box do not depend on the age asked for except the one that lands on it, so a run now keeps the steps and the states of the box (every 16th step, the core copied) and an older or younger age takes it up at the last step it shares and goes on from there. Same output: 8,100 results (60 bodies with and without a tide, three orders of ages) are equal to the last bit to the runs from the formation, and the new test compares the two in whatever order the ages come. Heat for those 60 bodies went from 15.1 s to 3.9 s.
+
+generation-output: unchanged
+
+## [8.0.4848+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A test run no longer leaves its control database behind, and the next run drops the databases a killed run left
+
+### Fixed
+
+- TEST.852: test runs left `pgtest_control_*` databases behind: one lane box held 1,216 of them (8.2 GB) and ran out of disk. Every pytest process makes a control database at its start (`_ledger_control_database`, OPS.216), and only the tests that used the MySQL server dropped it, so a process whose tests needed none left one each time; a process killed by a gate's time limit or by the kernel never reached its teardown at all. The fixture now drops the process's control database at its own end, whether or not a test used it. The names of the test databases (the control one, the worker's, a test's fresh and scratch ones) now carry the machine and the process (`tests/dbpool.OWNER`, `owned_name`), and the first fixture of a run drops those of this machine whose process is gone (`dbpool.drop_abandoned`); once an hour per machine it also drops the databases with no owner in the name (a run before this change, the site galaxy's) whose newest table is over 12 hours old, which is longer than any run of a gate. The new `tests/test_abandoned_test_databases.py` runs a real pytest process on a test that needs no server and holds that no database of that process remains, drops the database of a process that was killed, and leaves another process's and another machine's alone. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4847+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The tests that read the release number take the build stamp the version has carried since OPS.64
+
+### Fixed
+
+- TEST.850: eight tests were red on main since OPS.64 (PR 7315, 8.0.4653) made `__version__` read like `8.0.4845+db280.gen150.api14`. `test_version_key.py::test_the_running_code_has_a_key` split the whole string on dots (the product's `galaxy/version_key.py` already reads the release before the `+`, so the product is right and only the test changes). Five tests of the same file (`test_every_run_that_changes_the_galaxy_is_recorded`, `test_the_history_never_stops_a_run`, `test_a_run_writes_its_seed_and_version_first`, `test_a_plan_names_the_seed_it_was_given_or_none_yet`, `test_the_line_is_first_in_a_debug_file_too`) ran a real command against the test database as its control database without the control schema, so a run's ledger table `engine_runs` was missing: `engine_runs` is a control-schema table (OPS.215) and not a migration's drop, so the helper `_generate` makes the control schema first, as the `control_config` fixture does. `test_datasets_fetch.py::test_the_user_agent_is_product_tokens_with_the_release_url_and_api_version` matched the release as three numbers; the sent `User-Agent` is valid with the stamp (RFC 9110 product versions are tokens and `+` is a token character), so the pattern accepts it. `test_the_scripts_run_the_download_step_at_setup` named a stage line (`log_stage 4 9`) that `update.sh` no longer has; it now holds the download before the step that migrates the database. The other readers of the version (`fmt.static_url`, the version sync tests, `bump_version.py`, the release numbers in the API and TODO tables) were looked at: they read the whole string, the stamped release or a release number, not the stamp as a number. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4846+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The train gate ends a file's pytest that has gone idle, with a stack dump of every process in the log, instead of waiting out the whole limit.
+
+### Fixed
+
+- A file the gate ran under `pytest -n 2` sometimes left its controller idle for 50 minutes or more after a test passed its 1500 s limit, with no worker running, and the lane lost the time. The gate now runs each file's pytest in a session of its own and looks at it every 10 seconds: when no process of it has used processor time and it has written nothing for 600 seconds, the gate writes the stacks of every process (py-spy) and the wait channel of each into the file's log and ends the run (code 125), so the next stall names what it waits on.
+- A file that passes the gate's `--limit` is now ended together with every worker and child process it started (code 124). Before, only the controller was ended and the xdist workers kept running through the next file.
+
+## [8.0.4845+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The static URL tests expect the version the way the URL carries it, with the plus quoted
+
+### Fixed
+
+- TEST.849: `test_page_shell.py::test_static_url_appends_package_version_and_the_static_fingerprint` and `test_static_url_keeps_subdirectories` were red on main. `static_url` has quoted the version in the query since the fingerprint of the static files (`quote(token, safe='')`); the tests compared with the bare `__version__`, which held no plus until OPS.64 (PR 7315, 8.0.4653) made it `8.0.4653+db...gen...api...`. A raw plus in a query reads as a space, so the encoded `%2B` is the right form and `static_url` stays as it is; both tests now expect `quote(__version__, safe='')`. Guard files run on the change: `test_page_shell.py`, `test_fmt_bad_numbers.py`, `test_fuzz_text_rendering.py` (959 passed). Tests only.
+
+generation-output: unchanged
+
+## [8.0.4844+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The follow-the-warm-up test waits for the warm-up's run to be written and for the follower to be watching, not for a clock
+
+### Changed
+
+- TEST.846: `test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing` waited for any maintenance run and then half a second, and held the family for 30 s; on a loaded machine the follower could come before the run had its title and steps (it then says "No cache warm-up is running" and ends) or the held family let go before anyone watched. The test now waits until the run is the warm-up's with its steps written, releases the family only when the follower has attached (`wrapper.follow` called), and holds it until then with no short timeout. No retry.
+
+generation-output: unchanged
+
+## [8.0.4843+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The life-air API test now says what the route documents: a lifeless world with a stored air history answers from that record.
+
+### Fixed
+
+- GEN.1878: `tests/test_api_life_air.py` expected `life_air` to be `null` for every planet with no living class. The route (`planet_life_air`, API.51) documents `null` only for a world with no living class and no stored history; since GEN.1745 slice 2 a lifeless world with air of 500 Pa or more keeps an air history record, and the route answers from it (its gases, shocks and temperatures, no classes and no stages of life). The API was right and the test stale; the test now pins both cases. No change to the route or to any world.
+
+generation-output: unchanged
+
+## [8.0.4842+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Queue page's "What the queue has learned" table lists only the job kinds the code still emits, and folds the retired ones away where they can still be forgotten.
+
+### Fixed
+
+- The table listed every job kind the job profile had ever seen, including `cut:` and `stage:` kinds from a run weeks ago whose command or stage no longer exists. A kind is now current while its command is still registered (a `unit:` or `cut:` kind), while it has a typed claim (an `api:` or `fn:` kind), while an admin has fixed its figure, or, for a `stage:` kind or any other name, while it had a sample in the last fortnight. Every other kind is retired.
+- The retired kinds sit under a folded "Retired kinds" line below the table, with the same Forget control, so none is lost from view and the admin can still delete its samples.
+- `GET /api/admin/work/tuning` gives each kind a `current` flag.
+
+## [8.0.4841+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Galaxy Map has a mini map showing the whole galaxy and where you are looking from
+
+### Added
+- The Galaxy Map has a mini map (MAP.75): a small square in the bottom right corner showing the whole galaxy from the direction you are looking, with a cross where the view is centered and a line to your eye. It is a second, locked camera on the map's own renderer, so it never zooms and costs no second WebGL context. It is left out on a canvas too small for it and on the Sector Map.
+
+generation-output: unchanged
+
+## [8.0.4840+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A bare local name's search job now has a memory claim, and six functions nothing called are gone.
+
+### Fixed
+
+- OPS.321: `planetgen.api.lookup:name_search_job` (API.38) had no line in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed and the job ran on the default 1000 MB figure. It now claims 700 MB and one core, the figure of the other read-only light job.
+
+### Removed
+
+- GEN.1873: `memorygate.kill_note`, `units.open_job_id`, `wrapper.run_kind`, `region_stats.generated_mass_kg`, `corridor.unknown_space_flags` and `run_galaxy._neighborhood_batch`, which had no caller, test or wiring-register line.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4839+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The warm-up log test expects the start-times line, so it passes on main again
+
+### Changed
+
+- TEST.845: the warm-up log test (`test_warm_once_keeps_a_record_of_the_run_and_the_reason_a_change_gave`) expects the start-times line OPS.300 added between the run's start and its own lines, and checks the whole four-line record.
+
+generation-output: unchanged
+
+## [8.0.4838+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Kepler zone mix test cites its paper by registry id only
+
+### Fixed
+
+- TEST.838: `src/tests/test_generation_mix.py` named its source by author and year in four places as well as by [R2020], which `test_citations_outside_the_registry` rejects. The names are gone and every mention reads [R2020] with its table or section. No product change.
+
+generation-output: unchanged
+
+## [8.0.4837+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The zone mix test now holds the generated planets against Kepler's counts instead of the model's own old output
+
+### Changed
+
+- TEST.838 part 2 / GEN.1858: `test_zone_mix_is_spread` held the share of hot, ecosphere and cold planets of all stars to bands (hot 0.20 to 0.48) that recorded the model's own output of 11-05; GEN.1709 (Train 40, 11-16, sourced to [R2020]) moved the first inner-system planet from 5 to 25 days on purpose and the share fell to 0.18 to 0.22. The share cannot be observed (82 percent of a sample's stars are M dwarfs, whose hot zone lasts a few days, and the cold zone has no small-planet census), so the test now holds what Kepler measures: the planets of 1.25 to 4 Earth radii per FGK dwarf from 8 to 256 days, and the part of them inside the habitable zone's inner edge (the hot zone), against Hsu et al. 2019 Table 2 ([R2020], read from the paper's PDF) with the cells' errors and Poisson at the sample size, 3 standard errors of both. The zones still all occur. 0.79 +- 0.14 generated against 0.92 +- 0.09 observed (8 to 256 d), 0.69 hot against about 1.0. The 256 to 500 day bin runs low (0.14 against 0.52, 2 sigma) and is GEN.1871's. No product change.
+
+generation-output: unchanged
+
+## [8.0.4836+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The 36-sector galaxy run test builds its sectors without the air history record, so it fits its time limit
+
+### Fixed
+
+- TEST.843: `test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units` (36 sectors through the real queue) ran past its 3600 s limit alone on a 4-core box and was ended by the watchdog (3840 s) on main and on Train 63; stack samples put 58 percent of its time in the air solve and 31 percent in the air history. The test reads stage keys, sector counts and linked paths, never a body's air, so it builds its sectors without the air history record (`tests/air_history_off.py`, TEST.831, as the site galaxy of TEST.835 does). Tests only, no product change.
+
+generation-output: unchanged
+
+## [8.0.4835+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The read-back test compares a planet's irregular moons to a rounding, the way it already compares every other float.
+
+### Fixed
+- `test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from` compared the stored irregular set (a dict of moons) for exact equality, while it compares every other float to 1e-12. An irregular moon is stored in km and g/cm3 and read back in AU and kg/m3, so a distance or density comes back one rounding off (59.96918180368469 AU read back as 59.969181803684684). The test now recurses into the set and holds each value to the same 1e-12, and takes its comet from a system asked to hold one (the physics gives few stars comets, so 60 seeds may hold none); the store and the generator are unchanged, and a missing or extra key still fails.
+
+generation-output: unchanged
+
+## [8.0.4834+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The class filters in search show each class's description again, every class has a marker colour on the system map, and the class words and docs match the rules.
+
+### Fixed
+
+- The planet and moon class filters in search read a description that was removed when class text moved to its own table (GEN.1212), so every class tooltip was empty. They show the class's own sentence now.
+- The system map drew classes Q, R, U, W, X, Y and Z in the grey default colour. Each now has its own colour, and a test checks that every class letter has one and that no two share it.
+- Class O's text said water covers "most" of the surface, though the rule is 95 percent or more (a global ocean with at most islands); it says "nearly all" now. Class X's text said "a thin air or none", though the rule allows any air above the ice lid (GEN.1737); it says "an air above it or none".
+- The system file reference said Q is a reserved letter and cannot be used, that O starts at 80 percent water and M ends at 80 percent, and that class T takes a rocky body by its envelope share. It now matches the rules (Q is the hot world, O is 95 percent or more, M is 20 to 95 percent, T is hydrogen 30 percent or more of the air under 10 Earth masses).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4833+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A moon that circles a free planet has a description of its own on its page, as a moon of a system has.
+
+### Added
+
+- `GET /api/moons/<id>/description`: the Document of a moon of a free planet (UX.138), built from its row, one `moon` section with its facts, ratings, composition and prose. A moon of a wanderer has no system, so it had no description; the route is additive and `API_VERSION` stays.
+- The page of a moon of a free planet shows that description and the same About, Habitability and Properties sections as a moon of a system.
+
+### Fixed
+
+- The page of a moon of a free planet failed to draw when its property sheet had a habitability group (the template read the planet sections the page did not pass).
+
+## [8.0.4832+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The page and the API answer for a giant's trojan region work, and a facility built on one names it.
+
+### Fixed
+
+- The object resolver (`/api/objects/belt:<id>`, the page of a belt and its parent chain) read a belt number for every belt, and a trojan region takes none, so it raised a KeyError for any region and its page failed. It names the region for its giant now (`<host> L4 trojan region`), as the lists of belts do. The same fix is made where a facility's host chain names a belt.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4831+db280.gen150.api14] - 2026-11-27
+
+**Headline:** Stellar-mass black holes are heavier where the metals are fewer: the registered 5 to 20 solar mass law stays for the disk around the sun and grows toward 50 solar masses in metal-poor places.
+
+### Changed
+
+- A stellar-mass black hole's mass follows the metals of its place (GEN.554, stand-in BHM1, section 6.337). The delayed engine of [R1466] over the stars that fail sets only the trend, 1 for the disk around the sun, 3 and over at a third of the solar metals, the span above 5 solar masses held to 50 [R5365]. The neutron stars, the counts and the scatter's mass cut do not move.
+
+## [8.0.4830+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Schwarzschild radius and a star's birth age are each drawn or computed in one place (GEN.553 slices A and B1, no behaviour change beyond rounding in the black hole radius).
+
+### Changed
+
+- Schwarzschild radius (slice A): `multistar._schwarzschild_au` and `dark_light.disk_radius_km` called their own `2GM/c^2`; both now call `relations.schwarzschild_radius` (reused, no new function). The values are the same to rounding: about a third of the stored radii differ in the last binary digit (the multiplication order changes), nothing a draw or a limit can read.
+- Birth age (slice B1): the draw of a birth age inside a window (uniform, or by the population's age law) was written out in `sample_star_age_gy`, in `sample_living_star`, in `remnant_progenitors.collapse_age_gy`; and the pick weighted by the age-metallicity relation in `sample_living_star` and twice in `star_population`. Now `stellar_evolution.draw_age_gy` and `stellar_evolution.birth_age_gy` hold them and every site calls them. The random numbers are drawn in the same order as before, so every star, remnant and system comes out the same.
+- GEN.553's later slices (birth step on its own stream, the free brown dwarf leaving `rogue_planets` as GEN.1849) are not in this change.
+
+## [8.0.4829+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A planet or moon with a solid ground and no air at all now has an exosphere: the sodium, potassium, calcium, magnesium, iron, silicon monoxide and ices its surface lets go of, with a column for each, from the light and the wind of its own star
+
+### Added
+
+- GEN.455 part B: `physics/exosphere` gives a body whose stored pressure is exactly zero the species its surface supplies. Four sources, each read from the rock and the ices the body has: thermal release of the ices (`saturation`), photon-stimulated desorption of Na and K (the star's light in 250 to 400 nm, `life_classes.band_fraction`), micrometeoroid impact vaporisation of the rock (falling off with distance from the star) and ion sputtering (the wind's pressure at the body from `magnetism.wind_pressure_at`, cut for a body whose field holds the wind off). A species is in the exosphere only where a source supplies it, never from a list by class.
+- The loss: a share of each source leaves at once (the Weibull tail of the desorbed, the effusing Maxwell tail, the Thompson tail of the sputtered), the rest fly an arc of `2 v / g` and are ionised by the star's light on the way (Na from the three rates of part 04 by host temperature, a molecule from the photolysis table), so the column is the flux times the time spent up. A thermal column over 1e15 cm-2 is held at it (past that the gas is an air), and a species whose scale height is over the body's radius is not recorded.
+- Stored as `planet_exosphere` and `moon_exosphere` (migration 0276): the species, its column in atoms per cm2, the source that gives most of it and the scale height; `exosphere` on a body. A body with any air, a giant and a rogue planet have none.
+- Stand-ins EX1 to EX9 in section 6.328. Sodium of a Moon-like and a Mercury-like body comes out at 2.7e10 and 4e11 cm-2 against the 1e9 to 1e12 of the test points.
+- A lock item with no epoch bump.
+
+## [8.0.4828+db280.gen150.api14] - 2026-11-27
+
+**Headline:** Each globular cluster now has blue stragglers in its core, their number following the core mass.
+
+### Changed
+
+- GEN.326: a globular cluster draws a number of blue stragglers that goes as the mass in its core to the 0.38 power [R2397], about 37 for a cluster of 2e5 solar masses, 72 at a core of 1e5. Each is a main-sequence star of 1 to 1.7 solar masses in the core, younger than 1.5 Gy, written by the components' pass beside the cluster's other stars; a young open cluster, a satellite and the field draw none. The source gives the slope only, so the count at a core of 1e4 solar masses (30) is a registered stand-in (rows BN1 to BN4, section 6.331). Generated values change (new star rows in every globular cluster); no epoch bump.
+
+## [8.0.4827+db280.gen150.api14] - 2026-11-27
+
+**Headline:** Bound pairs of compact objects (two neutron stars, two black holes, a black hole with a neutron star) are now rows of the scatter whatever their mass, so they can be seen on the map before their sector is filled.
+
+### Added
+
+- Two scatter classes, `neutron-star` `pair` and `black-hole` `stellar-pair` (GEN.263, multi-star-systems.md 4.5): about 1.7e5 neutron star pairs and about 2e5 black hole pairs in the default galaxy, drawn below the mass cut where the classes' own rows are not scattered. Each row stores a member tree with a compact companion (`scatter_companions._pair_companion`); the Galaxy Map and the Phenomena table list them under their own descriptors.
+
+### Changed
+
+- A sector's fill leaves out the neutron stars and black holes that are members of a promoted pair (`phenomenon_scatter.fill_share`, about 0.04 percent of the neutron stars and 0.45 percent of the black holes below the cut), so the objects of a class still add up to its population.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4826+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Kozai pump no longer leaves a planet on an orbit more eccentric than every other orbit of a planet is allowed to be.
+
+### Fixed
+- GEN.1865: a planet a companion's or a sibling's Kozai cycle pumped could be left at the eccentricity of its place in the cycle with no limit (a class C planet at 1.06 AU of a 0.48 solar mass star at 0.96), past the 0.9 every drawn orbit is held to and the periapsis limit `orbit_elements.max_planet_eccentricity` gives. The eccentricity it takes, and the birth eccentricity the tide wears down from, are now held to that bound. A planet whose peak puts its periapsis inside the star is still lost as before.
+- The two-star test of the pump read seed 26, which no longer gives a pumped planet once the draws moved; it takes the first seed that does.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4825+db280.gen150.api14] - 2026-11-27
+
+**Headline:** Algol binaries now reach the catalogue's lower limit of 0.1% of a disk of constant star formation.
+
+### Fixed
+- **GEN.1855: the Algol share sat under its lower limit.** The tight-tail weight (the factor on the density of periods under a day for stars lighter than the massive limit, `system_types.TUNING_KNOBS["tight_tail_weight"]`) is 8.0, up from 6.0. Over 1.5 million draws of a disk of constant star formation (ages 0.05 to 10 Gy) the share of systems with a semi-detached pair is 0.0881% at 6.0, 0.0952% at 7.0 and 0.1002% at 8.0; nothing had drifted since GEN.270 measured 0.09%. A tighter period tail puts more pairs under a day in every system of a lighter star, so a tree's pairs and every pair under a day shift: the contact share of FGK dwarfs rises from 0.165% to 0.181%.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4824+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A neutron star or a black hole with a white dwarf companion no longer comes out as a pair that would already have merged by gravitational waves.
+
+### Fixed
+- GEN.1851: the Peters screen of `multistar._Builder` (a pair whose gravitational-wave merger time is shorter than the system's age is redrawn) applied to two neutron stars or black holes and to two white dwarfs, but a neutron star or a black hole with a white dwarf took the law of a compact object with a star and skipped it. In a seeded scatter of a million neutron star rows, 2 of 20,269 trees held such a pair; with the companion forced to a white dwarf and a 10 Gy system, 3 in 100 pairs with a neutron star and 6 in 100 with a black hole were tighter than a merged pair can be (a neutron star of 1.4 and a white dwarf of 1.03 solar masses at 0.015 AU, merger time 4.9 Gy against an age of 7.4 Gy). Every pair of two degenerate objects (white dwarf, neutron star, black hole, any mix) now meets the one rule, `degenerate_pair` replacing `double_white_dwarf`; the redraw kind `pair.gravitational_waves` is the same one. The multiplicity audit of TEST.162 checks every degenerate pair of every stored tree.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4823+db280.gen150.api14] - 2026-11-27
+
+**Headline:** Every globular cluster now has its giants and its whole horizontal branch placed when the galaxy is planned, even at the default star floor, and its sectors fill the rest on demand.
+
+### Changed
+- GEN.161: the star pass placed a cluster's stars only above the galaxy's luminosity floor (18,000 solar luminosities by default), so no cluster star existed until a sector was filled, 1e5 to 6e5 systems at a time near a cluster's centre. A cluster's pre-placed stars now start at its own floor, the faint edge of the horizontal branch (35 solar luminosities, row HB1 of 6.336), taken in one place so the pass, the fill's count of placed stars and the fill's luminosity cap agree. A 2e5 solar mass cluster gets 346 stars, 154 of them on the horizontal branch with the colour its metallicity gives, and no star is drawn twice; the dim main sequence stays on demand. Other populations and the galaxy floor are unchanged. Blue stragglers are the cluster pass's GEN.326.
+
+generation-output: changed
+generation-affects: plan
+
+## [8.0.4822+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Galaxy Map: the wheel reaches any star you can pick, and opens its system
+
+### Fixed
+
+- MAP.434: the wheel stalled short of the star it was aimed at. At the floor of the zoom range (the view's distance cannot shrink any more) a step moved nothing, because the camera was carried toward the pointed-at thing only by the share the zoom shrank. The share the floor takes from a step is now made up by moving the camera along the ray to that thing (it stays under the pointer), so the wheel arrives at the star. A faint, drawn, pickable star stopped the wheel 9.4 pc short of it before.
+- MAP.435: the wheel could not open the system of a drawn star that lies in a block next to the open sector (the open sector held none of its stars, so there was nothing to enter). The wheel now enters the system of the drawn star under the pointer when the open sector has none near it (`drawnSystemNear`, and `host.systemHref` for its page).
+
+### Changed
+
+- `test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system` aims at a star the map draws and can pick (`galaxyPickableStars`), followed by its system's id as the camera comes in, and skips with its reason when the map never draws that star; the system-handover tests wait for the camera to rest between ticks, as the wheel's steps now carry on at the floor and ticks sent faster than the camera outrun the system scene's load.
+- `test_web_browser_fixture_maps.py` reads the address without `whole=1` (the flag the tests add to open the whole galaxy, MAP.189, which the address keeps): four tests of the address (`window_stage_zooms_in_and_back_out`, `opens_a_sector_in_place`, `opens_an_uncharted_sector...`, `back_forward_and_url_state`) were red on main since MAP.189 for that one flag.
+
+## [8.0.4821+db279.gen150.api14] - 2026-11-27
+
+**Headline:** Cache warm-up: a few pages that do not answer are named and the warm-up goes on
+
+### Fixed
+
+- OPS.312: the cache warm-up held at Warm phenomena for good because two pages did not answer (a black hole page answered 404, a rogue planet page 502), the family failed and the search phase never ran. A page that does not answer is now asked once more, then named, with what it said, in the line of its phase on the Queue page's warm-up (and in the activity log, `warm.pages_failed`), and the warm-up goes on to its next phases. Only a unit in which no page answered at all fails, as before.
+- Probing a generated galaxy for the cause: every listed phenomenon page answered except a neutron star filed without an ID of its own (the list prints its row number, which the page cannot read); the two pages of the Queue page's warm-up are not reproduced on generated data, so the line now says what the page said.
+
+## [8.0.4820+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The giant-tilt test reads Sun-like stars, so it finds its four gas giants again.
+
+### Fixed
+- `test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only` searched seeds 7100 to 7400 of random stars and ran out of seeds with one gas giant (a random star is mostly a red dwarf, and the star mix moved with the Train 62 mass function). The sweep now asks for a Sun-like star (G2V, no companion): 100 systems hold 10 gas giants and 29 giants (8 and 28 before Train 62), so the giant rate did not fall, and the test passes in 24 minutes under load instead of reading 300 systems for 50. The clause and the four giants of each kind it needs are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4819+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The planet physics tests' host star no longer changes with the test order
+
+### Fixed
+
+- TEST.839: `test_surface_temperature_never_drops_below_the_cosmic_background[20.0]` failed under `pytest-randomly` for some orders (seeds 17 and others on main). The cause was the module's `host_star` fixture: it drew the star outside any stream, so it took whatever the process run stream held when the first test of the file asked for it. A different age and luminosity changed the heat a 20 Earth-mass planet radiates (326 K for a young star against 43 to 85 K for an older one) and whether the draw is a giant ("g") or a smaller body with an envelope ("t"). The star is now drawn on its own named stream at the Sun's age and mass. No product change, no bound loosened, no retry.
+
+generation-output: unchanged
+
+## [8.0.4818+db279.gen150.api14] - 2026-11-26
+
+**Headline:** The zone mix test counts planets, not the belt members promoted to planets
+
+### Fixed
+
+- TEST.838: `test_zone_mix_is_spread` counted the ten heaviest round bodies of every belt that GEN.1510 (11-11) promotes to planets (they keep `belt_rank`, all cold): 553 of 837 counted bodies in a 60-system sample, and a hot share of 0.058 on main (218/3736). The test now skips them, as it skips asteroids. No product change, no band change. The hot share is still 0.181 (207/1143) against the floor of 0.20, which is a generation question (GEN.1858), not part of this fix.
+
+generation-output: unchanged
+
 ## [8.0.4817+db279.gen150.api14] - 2026-11-26
 
 **Headline:** `planetgen repair-db --regenerate` draws a damaged sector again from the galaxy's seed when parity cannot mend it.

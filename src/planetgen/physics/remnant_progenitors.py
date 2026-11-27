@@ -176,5 +176,5 @@ def collapse_age_gy(kind, age_bias=None, rng=draw, population=None, age_law=None
         return floor
     formed_gy = stellar_evolution.remnant_formation_time_gy(progenitor)
     window_low = max(window_low, formed_gy)
-    born_gy = rng.uniform(window_low, window_high) if age_law is None else age_law.sample(window_low, window_high, rng)
+    born_gy = stellar_evolution.draw_age_gy(window_low, window_high, rng, age_law)
     return max(born_gy - formed_gy, floor)

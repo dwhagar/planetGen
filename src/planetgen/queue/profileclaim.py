@@ -28,6 +28,7 @@ kind that once ran on a toy galaxy, a unit that did nothing) cannot starve a sta
 **Never blocks a job**: any failure gives `None`, the typed path.
 """
 
+import datetime
 import json
 import math
 import os
@@ -47,6 +48,8 @@ MARGIN_AT_FULL = 1.10
 MAX_MOVE = 0.25
 SHAPE_TOLERANCE = 0.10
 KEEP_CHANGES = 100
+STALE_AFTER_DAYS = 14
+"""int: A kind that no table names (a stage or a name nothing emits any more) is not current once its newest sample is older than this many days (OPS.316)."""
 PROVEN_SAMPLES = WINDOW
 """int: The finished units from this machine shape and epoch that make a kind proven (OPS.250): a full window."""
 CLAMP = 4.0
@@ -227,10 +230,35 @@ def clear(conn, kind, who="an admin"):
     return removed
 
 
+def is_current(kind, pinned=False, last_sample=None, now=None):
+    """
+    OPS.316: whether a job kind is one the code still emits. A pinned kind always is (an admin set it). A `unit:` or `cut:` kind is current while its command is registered
+    (`commands.REGISTRY`; a unit also while it is not inline), an `api:` or `fn:` kind while it has a typed claim, and any other kind (`stage:<key>`, whose keys come from the run's
+    plan, or a name from an older release) while its newest sample, a UTC text, is no older than `STALE_AFTER_DAYS`.
+    """
+    from planetgen.queue import claims, commands
+    if pinned:
+        return True
+    prefix, _, name = kind.partition(":")
+    if prefix == "unit":
+        return name in commands.REGISTRY and not commands.spec(name).inline
+    if prefix == "cut":
+        return name in commands.REGISTRY
+    if prefix in ("api", "fn"):
+        return claims.typed_mb(kind) is not None
+    if not last_sample:
+        return False
+    try:
+        seen = datetime.datetime.strptime(str(last_sample)[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp()
+    except ValueError:
+        return False
+    return (time.time() if now is None else now) - seen <= STALE_AFTER_DAYS * 86400.0
+
+
 def overview(conn):
     """
     What the page shows (OPS.158): `{"self_tuning", "kinds", "changes"}`. A kind is every one that has a settled figure, a pin or profile rows: `kind`, `typed_mb`, `figure_mb` (what a run
-    claims from the profile now), `proven` (OPS.250: the profile leads, the typed figure is the default and the clamp), `pinned_mb`, `samples`, `last_sample` (UTC text) and `changed` (the newest change made to it). The kinds come out sorted by name.
+    claims from the profile now), `proven` (OPS.250: the profile leads, the typed figure is the default and the clamp), `pinned_mb`, `samples`, `last_sample` (UTC text), `changed` (the newest change made to it) and `current` (OPS.316: whether code still emits the kind, `is_current`). The kinds come out sorted by name.
     """
     from planetgen.queue import claims
     kinds = {}
@@ -257,7 +285,8 @@ def overview(conn):
         entry = kinds[name]
         newest = next((c for c in recent if c["kind"] == name), None)
         rows.append({"kind": name, "typed_mb": claims.typed_mb(name), "figure_mb": entry.get("figure_mb"), "pinned_mb": entry.get("pinned_mb"),
-                     "proven": entry.get("proven", False), "samples": entry.get("samples", 0), "last_sample": entry.get("last_sample"), "changed": newest})
+                     "proven": entry.get("proven", False), "samples": entry.get("samples", 0), "last_sample": entry.get("last_sample"), "changed": newest,
+                     "current": is_current(name, bool(entry.get("pinned_mb")), entry.get("last_sample"))})
     return {"self_tuning": enabled(), "kinds": rows, "changes": recent[:20]}
 
 

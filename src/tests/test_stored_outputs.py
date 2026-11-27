@@ -25,6 +25,7 @@ HOMES = {
     "life_living": "`planet_life` and `moon_life`, the living species a body carries",
     "life_ages": "`planet_life_ages` and `moon_life_ages` (GEN.1746 slice 3): the stretches of a body's life between mass extinctions, one row each",
     "life_adaptations": "`planet_adaptations` and `moon_adaptations` (GEN.1809): the adaptations the life of a body needed, one row each (`adaptation_record`, GEN.1808)",
+    "exosphere": "`planet_exosphere` and `moon_exosphere` (GEN.455 part B): the species an airless body lets go of, one row each",
     "reflection_spectrum_visible": "`planet_reflection_spectrum` and `moon_reflection_spectrum`",
     "reflection_spectrum_non_visible": "`planet_reflection_spectrum` and `moon_reflection_spectrum`",
     "isotopes": "`planet_isotopes` and `moon_isotopes`",

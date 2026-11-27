@@ -119,3 +119,43 @@ def test_the_search_page_lists_a_free_moon_with_its_rogue_planet(world):
         assert [parent["kind"] for parent in row["parents"]] == ["sector", "rogue_planet"]
     finally:
         conn.close()
+
+
+@pytest.fixture
+def client(mysql_config):
+    """The API's test client on the test database."""
+    from planetgen.api.config import Config
+    from planetgen.web.app import create_app
+
+    class TestConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+
+    app = create_app(TestConfig)
+    app.testing = True
+    return app.test_client()
+
+
+def test_a_free_moon_has_a_description_of_its_own(world, client):
+    """UX.138: the API writes the words of a moon of a free planet, one section for the moon, and says 404 for what is no such moon."""
+    from tests.publicids import pid
+
+    _config, _sector_id, _rogue_id, moon_ids = world
+    document = client.get(f"/api/moons/{pid('moon', moon_ids[0])}/description").get_json()
+    assert document["kind"] == "moon" and len(document["sections"]) == 1
+    assert document["ref"] == f"moon:{pid('moon', moon_ids[0])}"      # the reference is the printed ID, as in a system description
+    piece = document["sections"][0]
+    assert piece["kind"] == "moon" and piece["title"]
+    assert any(block["type"] == "facts" for block in piece["blocks"])
+    assert client.get("/api/moons/999999999/description").status_code == 404
+
+
+def test_the_page_of_a_free_moon_shows_its_description(world, client):
+    """UX.138: the page of a moon of a free planet draws, with the sections a moon of a system has (it failed on the habitability group of its sheet before)."""
+    from tests.publicids import pid
+
+    _config, _sector_id, _rogue_id, moon_ids = world
+    page = client.get(f"/object/moon:{pid('moon', moon_ids[0])}")
+    assert page.status_code == 200
+    assert b"Orbits the free planet" in page.data      # drawn, with the free planet it circles
