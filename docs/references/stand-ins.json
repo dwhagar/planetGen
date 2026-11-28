@@ -14243,11 +14243,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows)"
+              "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows) and STEAM_FALL_START_K 300 (the start of the second solve of a steam-start body whose hot branch has no steady state, GEN.1864: it has cooled through the critical point of water and its ocean has condensed)"
             ],
             [
               "The range it moves in",
-              "start 1200 to 2000 (it only picks the branch)"
+              "start 1200 to 2000 (it only picks the branch); fall start 250 to 330"
             ],
             [
               "Where it holds",
@@ -14274,7 +14274,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows)"
+          "what": "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows) and STEAM_FALL_START_K 300 (the start of the second solve of a steam-start body whose hot branch has no steady state, GEN.1864: it has cooled through the critical point of water and its ocean has condensed)"
         },
         {
           "burn_down": [

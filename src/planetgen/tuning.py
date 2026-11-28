@@ -1186,6 +1186,11 @@ RUNAWAY_START_TEMPERATURE_K = 1500.0
 """float: The temperature the air's fixed point starts from for a body with surface water under starlight past its runaway greenhouse limit (GEN.1238), so it
 finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
 
+STEAM_FALL_START_K = 300.0
+"""float: The temperature the air's fixed point is solved again from when a body that began on the steam branch (`RUNAWAY_START_TEMPERATURE_K`) has no hot steady state, its air not settling (the answers cross the iterate at a jump) over the
+critical temperature of water (GEN.1864): the body has cooled through it and its ocean has condensed, so the cool air is the answer. A start in the middle of the liquid range, not a result (the fixed point moves off it; the steam worlds
+of the key scan of GEN.1864 gave the same cool air from 300 K and from the 1,000 K and 1,500 K starts). DESIGN stand-in, tier educated guess from physics, tweak L0."""
+
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
 surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
