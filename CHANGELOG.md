@@ -2,6 +2,65 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4856+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The remake-after-an-orbit-change test keeps drawing systems until it has seen a moon carried to a new orbit, so it no longer depends on six seeds holding one.
+
+### Fixed
+- **`test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_present_state_out_again` failed on main with `'period' not in` the fields that moved (TEST.855).** A planet's own period does not move when the test pushes its distance out 12 percent and makes it again; the period that moves belongs to a moon the tide carries to a new orbit in the remake (`moon_history.apply` through `move_orbit`). The six seeds the test drew held such a moon on 11-17 (seed 2) and no longer do (seed 0 has one moon, already settled), so the check on the period failed with no fault in the product: moon numbers over 30 seeds are 33 on 519 rocky planets now against 32 on 403 on 11-17, and seed 7 shows the period move. The test now draws at least six seeds and goes on, to 40, only while the period, the temperature or the orbital speed has not yet been seen to move; the birth-field checks run on every body it draws. A seventh seed brought a second fault of the test: it held each solid fraction to 1e-6 of its first value, but the air takes its share out of the solids, and a planet with 3e-6 of its mass in air moves them by that much (`rock_mass_fraction` 0.7499969 against 0.75). A solid and the envelope are now held to the air's own share, before or after, which is what `envelope_share.fill` does; the air's helium and heavy-element shares keep 1e-6.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4855+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The test that no lifeless oxygen world is drawn over 95 percent oxygen no longer demands the oxygen tail that a bookkeeping error had made.
+
+### Fixed
+- `test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen` failed on main since Train 52 (GEN.1891): its lower bound (some draw over 0.5) pinned the oxygen the volcanic gas's own carbon dioxide and sulfur dioxide had left free until GEN.1769 slice 2 (14 of 300 draws over half oxygen, top 0.92). The 95 percent cap, which is the accuracy clause, is unchanged and holds with room (top 0.31); the lower bound, which only guards against a vacuous sample, is 0.25 with the physics stated in the test (the photolysis oxygen that stays is 1 to 10 percent of what the water gives, against 0.01 to 0.2 carbon per water molecule).
+
+generation-affects: none
+
+## [8.0.4854+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The exobase of an air, solved 17,000 times in the loss histories of one wide binary's planets, is now compiled with the same bits as the Python solve.
+
+### Changed
+
+- PERF.291: `thermosphere._exobase_solved` hands its arithmetic to `physics/exobase_kernel.py`, the same lines compiled. A square written `x ** 2` is CPython's library `pow`, which the compiler folds to `x * x` (a different last bit for about one value in a thousand), so the squares go through `math.pow(x, two)` with the exponent passed in. The answers are equal (`==`) on all 20,326 calls recorded from a generated wide binary, on 6,000 random airs, on a hot air that never closes and a cold one that closes at once (`tests/test_exobase_kernel.py` keeps the Python solve as the reference), and `kept_shares` over 300 real airs is equal. The loss history of an air takes 7.7 ms instead of 10.3 ms. The kernel is imported when the solve is called, so the web app never loads numba.
+
+generation-output: unchanged
+
+## [8.0.4853+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The cut of a k-distribution at the g edges, one fifth of the time a wide binary's planets take to generate, is now compiled, with the same bits as before.
+
+### Changed
+
+- PERF.291: `datasets.ir_ktables.reduce_distribution` (read by every infrared optical depth: `line_opacity.layer_depth`, `resort`, the air history's starlight aloft) hands the cut to `physics/ktable_kernel.py`, a compiled loop over the order numpy's own `argsort` gives, adding in the same order in float64 with no fast-math. On 400 real calls from a generated wide binary the answers are equal to the last bit (`array_equal`), and `tests/test_ktable_kernel.py` holds that on random rows with ties, runs of zeros, float32 rows and any leading shape. The cut took 17 s of 54 s for one wide G2V binary with comets on (1,416 calls, 12 ms each) and now takes 2.8 s; the system takes 39.8 s. The comets were never the slow step (their draws cost 0.01 s); the time is the GEN.1745 air history's anchor solves. The kernel module follows `radiative_kernel`: it is imported when the cut is called, so the web app never loads numba (`test_the_web_app_never_imports_numba`).
+
+generation-output: unchanged
+
+## [8.0.4852+db280.gen150.api14] - 2026-11-28
+
+**Headline:** the galaxy map camera preset test waits for the window's turn to end instead of reading the tilt early.
+
+### Fixed
+- **`test_galaxy_map_camera_presets_at_each_zoom_step` failed about four runs in five.** The test read the camera's tilt as soon as `_settle` returned, and `_settle` waits on the scale bar, which follows only the camera's distance. The last window's preset is a turn of the view that ends a third of a second later, so the test saw 59.7 degrees (the 5 degree manual turn of the step before added to the preset's 54.7) and the camera then held 54.7 as the preset says. The presets are right; the test now waits for the tilt to reach the preset (up to 8 s) before it asserts, and a turn that really carried over would still stay put and fail.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4851+db280.gen150.api14] - 2026-11-28
+
+**Headline:** the GEN.1554 zone-edge sweep script is back in scripts/ and works on the current generator.
+
+### Added
+- **`scripts/gen1554_zone_edge_sweep.py`.** It draws seeded M5V, M2V, K5V, K0V and G2V systems and tables their terrestrial worlds by incident flux and by position in the habitable zone. The earlier copy was not in the repository and read `system.planets`, which a system no longer has, so a run drew every system and kept nothing. It now lists the primary star's planets through the host's orbiters, prints progress every 10 systems and keeps a partial file. The rerun on main is in `reports/gen1554-rerun-2026-11-27/`.
+
+generation-affects: none
+generation-output: unchanged
+
 ## [8.0.4850+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The version-key tests start each test with the console log at normal severity, so a test that asked for `--debug` can no longer put SQL lines in front of the next test's run line

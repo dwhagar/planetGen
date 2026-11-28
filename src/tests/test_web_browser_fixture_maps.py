@@ -2838,6 +2838,20 @@ def test_galaxy_map_draws_no_blocks_unless_the_cell_grid_or_a_fill_is_on(page, m
 CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
 
 
+def _camera_tilt_after_flight(page, target, seconds=8.0):
+    """TEST.848: the camera's tilt once it has come to `target` degrees, or what it holds after `seconds` if it never does. `_settle`
+    waits on the scale bar, whose width follows only the camera's distance, and a window's preset is a turn of the view that can end
+    (or start) after the bar has stopped: the last window was read at 59.7 degrees, the manual turn of the step before, and held
+    54.7 a third of a second later. A turn that really carried over would stay where it is and fail here at the end of the wait."""
+    tilt = None
+    for _ in range(int(seconds / 0.1)):
+        tilt = page.evaluate(CAMERA)["tilt"]
+        if abs(tilt - target) <= 0.5:
+            break
+        page.wait_for_timeout(100)
+    return tilt
+
+
 def test_galaxy_map_turns_past_edge_on_and_under_the_plane(page, map_site):
     """MAP.96 (MAP.378): the view turns any way by any amount: past 80 degrees,
     through edge-on and under the plane, and the camera keeps its place and its zoom (the galaxy is what it draws, MAP.337)."""
@@ -2869,8 +2883,8 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     _open_galaxy(page, map_site)
     seen = []
     for _ in range(12):
-        tilt = page.evaluate(CAMERA)["tilt"]
         windowed = bool(_stage(page)["win"])
+        tilt = _camera_tilt_after_flight(page, iso if windowed else 0)
         seen.append((windowed, round(tilt, 1)))
         assert tilt == pytest.approx(iso if windowed else 0, abs=0.5), (tilt, seen)
         if windowed:
@@ -2882,13 +2896,13 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     assert seen[0][0] is False and sum(1 for windowed, _ in seen if windowed) >= 2, seen
     # Back out: each step flies back to its own preset.
     _open_window(page, map_site, 27, 27, 0, 0)
-    assert page.evaluate(CAMERA)["tilt"] == pytest.approx(iso, abs=0.5)
+    assert _camera_tilt_after_flight(page, iso) == pytest.approx(iso, abs=0.5)
     page.locator(GALAXY_CANVAS).focus()
     for _ in range(3):  # 27, 81, 243 and the galaxy
         page.keyboard.press("Escape")
         _settle(page)
     assert _crumbs(page) == ["Galaxy"]
-    assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
+    assert _camera_tilt_after_flight(page, 0) == pytest.approx(0, abs=0.5)
 
 
 # --- MAP.80: every star of the sector at sector zoom ------------------------------------
