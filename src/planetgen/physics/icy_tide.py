@@ -53,7 +53,7 @@ MIN_FLUX_W_M2 = 1.0e-6
 """float: The least heat flux the shell is given, W/m2 (`hydrosphere` uses the same floor)."""
 
 MEMBRANE_FACTOR = 2.0
-"""float: `8 (1 + nu) / (5 + nu)` of the membrane parameter of a thin shell on an ocean (Beuthe 2015, [R5376], Eq. 71 and Table 5, read in the arXiv text), for the Poisson ratio `nu = 1/3` of cold ice: 2. Source tier T1, tweak level L0."""
+"""float: `8 (1 + nu) / (5 + nu)` of the membrane parameter of a thin shell on an ocean ([R5376: Eq. 71] and Table 5, read in the arXiv text), for the Poisson ratio `nu = 1/3` of cold ice: 2. Source tier T1, tweak level L0."""
 MIN_SHELL_FLUX_W_M2 = MIN_FLUX_W_M2
 """float: The flux below which the shell's thickness is not worked out (it is thicker than the body, and `membrane_parameter` takes the whole radius)."""
 
@@ -74,7 +74,7 @@ def membrane_parameter(mass_kg, radius_m, flux_w_m2, top_k, base_k=aquifers.WATE
 
 
 def tide_response(h2, parameter):
-    """The radial Love number of a shell of membrane parameter `parameter` on an ocean whose fluid response is `h2`: `h2 / (1 + h2 Lambda)` (Beuthe 2015, [R5376], the static membrane limit)."""
+    """The radial Love number of a shell of membrane parameter `parameter` on an ocean whose fluid response is `h2`: `h2 / (1 + h2 Lambda)` ([R5376], the static membrane limit)."""
     return h2 / (1.0 + h2 * parameter)
 
 
@@ -103,15 +103,15 @@ def love_k2(mass_kg, radius_m, frequency_rad_s):
 
 
 CORE_ROCK_DENSITY_KG_M3 = 2500.0
-"""float: The bulk density of the rocky core of a small icy body (Choblet 2017, [R5377], supplement Table S1: 2500 kg/m3, a porous silicate rubble). Source tier T1, tweak level L0."""
+"""float: The bulk density of the rocky core of a small icy body ([R5377: supplement Table S1]: 2500 kg/m3, a porous silicate rubble). Source tier T1, tweak level L0."""
 CORE_SHELL_DENSITY_KG_M3 = 1000.0
 """float: The mean density of what lies over the core, the ice shell and the ocean (925 and 1030 kg/m3 in [R5377], supplement Table S1), used to find the core's radius from the body's mean density. Source tier T2, tweak level L0."""
 CORE_RIGIDITY_PA = 1.6e7
-"""float: The effective shear modulus of an unconsolidated rocky core at the central pressure `CORE_REFERENCE_PRESSURE_PA` (Choblet 2017, [R5377], supplement: `mu_eff` fixed to 1.6e7 Pa, "an equivalent result" for 0.3 GPa). Source tier T1, tweak level L0."""
+"""float: The effective shear modulus of an unconsolidated rocky core at the central pressure `CORE_REFERENCE_PRESSURE_PA` ([R5377: supplement]: `mu_eff` fixed to 1.6e7 Pa, "an equivalent result" for 0.3 GPa). Source tier T1, tweak level L0."""
 CORE_DISSIPATION = 0.5
-"""float: The inverse quality factor of that core, `1 / Q` (Choblet 2017, [R5377], supplement: fixed to 0.5, a very dissipative core with 0.2 to 0.8 explored). Source tier T1, tweak level L0."""
+"""float: The inverse quality factor of that core, `1 / Q` ([R5377: supplement]: fixed to 0.5, a very dissipative core with 0.2 to 0.8 explored). Source tier T1, tweak level L0."""
 CORE_REFERENCE_PRESSURE_PA = 3.0e7
-"""float: The central pressure of Enceladus's core, `(2 pi / 3) G rho^2 R^2` for 2500 kg/m3 and 186 km (Choblet 2017, [R5377], supplement Table S1), where `CORE_RIGIDITY_PA` holds; a rubble's shear modulus grows as the cube root of the confining pressure (Hertz-Mindlin contacts). Source tier T5, tweak level L0."""
+"""float: The central pressure of Enceladus's core, `(2 pi / 3) G rho^2 R^2` for 2500 kg/m3 and 186 km ([R5377: supplement Table S1]), where `CORE_RIGIDITY_PA` holds; a rubble's shear modulus grows as the cube root of the confining pressure (Hertz-Mindlin contacts). Source tier T5, tweak level L0."""
 CORE_CONSOLIDATION_PA = 1.0e8
 """float: The central pressure at which a silicate rubble core is compacted and welded into rock, taking its tide out of this model (a core of a Europa's size, 1e9 Pa, is rock): the rubble's share falls as `exp(-P / this)`, the form of Athy's compaction law for porosity. Source tier T6, tweak level L1 (compaction of silicate rubble begins at tens of MPa and is complete by a few hundred)."""
 CORE_COUPLING = 0.37

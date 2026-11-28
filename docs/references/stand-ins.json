@@ -15175,11 +15175,11 @@
           "fields": [
             [
               "What it is",
-              "icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock CORE_ROCK_DENSITY_KG_M3 2500 over a shell of 1000, [R5377] supplement Table S1), of rigidity CORE_RIGIDITY_PA 1.6e7 Pa at its central pressure CORE_REFERENCE_PRESSURE_PA 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and CORE_DISSIPATION 1/Q 0.5 ([R5377] supplement, read verbatim), its rubble share exp(-P / CORE_CONSOLIDATION_PA) of 1e8 Pa (Athy compaction), and CORE_COUPLING 0.37 of what an isolated sphere dissipates"
+              "icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock CORE_ROCK_DENSITY_KG_M3 2500 over a shell of 1000, [R5377: supplement Table S1]), of rigidity CORE_RIGIDITY_PA 1.6e7 Pa at its central pressure CORE_REFERENCE_PRESSURE_PA 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and CORE_DISSIPATION 1/Q 0.5 ([R5377: supplement], read verbatim), its rubble share exp(-P / CORE_CONSOLIDATION_PA) of 1e8 Pa (Athy compaction), and CORE_COUPLING 0.37 of what an isolated sphere dissipates"
             ],
             [
               "The range it moves in",
-              "1/Q 0.2 to 0.8 and rigidity 1.6e7 to 3e8 Pa ([R5377]); coupling 0.1 to 1; consolidation 3e7 to 3e8 Pa"
+              "1/Q 0.2 to 0.8 and rigidity 1.6e7 to 3e8 Pa [R5377]; coupling 0.1 to 1; consolidation 3e7 to 3e8 Pa"
             ],
             [
               "Where it holds",
@@ -15195,7 +15195,7 @@
             ],
             [
               "Evidence",
-              "Enceladus 2.1e10 W against 1.6e10 W radiated and a shell of 28 km (20 to 40 km observed); the coupling is the one number set to [R5377]'s 20 GW; the dissipation law is Peale's standard one with the numbers of [R5377]'s supplement, because its main text (the paper's own law and eccentricity) was not read"
+              "Enceladus 2.1e10 W against 1.6e10 W radiated and a shell of 28 km (20 to 40 km observed); the coupling is the one number set to [R5377]'s 20 GW; the dissipation law is Peale's standard one with the numbers of [R5377: supplement], because its main text (the paper's own law and eccentricity) was not read"
             ]
           ],
           "id": "IC8",
@@ -15206,7 +15206,7 @@
           "tier_code": "T6",
           "tweak": "L2",
           "unread": null,
-          "what": "icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock CORE_ROCK_DENSITY_KG_M3 2500 over a shell of 1000, [R5377] supplement Table S1), of rigidity CORE_RIGIDITY_PA 1.6e7 Pa at its central pressure CORE_REFERENCE_PRESSURE_PA 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and CORE_DISSIPATION 1/Q 0.5 ([R5377] supplement, read verbatim), its rubble share exp(-P / CORE_CONSOLIDATION_PA) of 1e8 Pa (Athy compaction), and CORE_COUPLING 0.37 of what an isolated sphere dissipates"
+          "what": "icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock CORE_ROCK_DENSITY_KG_M3 2500 over a shell of 1000, [R5377: supplement Table S1]), of rigidity CORE_RIGIDITY_PA 1.6e7 Pa at its central pressure CORE_REFERENCE_PRESSURE_PA 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and CORE_DISSIPATION 1/Q 0.5 ([R5377: supplement], read verbatim), its rubble share exp(-P / CORE_CONSOLIDATION_PA) of 1e8 Pa (Athy compaction), and CORE_COUPLING 0.37 of what an isolated sphere dissipates"
         }
       ],
       "slug": "6-23-stand-ins-of-the-tidal-rheology",
