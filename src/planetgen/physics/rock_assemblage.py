@@ -15,8 +15,8 @@ oxides** (`rock_types.cipw_norm`), each normative mineral on the row of the mate
 
 Nothing in it is a number measured on a rock: the shares follow from the oxides by mass balance. The limits are those of the norm and of the staged melt (`rock_types`): an ideal
 mineral set, not the minerals a rock crystallises, and a melt that is a stage mix and not a phase-equilibrium liquid (the melt of a tenth of a mantle comes out as plagioclase and
-diopside with no orthopyroxene). Mica, amphibole and every hydrous mineral are outside the norm (the biotite of the `felsic` and `intermediate` recipes is not reached). Nothing calls this
-yet: the surface draw reads the recipes until the wiring step replaces them (it changes the stored ground shares, a lock item).
+diopside with no orthopyroxene). Mica, amphibole and every hydrous mineral are outside the norm (the biotite of the `felsic` and `intermediate` recipes is not reached). The surface draw reads it for the volcanic crust (the norm of the melt of the stored mantle) and for the primary crusts of a magma ocean (`plagioclase_cumulate` floats, `mafic_cumulate` sinks and overturns); only the felsic and
+oxidized grounds are still recipes (`surface_composition.GROUND_TYPES`).
 
 Use:
 
@@ -68,3 +68,26 @@ def assemblage(oxides):
     if mapped <= 0.0:
         raise ValueError("no mineral of the norm has a row")
     return {name: value / mapped for name, value in shares.items() if value > 0.0}, max(1.0 - mapped / total, 0.0)
+
+
+def plagioclase_cumulate(oxides):
+    """
+    The assemblage of the primary flotation crust of a magma ocean of this rock: the plagioclase of its norm (albite and anorthite) alone, as shares adding to 1. The plagioclase crystallises
+    in the ocean and floats, every grain of it, with no melt trapped among the crystals (an ideal separation: Hu's lunar anorthosite holds 3 percent diopside, stand-in 6.45 AS1). A rock with no
+    plagioclase in its norm (no alumina) has no flotation crust to make; its assemblage is the whole norm's.
+    """
+    shares, _unmapped = assemblage(oxides)
+    plagioclase = {name: shares[name] for name in rock_types.PLAGIOCLASE if name in shares}
+    total = sum(plagioclase.values())
+    return {name: value / total for name, value in plagioclase.items()} if total > 0.0 else shares
+
+
+def mafic_cumulate(oxides):
+    """
+    The assemblage of the primary crust a magma ocean's overturn brings up: the norm of the rock less the plagioclase that floated away (`plagioclase_cumulate`), as shares adding to 1. The
+    dense cumulates, olivine and the pyroxenes, sink, overturn and surface; the same ideal separation as the flotation crust (stand-in 6.45 AS1). A norm that is all plagioclase is returned whole.
+    """
+    shares, _unmapped = assemblage(oxides)
+    rest = {name: value for name, value in shares.items() if name not in rock_types.PLAGIOCLASE}
+    total = sum(rest.values())
+    return {name: value / total for name, value in rest.items()} if total > 0.0 else shares
