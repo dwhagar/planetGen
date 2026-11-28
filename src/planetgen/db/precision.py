@@ -142,7 +142,7 @@ _FRAME_REACH = {"galaxy": "galaxy-edge", "sector": "sector"}
 
 _SEPARATION_WORDS = ("distance", "separation", "periapsis", "apoapsis", "perihelion", "orbit_distance", "reflex_offset",
                      "wobble", "min_orbit", "habitable_zone", "lower_limit", "upper_limit", "a_crit",
-                     "binary_primary_position", "binary_secondary_position", "binary_mutual_position", "impact_parameter")
+                     "impact_parameter")
 _DERIVED = {("nearest_systems", "distance_pc"), ("system_owners", "distance_ly")}
 _RECORDED = {("body_history", "formation_distance_au"), ("body_history", "birth_distance_au"), ("lost_moons", "birth_distance_au")}
 """set: The `(table, column)` pairs of the numbers the generator drew for a body and `body_history` keeps to run its history again (GEN.1753): where the body formed and the orbit a moon was born on. They are read back as

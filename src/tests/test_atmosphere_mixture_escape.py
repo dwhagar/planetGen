@@ -128,4 +128,10 @@ def test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen():
         top = max(top, result.mole_fractions.get("O2", 0.0))
         assert sum(result.mole_fractions.values()) == pytest.approx(1.0)
     assert airless <= 15
-    assert 0.5 < top <= 0.95 + 1e-12
+    # The cap (95 percent, `mixture_oxygen.ABIOTIC_O2_MAX`) is the accuracy clause. The lower bound only guards against a vacuous sample, and it is what the physics leaves:
+    # since GEN.1769 slice 2 the oxygen a volcanic gas has beyond its water, carbon dioxide and sulfur dioxide stays per carbon atom and the oxygen of the replacing carbon
+    # and sulfur follows them, so the gas's own oxygen is no longer left free (it had put 14 of these 300 draws over half oxygen, top 0.92). What is left is the oxygen the water's
+    # photolysis leaves: the hydrogen of up to 100 percent of the ocean is lost, but 90 to 99 percent of the oxygen goes with it ([R3946: Sec. 5.2], `OXYGEN_ESCAPE`), against
+    # 0.01 to 0.2 carbon per water molecule, so oxygen reaches tens of percent only in the few draws with the most hydrogen lost, the least oxygen escaped and the least carbon
+    # (seed 178: 0.98 of the water photolysed, 0.94 of the oxygen escaped, 0.02 carbon per water: 0.31; 6 of 300 draws are over 0.1).
+    assert 0.25 < top <= 0.95 + 1e-12

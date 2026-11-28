@@ -126,6 +126,22 @@ def test_a_wolf_rayet_star_builds_a_system_and_rebuilds_from_its_record():
         assert not [p for p in system.primary.orbiters if p.body_type != "a"]  # too young for planets
 
 
+def test_a_star_holds_no_planets_from_the_registered_host_mass_up_and_an_explicit_request_overrides_it():
+    """GEN.1866: the cut is `tuning.PLANET_HOST_MAX_MASS_SOLAR` of birth mass, a close pair's is its primary's, and a named slot list keeps what it asked for."""
+    from types import SimpleNamespace
+    draw.set_run_seed(5)
+    t_ms, t_end = _window(60.0)
+    age = 0.5 * (wolf_rayet.start_gy(60.0, t_ms, t_end) + t_end)
+    params = evolution.star_params(60.0, age, evolution.evolve_star(60.0, age, fe_h=0.0))
+    system = StarSystem(system_config=SystemConfig(), primary_star_params=params)
+    cut = tuning.PLANET_HOST_MAX_MASS_SOLAR
+    assert system._too_massive_for_planets(SimpleNamespace(initial_mass_sol=cut, mass=0.0))
+    assert not system._too_massive_for_planets(SimpleNamespace(initial_mass_sol=cut * 0.999, mass=0.0))
+    assert system._too_massive_for_planets(system.primary.star)
+    system.system_config.FORCE_CLASS = "M"
+    assert not system._too_massive_for_planets(system.primary.star)
+
+
 @pytest.mark.parametrize("subtype, age_fraction, low, high", [("WN", 0.2, 0.44, 0.60), ("WC", 0.75, 0.82, 0.96)])
 def test_the_companions_are_those_of_the_dsilva_survey(subtype, age_fraction, low, high):
     """52% of WN and 90% of WC stars have a companion (`tuning.WR_COMPANION_CHANCE`)."""

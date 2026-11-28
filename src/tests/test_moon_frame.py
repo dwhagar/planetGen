@@ -107,3 +107,16 @@ def test_moving_a_moon_or_making_its_ellipse_again_keeps_it_in_its_planets_equat
     planets.move_orbit(moon, moon.distance * 1.1, planet.mass)
     assert _angle_deg(_orbit_normal(moon), _axis(planet)) == pytest.approx(inclination, abs=1.0e-6)
     assert moon.build.frame_axis is not None
+
+
+def test_a_moons_orbit_settling_leaves_its_star_exposure_at_its_hosts_distance(giants, monkeypatch):
+    """The light a moon gets is its host's, so `settle_orbit` on a moon (its eccentricity worn at the final age) never sets its exposure from the moon's own, tiny, distance from its planet
+    (Train 64: a belt planet's moon, made whole, was given 0.000148 AU as its star distance and a surface temperature a sweep read as 3,133 K)."""
+    planet = next(p for p in giants if p.moons)
+    moon = planet.moons[0]
+    moon.build.star_distance_au = 4.66
+    moon.build.orbit_birth = moon.build.orbit_birth or object()
+    moon.eccentricity = 0.3
+    monkeypatch.setattr(planets.orbit_elements, "settled_eccentricity", lambda *args, **kwargs: 0.0)
+    assert planets.settle_orbit(moon) is True
+    assert moon.eccentricity == 0.0 and moon.build.star_distance_au == 4.66

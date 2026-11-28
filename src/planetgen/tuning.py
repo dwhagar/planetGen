@@ -503,7 +503,7 @@ COMPANIONS_PER_DECADE_BY_PRIMARY_MASS = (
 )
 
 # S-type binary separation is drawn from the companions-per-decade lines above (GEN.448), from this lower bound,
-# the top of the close/P-type BinaryStarProxy separation range (0.05-0.25 AU), so the two configurations'
+# the top of the close/P-type PairHost separation range (0.05-0.25 AU), so the two configurations'
 # separations never overlap.
 # The upper bound is not a constant: a pair survives only inside the
 # widest axis its place allows (GEN.103, `generation.place_terms.
@@ -1163,6 +1163,10 @@ PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
 DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6))
+PLANET_HOST_MAX_MASS_SOLAR = 10.0
+"""float: The birth mass of a star at and above which it holds no planets (GEN.1866, registry row PH1 of 6.338): 10 solar masses, the upper edge of the hosts seen. b Cen (AB) (6 to 10 solar masses, one giant at 556 AU) and mu2 Sco
+(about 9) are the heaviest stars with a planet found, and the radial-velocity occurrence of giants falls off above about 2.5 to 3 solar masses, so a star at the cut holds none. The decline between 3 and 10 is not modelled
+(the replacement row). A star at the cut keeps its belts, the debris of what was there. A config that asks for a class or lists its slots overrides it. Second-hand citations ([R2172, R5368, R5369, R5370]; the papers are not read). [Stand-in 6.338 PH1, tier T3, tweak L1.]"""
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface
@@ -3933,6 +3937,48 @@ SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3 = (0.001, 0.01)
 
 SUPERBUBBLE_TEMPERATURE_K = 1.0e6
 """float: The gas inside a cavity: ionized, about a million kelvin (the soft X-ray background)."""
+
+SUPERBUBBLE_DRIVING_POWER_ERG_S = 6.3e36
+"""float: The one mechanical power every bubble is driven at, erg per second (GEN.392). The mean power of the superbubbles of
+M33, within the few times 1e36 to 1e37 of the galaxies measured ([R5373], their observed means: 4.8e36 for M31, 6.3e36 for M33, 8.6e36
+for the SMC). One power for all bubbles is Boss's choice (2026-11-26, 7:42 PM EST); a stand-in, tier T6, tweak L1 (GEN.725, SB1)."""
+
+SUPERBUBBLE_DRIVING_DENSITY_CM3 = 0.5
+"""float: The ambient density of the gas a bubble expands into, particles per cm3 (GEN.392): the value [R5373] takes for its
+stall radius and luminosity. A stand-in of the row SB1 (GEN.725): the size law of a bubble's age, not the gas inside it
+(`SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3`)."""
+
+SUPERBUBBLE_MEAN_MASS_PER_PARTICLE = 1.25
+"""float: The mean mass of a particle of the ambient gas, in hydrogen masses (GEN.392): [R5373]'s mu, which turns
+`SUPERBUBBLE_DRIVING_DENSITY_CM3` into the mass density Weaver's [R5374] law is written in."""
+
+SUPERBUBBLE_WEAVER_COEFFICIENT = (250.0 / (308.0 * 3.141592653589793)) ** 0.2
+"""float: The coefficient of Weaver's [R5374] radius of a wind-blown bubble in a uniform medium, `radius = coefficient * (power *
+age ** 3 / mass density) ** (1 / 5)` in cgs units, 0.76 (GEN.392, derived: `(250 / (308 pi)) ** (1 / 5)`, eq. 24 of [R5373])."""
+
+SUPERBUBBLE_EXPANSION_LIFETIME_MYR = 40.0
+"""float: How long a bubble's driving power lasts, Myr, and so the cap on its age (GEN.392): the cluster drives it at a constant power
+until its lowest-mass supernova progenitors, about 8 solar masses, expire at about 40 Myr ([R5373], section 2.1: "a
+universal lifetime for all shells"). Row SB2 of GEN.725, tier T2, tweak L0."""
+
+SUPERBUBBLE_SCHMIDT_EXPONENT = 1.5
+"""float: The power of the gas density that the rate of star formation goes as, in a volume (the Schmidt law; GEN.392). Row SB4 of GEN.725, tier T3, tweak L0; the disk's surface law is `STAR_FORMATION_LAW_EXPONENT`, 1.4 +/- 0.15, and the two agree inside that range."""
+
+SUPERBUBBLE_SHELL_THICKNESS = 0.06
+"""float: The cooled shell's thickness over the bubble's radius, a number (GEN.392). A shell cooled to the temperature of the
+warm gas outside is compressed by the square of the shell's speed over that gas's sound speed, about `(20 / 8) ** 2` = 6, and the
+gas of the ball piled into it fills `1 / (3 * compression)` of the radius: `1 / 18` = 0.06. Row SB3 of GEN.725, tier T6, tweak L1: the one number of the shell that is chosen, not derived; the census share of young stars on a shell against 14 to
+30 percent of [R4347] is what moves it (a test target, never an input)."""
+
+SUPERBUBBLE_EDGE_SHARE = 0.25
+"""float: The half-width of the smooth edge of a bubble's shell as a share of the shell's thickness: the factor goes from the interior's
+to the shell's across `2 * share * thickness` of the radius (GEN.392; not a physical quantity: it only keeps the factor smooth, so a bound
+and a mean over a cell do not see a step; the shell's effective thickness is the plateau's)."""
+
+SUPERBUBBLE_YOUNG_AGE_WINDOW_MYR = STELLAR_POPULATION_AGE_RANGES_GY["young"][1] * 1000.0
+"""float: The age window of the young population, Myr (`STELLAR_POPULATION_AGE_RANGES_GY["young"]`, 0 to 0.1 Gy; GEN.392, derived): a
+bubble that opened `age` Myr ago has no young star younger than that, which is the share `age` over this window of them
+(the disk's rate across the window is flat to a few percent, so the ages are taken uniform)."""
 
 HVS_REFERENCE_SCALE_LENGTHS = 8000.0 / 2600.0
 """float: Galactic radius the "hypervelocity-star" density is quoted at, in the galaxy's thin disk scale lengths (the Milky

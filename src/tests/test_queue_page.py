@@ -10,6 +10,7 @@ configured/reachable; those that take `redis_server` when there is no Redis.
 """
 
 import ast
+import datetime
 import inspect
 
 import pytest
@@ -639,6 +640,51 @@ def test_the_queue_page_shows_the_learned_figures_and_the_latest_changes(admin_c
     profileclaim.pin(conn, "unit:link-neighbors", 1500.0, "boss")
     html = admin_client.get("/admin/queue").get_data(as_text=True)
     assert "What the queue has learned" in html and "unit:link-neighbors" in html and "1.5 GB" in html and "fixed by boss" in html
+
+
+def test_a_job_kind_is_current_while_code_still_emits_it_or_an_admin_fixed_it(conn):
+    from planetgen.queue import commands, profileclaim
+    unit = next(name for name, spec in commands.REGISTRY.items() if not spec.inline)
+    old = "2026-11-10 10:00:00"
+    now = datetime.datetime(2026, 11, 26, 12, tzinfo=datetime.timezone.utc).timestamp()
+    assert profileclaim.is_current(f"unit:{unit}", last_sample=old, now=now)
+    assert profileclaim.is_current(f"cut:{unit}", last_sample=old, now=now)
+    assert not profileclaim.is_current("unit:no-such-command", last_sample="2026-11-26 11:00:00", now=now)
+    assert not profileclaim.is_current("cut:no-such-command", last_sample=None, now=now)
+    assert not profileclaim.is_current("api:no-such-ref", last_sample=old, now=now)
+    assert profileclaim.is_current("unit:no-such-command", pinned=True, now=now)
+    assert profileclaim.is_current("stage:fill", last_sample="2026-11-20 00:00:00", now=now)
+    assert not profileclaim.is_current("stage:fill", last_sample=old, now=now)
+    assert not profileclaim.is_current("stage:fill", last_sample=None, now=now)
+    assert not profileclaim.is_current("stage:fill", last_sample="not a time", now=now)
+
+
+def test_the_tuning_overview_marks_each_kind_current_or_not(admin_client, conn, gate_keys):
+    from planetgen.queue import profileclaim
+    profileclaim.pin(conn, "unit:no-such-command", 1500.0, "boss")
+    body = admin_client.get("/api/admin/work/tuning").get_json()
+    assert {row["kind"]: row["current"] for row in body["kinds"]} == {"unit:no-such-command": True}
+
+
+def test_the_queue_page_folds_the_retired_kinds_away_from_the_table(admin_client):
+    from planetgen.web import queue_page
+    kind = lambda name, current: {"kind": name, "typed_mb": 500.0, "figure_mb": None, "pinned_mb": None, "samples": 1, "last_sample": "2026-11-14 10:00:00", "current": current}
+    view = queue_page._tuning_view({"self_tuning": True, "kinds": [kind("unit:link-neighbors", True), kind("stage:old", False), kind("cut:gone", False)], "changes": []})
+    assert [row["kind"] for row in view["rows"]] == ["unit:link-neighbors"]
+    assert [row["kind"] for row in view["retired"]] == ["stage:old", "cut:gone"]
+    only_old = queue_page._tuning_view({"self_tuning": True, "kinds": [kind("stage:old", False)], "changes": []})
+    assert only_old["rows"] == [] and len(only_old["retired"]) == 1
+
+
+def test_the_queue_page_lists_retired_kinds_in_a_fold_so_they_can_still_be_forgotten(admin_client, monkeypatch):
+    from planetgen.web import queue_page
+    row = {"kind": "stage:old", "typed_mb": None, "figure_mb": None, "pinned_mb": None, "samples": 1, "last_sample": "2026-11-14 10:00:00", "current": False, "changed": None}
+    live = dict(row, kind="unit:link-neighbors", typed_mb=500.0, current=True)
+    monkeypatch.setattr(apiclient, "admin_work_tuning", lambda cookie: {"self_tuning": True, "kinds": [live, row], "changes": []})
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    head, _, fold = html.partition('id="queue-retired"')
+    assert "unit:link-neighbors" in head and "stage:old" not in head
+    assert "Retired kinds (1)" in fold and "stage:old" in fold and 'value="tuning-clear"' in fold
 
 
 def test_the_queue_page_controls_pin_release_and_forget(web_app, admin_client, conn, gate_keys):

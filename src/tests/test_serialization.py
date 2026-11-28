@@ -22,7 +22,7 @@ import pytest
 
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import SERIALIZATION_SCHEMA_VERSION, StarSystem
@@ -91,30 +91,31 @@ def test_star_from_dict_does_not_rerun_generation():
 
 
 # ---------------------------------------------------------------------------
-# BinaryStarProxy
+# PairHost
 # ---------------------------------------------------------------------------
 
 def test_binary_star_proxy_round_trip_snapshots_without_recomputing():
     system = make_system("G2V", BINARY_SYSTEM=True, WIDE_BINARY=False, PLANETS=False)
     proxy = system.star
-    assert isinstance(proxy, BinaryStarProxy)
+    assert isinstance(proxy, PairHost)
     data = proxy.to_dict()
 
-    with patch("planetgen.generation.binary.calculate_habitable_zone",
+    with patch("planetgen.generation.pair_host.calculate_habitable_zone",
                side_effect=AssertionError("habitable_zone should not be recomputed")), \
-         patch.object(BinaryStarProxy, "_calculate_system_perimeter_static",
+         patch.object(PairHost, "_calculate_system_perimeter_static",
                       side_effect=AssertionError("system_perimeter should not be recomputed")), \
          patch.object(Star, "_calculate_heliosphere_radius_static",
                       side_effect=AssertionError("heliosphere_radius should not be recomputed")), \
          patch.object(Star, "calculate_galactic_orbit",
                       side_effect=AssertionError("galactic_orbit should not be recomputed")):
-        reloaded = BinaryStarProxy.from_dict(data, system.system_config)
+        reloaded = PairHost.from_dict(data, system.system_config, proxy.orbit_node, proxy.turned)
 
-    for field in BinaryStarProxy.SERIALIZABLE_FIELDS:
+    for field in PairHost.SERIALIZABLE_FIELDS:
         assert getattr(reloaded, field) == getattr(proxy, field), field
     assert reloaded.mass == proxy.mass
     assert reloaded.luminosity == proxy.luminosity
-    assert reloaded.binary_separation_au == proxy.binary_separation_au
+    assert reloaded.pair_orbit == proxy.pair_orbit      # the orbit is the node's, not a copy kept on the host
+    assert not [name for name in PairHost.SERIALIZABLE_FIELDS if "mutual" in name or "separation" in name]
     assert reloaded._primary.name == proxy._primary.name
     assert reloaded._secondary.name == proxy._secondary.name
     assert reloaded.system_config is system.system_config
@@ -199,7 +200,7 @@ def test_star_system_round_trip_single_star_full_fidelity():
         # below for the binary one) -- `reloaded.star is
         # reloaded.primary_star` a few lines down only holds for a single
         # star; `__init__` never repoints `primary_star` at the
-        # `BinaryStarProxy` it reassigns `star` to.
+        # `PairHost` it reassigns `star` to.
         lambda: make_system("G2V", MOONS=True, ASTEROID_BELT=True, MAX_PLANETS=True, HABITABLE_WORLD=True, BINARY_SYSTEM=False),
     )
 
@@ -294,12 +295,12 @@ def test_star_system_round_trip_binary_keeps_secondary_config_shared():
 
     reloaded = StarSystem.from_dict(system.to_dict())
 
-    assert isinstance(reloaded.star, BinaryStarProxy)
+    assert isinstance(reloaded.star, PairHost)
     assert reloaded.secondary_star.system_config is reloaded.system_config
     assert reloaded.primary_star.system_config is reloaded.system_config
     assert reloaded.star.system_config is reloaded.system_config
     assert reloaded.secondary_star.name == system.secondary_star.name
-    assert reloaded.star._binary_separation_au == system.star._binary_separation_au
+    assert reloaded.star.pair_orbit == system.star.pair_orbit
 
 
 def test_star_system_from_dict_rejects_newer_schema_version():

@@ -30,10 +30,12 @@ the generator itself promises is broken; an **advisory** is a physical limit the
    rigid-body Roche limit (`planet-roche`, advisory); the semi-major axis lies inside the S-type critical axis of its host
    toward each companion above it (`s-type`, hard, [R1990], equation 1) or outside the P-type one of the pair
    it goes round (`p-type`, hard, equation 3; both are fits for the semi-major axis of a test particle); two planets of one host
-   do not cross (`planet-crossing`, hard) and are `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii apart (`planet-spacing`, hard).
+   do not cross (`planet-crossing`, hard) and are `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii apart (`planet-spacing`, hard). A planet at a giant's
+   L4 or L5 (GEN.1151, `lagrange_host_id`) shares its giant's orbit by design: it is left out of that clearing, and instead its orbit must be the giant's
+   (`trojan-orbit`, hard).
 6. **Moons**: inside 0.4895 of the planet's Hill radius (`moon-hill`, hard, [R1138]), not touching the
    planet (`moon-in-planet`, hard) and outside its rigid-body Roche limit for the two densities (`moon-roche`, advisory).
-7. **Belts**: the annulus does not hold a planet's orbit (`belt-planet`, hard) and lies inside the host's S-type critical axis
+7. **Belts**: the annulus does not hold a planet's orbit (`belt-planet`, hard; the trojan region of a giant, GEN.1150, holds its giant's orbit and the orbits of the giant's own trojan planets by design) and lies inside the host's S-type critical axis
    (`belt-s-type`, hard).
 8. **Irregular moons** (GEN.1086): the semi-major axis lies inside `IRREGULAR_PROGRADE_HILL_FRACTION` of the planet's Hill radius for a prograde orbit and
    `IRREGULAR_RETROGRADE_HILL_FRACTION` for a retrograde one (`irregular-hill`, hard, [R3263] as quoted by VNL08), the inclination is outside the Kozai band
@@ -353,6 +355,19 @@ def _s_limits(host, tree):
     return out
 
 
+def _trojan_orbit_violations(planet, planets):
+    """A planet at L4 or L5 of a giant (GEN.1151) is made on the giant's orbit, so the rows must show the same semi-major axis and eccentricity (to a part in a million); one that names no giant of the system, or does not hold its orbit, is not at a Lagrange point."""
+    where = f"planet {planet['id']}"
+    giant = next((other for other in planets if other["id"] == planet["lagrange_host_id"]), None)
+    if giant is None:
+        return [Violation("trojan-orbit", where, planet["distance_km"] / AU_KM, 0.0, "AU", detail=f"the giant {planet['lagrange_host_id']} it names is not a planet of the system")]
+    a, a_giant = planet["distance_km"] / AU_KM, giant["distance_km"] / AU_KM
+    e, e_giant = planet.get("eccentricity") or 0.0, giant.get("eccentricity") or 0.0
+    if abs(a - a_giant) > 1e-6 * a_giant or abs(e - e_giant) > 1e-6:
+        return [Violation("trojan-orbit", where, a, a_giant, "AU", detail=f"a planet at a Lagrange point of planet {giant['id']} shares its orbit (eccentricity {e:.6g} against {e_giant:.6g})")]
+    return []
+
+
 def _audit_planets(planets, tree):
     out = []
     by_host = {}
@@ -365,7 +380,10 @@ def _audit_planets(planets, tree):
         e = planet.get("eccentricity") or 0.0
         peri = a_au * (1.0 - e)
         host_key = (host[0], host[1]["id"] if host[0] == "star" else host[1]["node_no"])
-        by_host.setdefault(host_key, []).append((planet, a_au, e, host))
+        if planet.get("lagrange_host_id") is None:        # a planet at L4 or L5 shares its giant's orbit (GEN.1151): the giant stands for it in the clearing
+            by_host.setdefault(host_key, []).append((planet, a_au, e, host))
+        else:
+            out += _trojan_orbit_violations(planet, planets)
         host_radius = _host_radius_km(host, tree) / AU_KM
         if peri < host_radius:
             out.append(Violation("planet-in-star", where, peri, host_radius, "AU", detail="closest approach inside the host star"))
@@ -496,6 +514,13 @@ def _came_from(planet, belt, belts, tree):
     return 0 <= order < len(ring) and ring[order] is belt
 
 
+def _holds_trojans(planet, belt):
+    """True when `belt` is the trojan region of the giant `planet` (GEN.1150), or `planet` is a planet at a Lagrange point of that giant (GEN.1151): the swarm librates about the giant's orbit, so the giant's orbit and its own trojans' lie inside the region by design. Any other planet still must stay out."""
+    if belt.get("lagrange_point") is None or belt.get("parent_id") is None:
+        return False
+    return planet["id"] == belt["parent_id"] or planet.get("lagrange_host_id") == belt["parent_id"]
+
+
 def _audit_belts(belts, planets, tree):
     out = []
     for belt in belts:
@@ -506,7 +531,7 @@ def _audit_belts(belts, planets, tree):
             out.append(Violation("belt-planet", where, lower, upper, "AU", detail="an empty annulus"))
             continue
         for planet in planets:
-            if _host_of(planet, tree) != host or _came_from(planet, belt, belts, tree):
+            if _host_of(planet, tree) != host or _came_from(planet, belt, belts, tree) or _holds_trojans(planet, belt):
                 continue
             a_au = planet["distance_km"] / AU_KM
             e = planet.get("eccentricity") or 0.0
@@ -531,9 +556,9 @@ def audit(rows):
     Args:
         rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`; a dark member of the tree, GEN.1013, is a row
             too, with `dark` true: it weighs in the tree and takes up room, and no planet goes round it), `nodes` (the `orbit_nodes` columns),
-            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, `host_node_id` for a planet about an inner pair node, GEN.332, and `belt_order` for a planet promoted from an asteroid belt, GEN.1510, which may be left out), `moons` (`id`, `planet_id`,
+            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, `host_node_id` for a planet about an inner pair node, GEN.332, `belt_order` for a planet promoted from an asteroid belt, GEN.1510, and `lagrange_host_id` for a planet at L4 or L5 of a giant, GEN.1151, which may be left out), `moons` (`id`, `planet_id`,
             `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `host_node_id` as for a planet, `lower_limit_km`,
-            `upper_limit_km`, and `distance_km` to order a star's belts nearest first, else the lower limit does) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
+            `upper_limit_km`, `distance_km` to order a star's belts nearest first, else the lower limit does, and `parent_id` with `lagrange_point` for the trojan region of a giant, GEN.1150, which may be left out) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
 
     Returns:
         list[Violation]: Empty for a system with room for every body.
@@ -561,13 +586,13 @@ def stored_rows(conn, system_id):
         " arg_periapsis_deg, mean_anomaly_deg, period_years, kind, interaction, flags FROM orbit_nodes WHERE star_system_id = ?"
         " ORDER BY node_no", (system_id,)).fetchall()]
     planets = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, host_node_id, distance_km, eccentricity, radius_km, mass_kg, belt_order FROM planets WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, host_node_id, distance_km, eccentricity, radius_km, mass_kg, belt_order, lagrange_host_id FROM planets WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     moons = [dict(row) for row in conn.execute(
         "SELECT id, planet_id, distance_km, eccentricity, radius_km, mass_kg FROM moons WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     belts = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, host_node_id, distance_km, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, host_node_id, distance_km, lower_limit_km, upper_limit_km, parent_id, lagrange_point FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     irregular_moons = [dict(row) for row in conn.execute(
         "SELECT i.planet_id, i.moon_rank, i.distance_km, i.eccentricity, i.inclination_deg FROM irregular_moons i JOIN planets p ON p.id = i.planet_id"

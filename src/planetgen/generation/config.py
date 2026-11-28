@@ -208,7 +208,7 @@ class SystemConfig:
         P-type (close/circumbinary) binary -- the original, and only,
         binary behavior this generator had before this option existed,
         where the two stars are merged into one effective star
-        (`binary.BinaryStarProxy`) for the purposes of planet
+        (`pair_host.PairHost`) for the purposes of planet
         placement. If None, the pair is P-type when the tree puts its axis under
         `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and S-type otherwise. Defaults to None.
         """

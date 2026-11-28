@@ -2,6 +2,256 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4867+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The sample galaxy the site tests walk is the same galaxy every time it is built
+
+### Fixed
+
+- GEN.1883: two builds of one commit made two sample galaxies (the heaviest planet was 006 in one and 002 in the next; a third build gave 003), so `test_irregular_moon_pages::test_the_system_detail_and_the_system_page_carry_the_irregular_moons_to_the_map`, which reads the heaviest planet, failed by chance. Two causes, both in the fixture `tests/test_web_a11y.py` builds (loaded by about twenty files through the dump cache): `plan` took a new galaxy seed from the operating system on each build (no `--seed`), and `fuzz_support.deterministic_entropy` is not enough to pin the run seed, because the run lines' tickets and ids draw from the same pinned stream a varying number of times, which moved the seed of the next command by a word between two builds. The build now gives `plan --seed` and pins `secrets.randbits` on a stream of its own. The new `tests/test_site_galaxy_same_twice.py` builds the sample twice in two scratch databases and holds the rows of the generated tables to be equal. The product is unchanged: the generator already takes a galaxy seed; only the fixture left it to chance. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4866+db281.gen150.api14] - 2026-11-28
+
+**Headline:** Phenomena: the core of a remnant saved with no sector has an ID of its own
+
+### Fixed
+
+- NAV.81: a supernova remnant saved with no sector (`planetgen generate supernova-remnant` with no sector) got an Object ID for the remnant but none for its collapsed core, so `/phenomena` listed the core by its row number and its page answered 404 for that number. The core now takes its ID with the remnant (`assign_uids`), keeping the name `<remnant> Core`, so the list and the page agree.
+
+## [8.0.4865+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The white-dwarf fallback tests no longer pass or fail by which test ran before them in the same worker.
+
+### Changed
+
+- The two "without the sequences" tests of the white-dwarf cooling take away the white-dwarf sequences only (TEST.841), not the whole cache folder, which also took the isochrones away and made the result depend on whether an earlier test of the worker had loaded them.
+
+## [8.0.4864+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A belt member made a planet is finished the way every planet is, so a young star's belts no longer take minutes to build.
+
+### Changed
+- A belt member promoted to a planet is built bare and finished with the late accretion the system gives it (`Planet.finish_climate`, `belt_planets.finish_planet`), the way every other planet is, so its air is made once instead of with the law's draw and again after the belts are final. A system of a 4 Myr star with seven belts (seventy promoted bodies) builds in 113 s instead of 174 s, one with four belts (forty) in 54 s instead of 68 s.
+- Every promoted body is drawn again from its own stream in the order the planets are (motion, air, spin, moons): its spin, tilt and day change, and its moons may; its class, mass, orbit and makeup do not. No other body of the system moves except in the last digit of a tide sum (1e-16 relative).
+- Census (seeds 2, 3 and 4, 120 promoted bodies): the class of none of them changes; the spin, tilt and day of every one does.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4863+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A close pair's host reads its orbit from the pair's node, and the star_systems columns that copied the pair's orbit are gone.
+
+### Changed
+- **`PairHost` replaces `BinaryStarProxy` (GEN.640 slice c).** The two stars of an orbit node, standing as one effective star for the planets that circle both (the system's own close pair, and each inner `close` node of a bigger tree that holds circumbinary planets), are `generation/pair_host.PairHost`. It holds the pair's `OrbitNode` and reads the orbit on each use (`PairHost.pair_orbit`, the `PairOrbit` view of slice b), so there is no `binary_mutual_*`, `binary_primary_position_*`, `binary_secondary_position_*`, `binary_secondary_mass_fraction` or `_binary_separation_au` copy on the host and no draw of a separation, plane or phase in its constructor (the tree drew them). The host takes its two stars heavier first as the tree gives them: the heavier-star swap of the host and of the database loader is gone, so the tree's own swap (`StarSystem._pair`) is the one copy. The readers of the pair's orbit (`physics/eclipses.py`, `physics/insolation.py`, `physics/disk_truncation.py`, `describe/build.py`, `db/orbit_trees.py`) read `pair_orbit`. `StarSystem.to_dict`/`from_dict` write and read the host without the orbit; `SERIALIZATION_SCHEMA_VERSION` is 11. Reuse: `PairOrbit` of slice b, the node-hosts of GEN.332, `orbit_trees.pair_node_no` and `slot_under` (made public) to find the node and the turn of a stored pair.
+- **Migration 0281 (GEN.640 slice d, a placeholder number the train renumbers) drops 21 columns of `star_systems`:** `binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, `binary_mutual_orbital_period_years`, `_speed_kms`, `_inclination_deg`, `_ascending_node_deg`, `_phase_deg`, `binary_mutual_min_update_interval_years`, `binary_mutual_position_x_km`/`y`/`z`, `binary_primary_position_x_km`/`y`/`z`, `binary_secondary_position_x_km`/`y`/`z`, `binary_secondary_mass_fraction`, `binary_epoch_unix`, `binary_next_update_due` and its index. Nothing wrote them since slice a and nothing read them; the pair's orbit is its node in `orbit_nodes`. `binary_separation_km` stays (the sector lists, the maps and the facilities read the pair's axis from the row without the tree). `store.insert_star_system` writes none of them; `db/models.py`, `column_units.py`, `check.py`, `storage_checksum.py`, `fingerprint.py`, `fingerprint_tree.py` and `precision.py` lose them.
+
+generation-affects: none
+
+## [8.0.4862+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The overlap verifier knows the trojan rows: a giant and the planets at its L4 and L5 share one orbit by design, and its trojan regions hold that orbit, so two seeds of the clearance sweep no longer read as overlaps.
+
+### Fixed
+- GEN.1882 (bug): `tests/test_clearance.py::test_a_generated_system_holds_no_overlap[pair-6]` and `[triple-10]` failed on main. Generation was right: in `pair-6` the giant (planet 3, 114 Earth masses at 2.74 AU) has an L4 and an L5 trojan region (belts 3 and 4, GEN.1150), and in `triple-10` planet 4 is the L5 trojan planet of planet 3 (GEN.1151), made on the giant's own orbit. The verifier (`physics/clearance.py`) did not read the Lagrange columns, so it counted the trojan region as a belt holding the giant's orbit (`belt-planet`) and the trojan planet as a crossing of the giant (`planet-crossing`, `planet-spacing`). It now reads `planets.lagrange_host_id` and the belt's `parent_id` with `lagrange_point`: a trojan planet leaves the crossing and spacing clearing (the giant stands for it, so a neighbour is still held to the giant's orbit), a trojan must hold its giant's semi-major axis and eccentricity (new hard kind `trojan-orbit`), and a trojan region may hold its own giant's orbit and that giant's trojans' while any other planet in it is still a `belt-planet` violation. A new test in `test_clearance.py` covers each case. `docs/design/systems/overlap-free-systems.md` lists the rule.
+
+generation-affects: none
+
+## [8.0.4861+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A moon's orbit settling no longer sets its star exposure from its distance to its planet.
+
+### Fixed
+
+- GEN.1881: `planets.settle_orbit`, run for every planet and every moon at the star's final age, ended by setting the exposure (the star's XUV, flares and the stored star distance) of the body and its moons from `flux_distance_au(body.distance, ...)`. For a planet that is its distance from the star; for a moon, `distance` is the distance from its planet (0.000148 AU for Ekausor Ia, the sweep's seed 15), so a moon whose exposure existed already was given its own orbit as its star distance. Moons are normally built bare then (no star distance yet) and the line did nothing, but PERF.290 finishes a promoted belt planet's moons whole, and a system built with `HABITABLE_WORLD` off makes whole moons too: their stored star distance, exposure and the radiation read from it were wrong, and `test_radiation_sweep` found a moon at 17.63 K whose albedo and greenhouse at the stored distance gave 3,133 K. A moon now returns once its own eccentricity and place are settled: its light is its host's, set when the host's orbit moves (the loop that already covers the host's moons). `settle_warm_icy_orbit` reaches the same function and is covered. New test in `test_moon_frame`.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4860+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The class census script draws systems again: it read a pair attribute that the pair-orbit work removed, so every system it drew was an error.
+
+### Fixed
+- GEN.1879 (bug): `scripts/class_census.py` wrote `system.wide_binary` into each system's record, and GEN.640 slice b removed that attribute (a wide pair's orbit is its node's, read as `system.pair_orbit`), so every system of a census failed (25 of 25 in the first minute of a default census). The record now carries `pair_orbit` (separation, eccentricity, period, periapsis and apoapsis of the pair, or none for a single star) and no `wide_binary` key; no table of the report read the old key. `tests/test_class_census_script.py` draws a forced wide pair and a single star through `draw_one`, and its fixed-seed list test now counts the `mdwarf` sample (300 systems) that the script gained.
+
+generation-affects: none
+
+## [8.0.4859+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A star of 10 solar masses or more no longer holds planets, so a young Wolf-Rayet or O star has its belts but no giants at 35 to 56 AU.
+
+### Changed
+
+- A star of 10 solar masses or more at birth holds no planets (GEN.1866, stand-in PH1, section 6.338, `tuning.PLANET_HOST_MAX_MASS_SOLAR`): GEN.1552 let any star whose disk was gone keep its bodies, and a 60 solar mass Wolf-Rayet star at 4 Myr was given giants. Its belts stand, no belt member is promoted to a planet, and a config that asks for a class or lists its slots still gets what it asked for.
+
+## [8.0.4858+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A world whose carbon sink asks no change of its air now keeps exactly the air its doses were made on
+
+### Fixed
+
+- GEN.1853 (TEST.830): `biogenic_oxygen.rebalance_co2` stored the air again, solved again, when the sink asked no change, and the re-solved air ended a little apart (parts in a million: a few pascals of pressure, the trace gases) from the air it was given, while it answered "the air did not change". Since GEN.1821 (Train 58) the burial calls it for every world with life whose oxygen has not risen, so the doses, the ozone column and the ultraviolet index of those worlds (`life._rebuild` is only run when the air changed) were stale against their stored air; the radiation sweep named three of 858 bodies (classes E and G). A no-change answer now gives back every field the trials touched, so the air stands exactly as the doses were made on it. Stored output moves slightly for the worlds this reached.
+
+## [8.0.4857+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The comet test and the wide-binary tests draw from fixed streams, so they take the same time and the same systems in every run.
+
+### Fixed
+
+- TEST.856: `test_mass_object.py::test_a_comet_advances_on_its_hosts_pull` drew unseeded systems until one had a comet, so it took 25 to 46 minutes by luck (and one run passed with a different system than the next). `_first` now draws each attempt from the stream `mass-object:<name>:<n>`, and the comet test forces the comet cloud on and runs three cases (three named streams) instead of one: the whole file takes 1 min 20 s. The loops of `test_wide_binary.py` (the prune trials, the bounds trials, the star-limit trials, the 60 systems of `test_wide_binaries_never_overlap`) draw from fixed streams the way the age and ceiling tests there already do, and the 60-system test is six chunks of ten, so each is under the gate's 1,500 s cap (the single test took 30 minutes) and the chunks run side by side. The same 60 systems are checked; all 43 tests of the file pass in 38 min 42 s with three workers.
+
+generation-output: unchanged
+
+## [8.0.4856+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The remake-after-an-orbit-change test keeps drawing systems until it has seen a moon carried to a new orbit, so it no longer depends on six seeds holding one.
+
+### Fixed
+- **`test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_present_state_out_again` failed on main with `'period' not in` the fields that moved (TEST.855).** A planet's own period does not move when the test pushes its distance out 12 percent and makes it again; the period that moves belongs to a moon the tide carries to a new orbit in the remake (`moon_history.apply` through `move_orbit`). The six seeds the test drew held such a moon on 11-17 (seed 2) and no longer do (seed 0 has one moon, already settled), so the check on the period failed with no fault in the product: moon numbers over 30 seeds are 33 on 519 rocky planets now against 32 on 403 on 11-17, and seed 7 shows the period move. The test now draws at least six seeds and goes on, to 40, only while the period, the temperature or the orbital speed has not yet been seen to move; the birth-field checks run on every body it draws. A seventh seed brought a second fault of the test: it held each solid fraction to 1e-6 of its first value, but the air takes its share out of the solids, and a planet with 3e-6 of its mass in air moves them by that much (`rock_mass_fraction` 0.7499969 against 0.75). A solid and the envelope are now held to the air's own share, before or after, which is what `envelope_share.fill` does; the air's helium and heavy-element shares keep 1e-6.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4855+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The test that no lifeless oxygen world is drawn over 95 percent oxygen no longer demands the oxygen tail that a bookkeeping error had made.
+
+### Fixed
+- `test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen` failed on main since Train 52 (GEN.1891): its lower bound (some draw over 0.5) pinned the oxygen the volcanic gas's own carbon dioxide and sulfur dioxide had left free until GEN.1769 slice 2 (14 of 300 draws over half oxygen, top 0.92). The 95 percent cap, which is the accuracy clause, is unchanged and holds with room (top 0.31); the lower bound, which only guards against a vacuous sample, is 0.25 with the physics stated in the test (the photolysis oxygen that stays is 1 to 10 percent of what the water gives, against 0.01 to 0.2 carbon per water molecule).
+
+generation-affects: none
+
+## [8.0.4854+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The exobase of an air, solved 17,000 times in the loss histories of one wide binary's planets, is now compiled with the same bits as the Python solve.
+
+### Changed
+
+- PERF.291: `thermosphere._exobase_solved` hands its arithmetic to `physics/exobase_kernel.py`, the same lines compiled. A square written `x ** 2` is CPython's library `pow`, which the compiler folds to `x * x` (a different last bit for about one value in a thousand), so the squares go through `math.pow(x, two)` with the exponent passed in. The answers are equal (`==`) on all 20,326 calls recorded from a generated wide binary, on 6,000 random airs, on a hot air that never closes and a cold one that closes at once (`tests/test_exobase_kernel.py` keeps the Python solve as the reference), and `kept_shares` over 300 real airs is equal. The loss history of an air takes 7.7 ms instead of 10.3 ms. The kernel is imported when the solve is called, so the web app never loads numba.
+
+generation-output: unchanged
+
+## [8.0.4853+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The cut of a k-distribution at the g edges, one fifth of the time a wide binary's planets take to generate, is now compiled, with the same bits as before.
+
+### Changed
+
+- PERF.291: `datasets.ir_ktables.reduce_distribution` (read by every infrared optical depth: `line_opacity.layer_depth`, `resort`, the air history's starlight aloft) hands the cut to `physics/ktable_kernel.py`, a compiled loop over the order numpy's own `argsort` gives, adding in the same order in float64 with no fast-math. On 400 real calls from a generated wide binary the answers are equal to the last bit (`array_equal`), and `tests/test_ktable_kernel.py` holds that on random rows with ties, runs of zeros, float32 rows and any leading shape. The cut took 17 s of 54 s for one wide G2V binary with comets on (1,416 calls, 12 ms each) and now takes 2.8 s; the system takes 39.8 s. The comets were never the slow step (their draws cost 0.01 s); the time is the GEN.1745 air history's anchor solves. The kernel module follows `radiative_kernel`: it is imported when the cut is called, so the web app never loads numba (`test_the_web_app_never_imports_numba`).
+
+generation-output: unchanged
+
+## [8.0.4852+db280.gen150.api14] - 2026-11-28
+
+**Headline:** the galaxy map camera preset test waits for the window's turn to end instead of reading the tilt early.
+
+### Fixed
+- **`test_galaxy_map_camera_presets_at_each_zoom_step` failed about four runs in five.** The test read the camera's tilt as soon as `_settle` returned, and `_settle` waits on the scale bar, which follows only the camera's distance. The last window's preset is a turn of the view that ends a third of a second later, so the test saw 59.7 degrees (the 5 degree manual turn of the step before added to the preset's 54.7) and the camera then held 54.7 as the preset says. The presets are right; the test now waits for the tilt to reach the preset (up to 8 s) before it asserts, and a turn that really carried over would still stay put and fail.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4851+db280.gen150.api14] - 2026-11-28
+
+**Headline:** the GEN.1554 zone-edge sweep script is back in scripts/ and works on the current generator.
+
+### Added
+- **`scripts/gen1554_zone_edge_sweep.py`.** It draws seeded M5V, M2V, K5V, K0V and G2V systems and tables their terrestrial worlds by incident flux and by position in the habitable zone. The earlier copy was not in the repository and read `system.planets`, which a system no longer has, so a run drew every system and kept nothing. It now lists the primary star's planets through the host's orbiters, prints progress every 10 systems and keeps a partial file. The rerun on main is in `reports/gen1554-rerun-2026-11-27/`.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4850+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The version-key tests start each test with the console log at normal severity, so a test that asked for `--debug` can no longer put SQL lines in front of the next test's run line
+
+### Fixed
+
+- TEST.854: `tests/test_version_key.py::test_a_plan_names_the_seed_it_was_given_or_none_yet` failed once in a three-worker gate run of Train 64 (the first line it read was a `DEBUG ... [sql] ... SELECT DATABASE()` line, not the run line) and passed alone. A run configures the process's logger, so `test_the_line_is_first_in_a_debug_file_too` (which runs `--debug FILE`) leaves the console at debug severity with the SQL trace on in the worker that ran it. The next test of that worker that reads `capsys` then sees the lines written before its own run configures the logger (the helper `_generate` opens the control schema first, TEST.850), at debug severity, ahead of the run line. With one worker the order of the file keeps the debug test last of the readers, so it passed alone. Each test of the file now starts and ends with `log.configure(log.NORMAL)`, which clears the handlers and the debug file. Nothing in the product changes: the run line is first because the command's own `configure` runs before it (`generate.main`, behind `log.untraced()`). Tests only.
+
+generation-output: unchanged
+
+## [8.0.4849+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A rocky body's air history asks for its interior heat at a hundred ages and each is no longer run from the formation: the box takes up the run of an earlier age, 4 times faster, with the same results to the last bit.
+
+### Fixed
+- PERF.289: building a system with planets took 12 to 38 s where it took 3 to 12 s before the air history (GEN.1745), and in a profile a quarter of the history's time was the mantle box (`interior_heat.heat`) run again from the formation for each of the history's ages (about 220 runs for each body with air). The steps of the box do not depend on the age asked for except the one that lands on it, so a run now keeps the steps and the states of the box (every 16th step, the core copied) and an older or younger age takes it up at the last step it shares and goes on from there. Same output: 8,100 results (60 bodies with and without a tide, three orders of ages) are equal to the last bit to the runs from the formation, and the new test compares the two in whatever order the ages come. Heat for those 60 bodies went from 15.1 s to 3.9 s.
+
+generation-output: unchanged
+
+## [8.0.4848+db280.gen150.api14] - 2026-11-27
+
+**Headline:** A test run no longer leaves its control database behind, and the next run drops the databases a killed run left
+
+### Fixed
+
+- TEST.852: test runs left `pgtest_control_*` databases behind: one lane box held 1,216 of them (8.2 GB) and ran out of disk. Every pytest process makes a control database at its start (`_ledger_control_database`, OPS.216), and only the tests that used the MySQL server dropped it, so a process whose tests needed none left one each time; a process killed by a gate's time limit or by the kernel never reached its teardown at all. The fixture now drops the process's control database at its own end, whether or not a test used it. The names of the test databases (the control one, the worker's, a test's fresh and scratch ones) now carry the machine and the process (`tests/dbpool.OWNER`, `owned_name`), and the first fixture of a run drops those of this machine whose process is gone (`dbpool.drop_abandoned`); once an hour per machine it also drops the databases with no owner in the name (a run before this change, the site galaxy's) whose newest table is over 12 hours old, which is longer than any run of a gate. The new `tests/test_abandoned_test_databases.py` runs a real pytest process on a test that needs no server and holds that no database of that process remains, drops the database of a process that was killed, and leaves another process's and another machine's alone. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4847+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The tests that read the release number take the build stamp the version has carried since OPS.64
+
+### Fixed
+
+- TEST.850: eight tests were red on main since OPS.64 (PR 7315, 8.0.4653) made `__version__` read like `8.0.4845+db280.gen150.api14`. `test_version_key.py::test_the_running_code_has_a_key` split the whole string on dots (the product's `galaxy/version_key.py` already reads the release before the `+`, so the product is right and only the test changes). Five tests of the same file (`test_every_run_that_changes_the_galaxy_is_recorded`, `test_the_history_never_stops_a_run`, `test_a_run_writes_its_seed_and_version_first`, `test_a_plan_names_the_seed_it_was_given_or_none_yet`, `test_the_line_is_first_in_a_debug_file_too`) ran a real command against the test database as its control database without the control schema, so a run's ledger table `engine_runs` was missing: `engine_runs` is a control-schema table (OPS.215) and not a migration's drop, so the helper `_generate` makes the control schema first, as the `control_config` fixture does. `test_datasets_fetch.py::test_the_user_agent_is_product_tokens_with_the_release_url_and_api_version` matched the release as three numbers; the sent `User-Agent` is valid with the stamp (RFC 9110 product versions are tokens and `+` is a token character), so the pattern accepts it. `test_the_scripts_run_the_download_step_at_setup` named a stage line (`log_stage 4 9`) that `update.sh` no longer has; it now holds the download before the step that migrates the database. The other readers of the version (`fmt.static_url`, the version sync tests, `bump_version.py`, the release numbers in the API and TODO tables) were looked at: they read the whole string, the stamped release or a release number, not the stamp as a number. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4846+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The train gate ends a file's pytest that has gone idle, with a stack dump of every process in the log, instead of waiting out the whole limit.
+
+### Fixed
+
+- A file the gate ran under `pytest -n 2` sometimes left its controller idle for 50 minutes or more after a test passed its 1500 s limit, with no worker running, and the lane lost the time. The gate now runs each file's pytest in a session of its own and looks at it every 10 seconds: when no process of it has used processor time and it has written nothing for 600 seconds, the gate writes the stacks of every process (py-spy) and the wait channel of each into the file's log and ends the run (code 125), so the next stall names what it waits on.
+- A file that passes the gate's `--limit` is now ended together with every worker and child process it started (code 124). Before, only the controller was ended and the xdist workers kept running through the next file.
+
+## [8.0.4845+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The static URL tests expect the version the way the URL carries it, with the plus quoted
+
+### Fixed
+
+- TEST.849: `test_page_shell.py::test_static_url_appends_package_version_and_the_static_fingerprint` and `test_static_url_keeps_subdirectories` were red on main. `static_url` has quoted the version in the query since the fingerprint of the static files (`quote(token, safe='')`); the tests compared with the bare `__version__`, which held no plus until OPS.64 (PR 7315, 8.0.4653) made it `8.0.4653+db...gen...api...`. A raw plus in a query reads as a space, so the encoded `%2B` is the right form and `static_url` stays as it is; both tests now expect `quote(__version__, safe='')`. Guard files run on the change: `test_page_shell.py`, `test_fmt_bad_numbers.py`, `test_fuzz_text_rendering.py` (959 passed). Tests only.
+
+generation-output: unchanged
+
+## [8.0.4844+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The follow-the-warm-up test waits for the warm-up's run to be written and for the follower to be watching, not for a clock
+
+### Changed
+
+- TEST.846: `test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing` waited for any maintenance run and then half a second, and held the family for 30 s; on a loaded machine the follower could come before the run had its title and steps (it then says "No cache warm-up is running" and ends) or the held family let go before anyone watched. The test now waits until the run is the warm-up's with its steps written, releases the family only when the follower has attached (`wrapper.follow` called), and holds it until then with no short timeout. No retry.
+
+generation-output: unchanged
+
+## [8.0.4843+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The life-air API test now says what the route documents: a lifeless world with a stored air history answers from that record.
+
+### Fixed
+
+- GEN.1878: `tests/test_api_life_air.py` expected `life_air` to be `null` for every planet with no living class. The route (`planet_life_air`, API.51) documents `null` only for a world with no living class and no stored history; since GEN.1745 slice 2 a lifeless world with air of 500 Pa or more keeps an air history record, and the route answers from it (its gases, shocks and temperatures, no classes and no stages of life). The API was right and the test stale; the test now pins both cases. No change to the route or to any world.
+
+generation-output: unchanged
+
+## [8.0.4842+db280.gen150.api14] - 2026-11-27
+
+**Headline:** The Queue page's "What the queue has learned" table lists only the job kinds the code still emits, and folds the retired ones away where they can still be forgotten.
+
+### Fixed
+
+- The table listed every job kind the job profile had ever seen, including `cut:` and `stage:` kinds from a run weeks ago whose command or stage no longer exists. A kind is now current while its command is still registered (a `unit:` or `cut:` kind), while it has a typed claim (an `api:` or `fn:` kind), while an admin has fixed its figure, or, for a `stage:` kind or any other name, while it had a sample in the last fortnight. Every other kind is retired.
+- The retired kinds sit under a folded "Retired kinds" line below the table, with the same Forget control, so none is lost from view and the admin can still delete its samples.
+- `GET /api/admin/work/tuning` gives each kind a `current` flag.
+
 ## [8.0.4841+db280.gen150.api14] - 2026-11-27
 
 **Headline:** The Galaxy Map has a mini map showing the whole galaxy and where you are looking from

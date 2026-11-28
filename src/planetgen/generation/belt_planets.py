@@ -29,7 +29,7 @@ no body that a planet caught from the belt (status `moon`) is promoted. The firs
 """
 
 from planetgen import tuning
-from planetgen.generation import irregular_moons, validation
+from planetgen.generation import irregular_moons, late_accretion, validation
 from planetgen.generation.planet import Planet
 from planetgen.physics import belt_origin, body_status, bulk_draw, orbits, unit_registry as units
 from planetgen.util import draw, log
@@ -87,13 +87,39 @@ def largest_left_km(belt):
     return max((2.0 * member["radius_km"] for member in belt.members if member["status"] != body_status.MOON), default=0.0)
 
 
+def _stream_of(star, belt, member):
+    """The stream of one member's planet: keyed on the belt and the member's rank, so a promoted body never moves the draws of the system round it."""
+    return draw.Stream(f"belt-planet:{belt.distance!r}:{belt.lower_limit!r}:{star.mass!r}:{member['rank']}")
+
+
 def planet_of(system, star, belt, order, member):
     """
     The planet the member `member` of `belt` (the `order`-th of the belts of its star) becomes: made by the planet generator from a stream of its own, with the member's mass, orbit and makeup.
     """
-    stream = draw.Stream(f"belt-planet:{belt.distance!r}:{belt.lower_limit!r}:{star.mass!r}:{member['rank']}")
-    with draw.bound(stream):
+    with draw.bound(_stream_of(star, belt, member)):
         return Planet(system.system_config, star, star.habitable_zone, member["distance_au"], mass=member["mass_kg"], belt_member=member, belt_order=order)
+
+
+def planet_of_deferred(system, star, belt, order, member):
+    """
+    The same planet as `planet_of`, built as every planet of the system is (`defer_climate`, GEN.1282): its mass and orbit only, with no air, class or moons yet. `finish_planet` makes them, from the same stream,
+    once the late accretion the system gives it is known (PERF.290).
+    """
+    with draw.bound(_stream_of(star, belt, member)):
+        return Planet(system.system_config, star, star.habitable_zone, member["distance_au"], mass=member["mass_kg"], belt_member=member, belt_order=order, defer_climate=True)
+
+
+def finish_planet(system, star, belt, member, planet, made):
+    """
+    The air, the class and the moons of a planet `planet_of_deferred` made, from the stream of its member: the way the planets of the system are finished (`StarSystem._settle_to_final_age`, PERF.271), the air made
+    once with the late accretion the system gives the body now (`late_accretion.percent_in`, over the planets of the system, those promoted already and the planet itself) instead of the law's draw and again at
+    `late_accretion.apply`. A planet whose system bars habitable worlds was built whole (`Planet.__init__`), and this does nothing for it.
+    """
+    if planet.build.deferred_climate is None:
+        return
+    with draw.bound(_stream_of(star, belt, member)):
+        planet.build.late_accreted_percent = late_accretion.percent_in(planet, [*system.all_planets, *made, planet], system.lost_reservoirs)
+        planet.finish_climate(bare_moons=False)
 
 
 def promote(system, star, bodies):
@@ -117,7 +143,8 @@ def promote(system, star, bodies):
                 break
             if not clear_of_planets(star, member, order, [*bodies, *made]):
                 continue
-            planet = planet_of(system, star, belt, order, member)
+            planet = planet_of_deferred(system, star, belt, order, member)
+            finish_planet(system, star, belt, member, planet, made)
             if planet.planet_class is None or validation.reach_au(planet) > ceiling * (1 + validation.RELATIVE_TOLERANCE):
                 continue
             taken += 1

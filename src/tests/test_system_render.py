@@ -18,7 +18,7 @@ from planetgen.util import draw
 from planetgen.db import store
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import describe_system, render_star_system, render_system_text
 from planetgen.describe.model import split_by_body
@@ -74,15 +74,13 @@ def test_rendering_a_compact_remnant_anchored_system(mysql_config, remnant_class
 
 def _swapped_pair(mysql_config, wide):
     """A binary whose generation-order secondary is the heavier star --
-    the case where the pair's own (heavier-first) orientation differs
-    from the `stars.role` rows."""
+    the case where the stored pair's orientation differs from the `stars.role` rows (the generator itself puts the heavier star first now, so the case is made by hand)."""
     cfg = _config(BINARY_SYSTEM=True, WIDE_BINARY=wide, PLANETS=False)
     system = StarSystem(system_config=cfg)
     primary, secondary = system.primary_star, system.secondary_star
     heavy, light = max(primary.mass, secondary.mass), min(primary.mass, secondary.mass)
     primary.mass, secondary.mass = light, heavy
-    if not wide:     # a wide pair is read from its node, which the stars' masses do not turn
-        system.star._primary, system.star._secondary = secondary, primary
+    # The pair is read from its node, which the stars' masses do not turn, for a close pair as for a wide one (GEN.640: the host takes its stars as the tree gives them, heavier first, and swaps nothing).
     # The stability windows are worked out from the masses, which were just swapped by hand, so work them out again (the reload does).
     system.build_ledger()
     return system, cfg
@@ -101,13 +99,15 @@ def test_binary_orientation_survives_the_round_trip(mysql_config, wide):
         conn.close()
 
 
-def test_from_dict_puts_the_heavier_star_first():
+def test_a_close_pair_host_has_the_heavier_star_first():
+    """The tree puts the heavier star in slot 0 of the pair's node and the host takes its two stars as given (the one copy of the swap is `StarSystem._pair`)."""
     proxy_cfg = _config(BINARY_SYSTEM=True, WIDE_BINARY=False, PLANETS=False)
-    proxy = StarSystem(system_config=proxy_cfg).star
-    data = proxy.to_dict()
-    data["primary"], data["secondary"] = data["secondary"], data["primary"]
-    reloaded = BinaryStarProxy.from_dict(data, proxy_cfg)
-    assert reloaded._primary.mass >= reloaded._secondary.mass
+    system = StarSystem(system_config=proxy_cfg)
+    host = system.star
+    assert isinstance(host, PairHost)
+    assert host._primary is system.primary_star and host._secondary is system.secondary_star
+    assert host._primary.mass >= host._secondary.mass
+    assert host.pair_orbit.secondary_mass_fraction <= 0.5
 
 
 def test_rendering_follows_a_rename(mysql_config):

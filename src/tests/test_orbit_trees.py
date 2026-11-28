@@ -46,7 +46,7 @@ def _saved(mysql_config, binary, wide=None):
 
 
 @pytest.mark.parametrize("wide", [False, True])
-def test_a_binary_is_one_node_equal_to_its_old_columns(mysql_config, wide):
+def test_a_binary_is_one_node_the_row_keeps_only_the_axis_of(mysql_config, wide):
     conn, system, system_id = _saved(mysql_config, True, wide)
     try:
         nodes = orbit_trees.read_nodes(conn, system_id)
@@ -55,11 +55,10 @@ def test_a_binary_is_one_node_equal_to_its_old_columns(mysql_config, wide):
         row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
         assert node.node_no == 0 and node.parent_node_no is None and node.kind == ("wide" if wide else "close")
         assert node.separation_km == pytest.approx(row["binary_separation_km"], rel=1e-12)
-        assert node.eccentricity == row["binary_eccentricity"]
-        assert node.inclination_deg == row["binary_mutual_orbital_inclination_deg"]
-        assert node.ascending_node_deg == row["binary_mutual_orbital_ascending_node_deg"]
-        assert node.mean_anomaly_deg == row["binary_mutual_orbital_phase_deg"]
-        assert node.period_years == row["binary_mutual_orbital_period_years"]
+        pair = system.pair_orbit      # the orbit has no column of its own: the node is the one place it is kept
+        assert (node.eccentricity, node.inclination_deg, node.ascending_node_deg, node.mean_anomaly_deg, node.period_years) == (
+            pair.eccentricity, pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years)
+        assert not [column for column in row if column.startswith("binary_mutual")]
         assert node.mass_solar == pytest.approx(sum(s.mass for s in system.stars) / constants.SOLAR_MASS_TO_KG, rel=1e-12)
         assert node.interaction in multistar.INTERACTIONS
         assert node.epoch_unix > 0
@@ -75,11 +74,10 @@ def test_each_star_hangs_in_the_root_node_at_its_stored_offset(mysql_config, wid
                             " WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()
         assert [r["role"] for r in rows] == ["primary", "secondary"]
         assert [r["parent_node_id"] for r in rows] == [0, 0]
-        row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+        pair = system.pair_orbit
         for r, which in zip(rows, ("primary", "secondary")):
             for axis in "xyz":
-                assert r[f"offset_{axis}_au"] == pytest.approx(
-                    row[f"binary_{which}_position_{axis}_km"] / constants.AU_TO_KM, rel=1e-12, abs=1e-9)
+                assert r[f"offset_{axis}_au"] == pytest.approx(getattr(pair, f"{which}_position_{axis}_au"), rel=1e-12, abs=1e-9)
     finally:
         conn.close()
 
@@ -111,7 +109,9 @@ def test_the_nodes_go_through_the_json_form(mysql_config):
     conn.close()
     again = StarSystem.from_dict(system.to_dict())
     assert again.orbit_nodes == system.orbit_nodes and len(again.orbit_nodes) == 1
-    assert StarSystem.from_dict({**system.to_dict(), "schema_version": 3, "orbit_nodes": []}).orbit_nodes == ()
+    single = _saved(mysql_config, False)
+    single[0].close()
+    assert StarSystem.from_dict({**single[1].to_dict(), "schema_version": 3, "orbit_nodes": []}).orbit_nodes == ()      # a pair is its node, so only a lone star loads without one
 
 
 @pytest.mark.parametrize("stars", [3, 7])
