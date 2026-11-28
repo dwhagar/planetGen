@@ -62,11 +62,11 @@ def test_two_stars_of_a_close_pair_eclipse_each_other_for_a_planet_in_their_plan
 
 
 def _pair_planet(distance_au=1.0, inclination_deg=0.0, moon=False, plane=(0.0, 0.0), stars=2):
-    """A planet of a close pair of two Suns 0.2 AU apart (a 15.6-day pair), the host a stand-in for `BinaryStarProxy`."""
+    """A planet of a close pair of two Suns 0.2 AU apart (a 15.6-day pair), the host a stand-in for `PairHost`."""
     from types import SimpleNamespace
     sun = SimpleNamespace(radius=SUN_R, luminosity=3.828e26)
-    host = SimpleNamespace(stars=[sun, sun][:stars], binary_mutual_orbital_period_years=0.0426, binary_separation_au=0.2,
-                           binary_mutual_orbital_inclination_deg=plane[0], binary_mutual_orbital_ascending_node_deg=plane[1])
+    host = SimpleNamespace(stars=[sun, sun][:stars], pair_orbit=SimpleNamespace(period_years=0.0426, separation_au=0.2,
+                                                                                inclination_deg=plane[0], ascending_node_deg=plane[1]))
     return SimpleNamespace(star=host, distance=distance_au, is_moon=moon, orbital_inclination_deg=inclination_deg, orbital_ascending_node_deg=0.0)
 
 

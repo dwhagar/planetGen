@@ -517,7 +517,7 @@ def calculate_reflex_offset(parent_mass_kg, children):
     `offset = -(child_mass / (parent_mass + child_mass)) * relative_vector`,
     where `relative_vector` is the child's own already-stored position
     relative to the parent (e.g. `Planet.position_x/y/z`,
-    `BinaryStarProxy.binary_mutual_position_x/y/z`) -- deliberately never
+    `PairOrbit.position_x_au/y/z`) -- deliberately never
     recomputed or changed by this function, since a large amount of
     existing physics (insolation, Hill sphere, tidal locking) depends on
     that vector remaining the *true* separation, not a barycenter-reduced

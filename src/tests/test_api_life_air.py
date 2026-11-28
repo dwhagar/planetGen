@@ -70,7 +70,8 @@ def test_a_living_planets_air_history_has_the_steps_and_stages(client, mysql_con
     assert history["speculative"] is None
 
 
-def test_a_planet_without_a_living_class_has_no_history(client, mysql_config):
+def test_a_planet_without_a_living_class_has_no_life_but_may_keep_the_record_of_its_air(client, mysql_config):
+    """GEN.1878: `life_air` is `null` for a world with no living class AND no stored history (the route's documented rule, API.51); a lifeless world whose air is thick enough keeps an air history record (GEN.1745 slice 2), and then the answer is that record: its gases, shocks and temperatures, no classes and no stages of life."""
     config = SystemConfig()
     config.PLANETS = True
     config.MAX_PLANETS = True
@@ -84,12 +85,17 @@ def test_a_planet_without_a_living_class_has_no_history(client, mysql_config):
     system_id = store.save_system(system, config, config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_stage IS NULL LIMIT 1", (system_id,)).fetchone()
+        planet_id = conn.execute("SELECT id, air_history FROM planets WHERE star_system_id = ? AND life_stage IS NULL LIMIT 1", (system_id,)).fetchone()
     finally:
         conn.close()
     assert planet_id is not None
     body = client.get(f"/api/planets/{pid('planet', planet_id['id'])}/life-air").get_json()
-    assert body["life_class_id"] is None and body["life_air"] is None
+    assert body["life_class_id"] is None
+    history = body["life_air"]
+    if not planet_id["air_history"]:
+        assert history is None
+    else:
+        assert history["source"] == "stored" and history["classes"] == [] and history["stages"] == [] and history["speculative"] is None and history["gases"]
 
 
 def test_an_unknown_planet_or_moon_is_a_404(client):

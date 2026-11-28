@@ -363,8 +363,9 @@ def test_cross_star_clearance_is_rare_for_ordinary_wide_low_eccentricity_pairs()
     """
     pruned = 0
     trials = 15
-    for _ in range(trials):
-        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
+    for trial in range(trials):
+        with draw.bound(f"wide-binary-prune-{trial}"):        # TEST.856: fixed streams, so the trials are the same in every run
+            system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
         if system.binary_type != "wide":
             continue
         primary_before = len(system.primary.orbiters)
@@ -383,8 +384,9 @@ def test_cross_star_clearance_is_rare_for_ordinary_wide_low_eccentricity_pairs()
 
 @pytest.mark.parametrize("star_type", STAR_TYPES)
 def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
-    for _ in range(TRIALS):
-        system = StarSystem(system_config=make_config(star_type, BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
+    for trial in range(TRIALS):
+        with draw.bound(f"wide-binary-bounds-{star_type}-{trial}"):        # TEST.856
+            system = StarSystem(system_config=make_config(star_type, BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
 
         assert system.binary_type == "wide"
         assert system.star is system.primary_star
@@ -470,8 +472,9 @@ def test_hill_radius_in_pair_shrinks_at_periapsis():
 
 
 def test_each_star_limit_is_inside_its_hill_sphere_and_the_fit():
-    for _ in range(10):
-        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
+    for trial in range(10):
+        with draw.bound(f"wide-binary-star-limit-{trial}"):        # TEST.856
+            system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
         pair = system.pair_orbit
         heavy, light = sorted((system.primary_star, system.secondary_star), key=lambda star: -star.mass)
         total = heavy.mass + light.mass
@@ -531,12 +534,14 @@ def test_check_star_system_flags_a_comet_beyond_the_limit_and_stabilize_removes_
     assert len(system.secondary_comets) == 1
 
 
-def test_wide_binaries_never_overlap():
-    """Many random wide binaries, comets forced on: no planet or comet orbit
+@pytest.mark.parametrize("chunk", range(6))
+def test_wide_binaries_never_overlap(chunk):
+    """Sixty wide binaries (six chunks of ten, so that each is under the gate's cap and the chunks run side by side, TEST.856), comets forced on: no planet or comet orbit
     reaches the other star's region, and the system passes `check_star_system`."""
     wide = 0
-    for _ in range(60):
-        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, COMETS=True))
+    for trial in range(10 * chunk, 10 * chunk + 10):
+        with draw.bound(f"wide-binary-never-overlap-{trial}"):        # TEST.856: fixed streams, so the 60 systems are the same in every run
+            system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, COMETS=True))
         if system.binary_type != "wide":
             continue
         wide += 1

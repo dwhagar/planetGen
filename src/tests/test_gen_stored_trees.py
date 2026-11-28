@@ -201,17 +201,12 @@ def test_a_pair_is_the_stored_stars_on_the_stored_orbit(kind):
         **({"eccentricity": 0.0, "arg_periapsis_deg": 0.0,
             "mean_anomaly_deg": (first.mean_anomaly_deg + first.arg_periapsis_deg) % 360.0} if kind == "close" else
            {"eccentricity": min(first.eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9))}))
-    pair = system.star if kind == "close" else system.pair_orbit
-    if kind == "close":
-        assert pair.binary_separation_au * constants.AU_TO_KM == pytest.approx(node.separation_km)
-        assert (pair.binary_mutual_orbital_inclination_deg, pair.binary_mutual_orbital_ascending_node_deg,
-                pair.binary_mutual_orbital_phase_deg, pair.binary_mutual_orbital_period_years) == (
-            node.inclination_deg, node.ascending_node_deg, node.mean_anomaly_deg, node.period_years)
-    else:
-        assert pair.separation_au * constants.AU_TO_KM == pytest.approx(node.separation_km)
-        assert pair.eccentricity == node.eccentricity
-        assert (pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years) == (
-            node.inclination_deg, node.ascending_node_deg, node.mean_anomaly_deg, node.period_years)
+    pair = system.pair_orbit      # (a close pair's host reads the same node)
+    assert kind == "wide" or system.star.pair_orbit == pair
+    assert pair.separation_au * constants.AU_TO_KM == pytest.approx(node.separation_km)
+    assert pair.eccentricity == node.eccentricity
+    assert (pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years) == (
+        node.inclination_deg, node.ascending_node_deg, node.mean_anomaly_deg, node.period_years)
 
 
 def test_a_pair_built_later_holds_the_same_orbit_at_the_later_time():

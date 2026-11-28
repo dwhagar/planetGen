@@ -214,6 +214,26 @@ def test_the_planets_of_one_belt_are_part_of_its_ring_and_do_not_clear_each_othe
     assert "planet-crossing" in _kinds(cross_belts)
 
 
+def test_a_giant_and_its_trojans_share_one_orbit_and_its_trojan_region_holds_it():
+    """GEN.1150, GEN.1151 (GEN.1882): a planet at L4 or L5 of a giant is made on the giant's orbit and the giant's trojan region is the band about it, so neither clears the other. A planet that is neither the giant nor its trojan still has to stay out, a trojan must hold its giant's orbit, and the giant still has to clear its own neighbours."""
+    base = _pair(axis_au=300.0)
+    giant = {"id": 1, "distance_km": 2.7 * AU_KM, "eccentricity": 0.1, "mass_kg": 1.9e27}
+    trojan = {"id": 2, "distance_km": 2.7 * AU_KM, "eccentricity": 0.1, "mass_kg": 4e24, "lagrange_host_id": 1}
+    region = {"id": 1, "star_id": 1, "parent_id": 1, "lagrange_point": "L4", "distance_km": 2.7 * AU_KM, "lower_limit_km": 2.5 * AU_KM, "upper_limit_km": 2.9 * AU_KM}
+    held = _with_planets(base, giant, trojan, belts=[region])
+    assert clearance.audit(held) == []
+    plain = _with_planets(base, dict(giant, id=1), dict(trojan, lagrange_host_id=None), belts=[dict(region, lagrange_point=None, parent_id=None)])
+    assert {"planet-crossing", "belt-planet"} <= set(_kinds(plain))
+    stranger = _with_planets(base, giant, trojan, {"id": 3, "distance_km": 2.8 * AU_KM, "eccentricity": 0.0}, belts=[region])
+    assert "belt-planet" in _kinds(stranger)
+    drifted = _with_planets(base, giant, dict(trojan, distance_km=2.9 * AU_KM))
+    assert _kinds(drifted) == ["trojan-orbit"]
+    assert _kinds(_with_planets(base, giant, dict(trojan, eccentricity=0.3))) == ["trojan-orbit"]
+    assert _kinds(_with_planets(base, giant, dict(trojan, lagrange_host_id=7))) == ["trojan-orbit"]
+    neighbour = _with_planets(base, giant, trojan, {"id": 3, "distance_km": 3.0 * AU_KM, "eccentricity": 0.1, "mass_kg": 6e24})
+    assert "planet-crossing" in _kinds(neighbour)      # the giant's apoapsis, 2.97 AU, passes the neighbour's periapsis, 2.7 AU: the trojan stands for nothing between them
+
+
 def test_the_irregular_limits_are_the_generators():
     """GEN.1086: the verifier's own copies of the stable shares of the Hill radius and of the Kozai band equal the generator's."""
     from planetgen.physics import irregular_zone, moon_composition

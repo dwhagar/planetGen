@@ -1140,7 +1140,7 @@ def _star_summary(row):
     `binary_type`/`single_star_type`/`primary_star_type`/`secondary_star_type`.
 
     - Single star: that star's own `star_type`.
-    - `'close'` (P-type) binary: the merged `BinaryStarProxy`'s `binary_type`
+    - `'close'` (P-type) binary: the merged `PairHost`'s `binary_type`
       string (e.g. `"Binary (G/K)"`).
     - `'wide'` (S-type) binary: `binary_type` is NULL (no merged effective
       star exists to summarize -- see `schema.sql`'s "v15" note), so this

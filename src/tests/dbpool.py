@@ -26,10 +26,13 @@ table, the row counts and the auto-increment counters with the new database it s
 test that left the difference.
 """
 
+import hashlib
 import os
 import re
+import socket
 import sys
 import threading
+import time
 import traceback
 import uuid
 import warnings
@@ -164,6 +167,96 @@ def database_holders(cur, name, owned_only=False):
     return sorted(found.values())
 
 
+OWNER = f"h{hashlib.md5(socket.gethostname().encode()).hexdigest()[:4]}p{os.getpid()}"
+"""str: Which process made a test database: the machine (four hex digits of its name's hash) and the process id. A killed run (a gate's time limit, an out-of-memory kill) never reaches its teardown, and
+the databases it made stayed for good (TEST.852: 1,216 control databases, 8.2 GB, a full disk on one lane box); the name says whose they are, so the next run can tell a database whose process is gone."""
+
+OWNED = re.compile(r"h([0-9a-f]{4})p(\d+)_")
+"""re.Pattern: The owner a name carries (`OWNER`)."""
+
+ABANDONED_PREFIXES = ("pgtest_control_", "planetgen_test_", "planetgen_a11y_", "planetgen_twice_")
+"""tuple: The names the tests' own databases start with: the control database of a process, the worker's, a test's fresh or scratch one and the site galaxy's."""
+
+ABANDONED_HOURS = 12.0
+"""float: A database of these names with no owner in its name (made by a run before the owner was named, or by a fixture that does not name it) is abandoned when its newest table is this old: longer than any run of a gate (15000 s is 4.2 hours)."""
+
+SWEEP_BY_AGE_EVERY_SECONDS = 3600.0
+"""float: How seldom the sweep by age (it reads every table of every such database) is made on one machine."""
+
+
+def owned_name(prefix, tail=None):
+    """A name for a test database that says whose it is: `prefix`, `OWNER` and `tail` (a new random one by default)."""
+    return f"{prefix}{OWNER}_{uuid.uuid4().hex[:12] if tail is None else tail}"
+
+
+def _alive(pid):
+    """Whether a process of this machine is running."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:      # it is there, another user's
+        return True
+    return True
+
+
+def _marker():
+    return os.path.join(os.environ.get("TMPDIR", "/tmp"), "planetgen-test-database-sweep")
+
+
+def drop_abandoned(server_kwargs, by_age=None, alive=_alive, now=time.time, only=None):
+    """
+    Drops the test databases nobody can be using (TEST.852): the ones whose name says this machine and a process that is gone, and, once an hour on a machine (`by_age`
+    `None`: when the marker file is older than `SWEEP_BY_AGE_EVERY_SECONDS`; `True` always, `False` never), the ones of `ABANDONED_PREFIXES` with no owner in the name whose newest table is older
+    than `ABANDONED_HOURS`. A database that cannot be dropped now (a lock) is left for the next run. `only` (names) limits the sweep to those databases, for a test of it.
+
+    Returns:
+        list[str]: The names dropped.
+    """
+    conn = pymysql.connect(**server_kwargs, connect_timeout=5)
+    gone = []
+    try:
+        with conn.cursor() as cur:
+            pattern = "^(" + "|".join(re.escape(prefix) for prefix in ABANDONED_PREFIXES) + ")"
+            cur.execute("SELECT schema_name FROM information_schema.schemata WHERE schema_name REGEXP %s", (pattern,))
+            names = [row[0] for row in cur.fetchall() if only is None or row[0] in only]
+            here = OWNER[1:5]
+            abandoned = []
+            unowned = []
+            for name in names:
+                owner = OWNED.search(name)
+                if owner is None:
+                    unowned.append(name)
+                elif owner.group(1) == here and int(owner.group(2)) != os.getpid() and not alive(int(owner.group(2))):
+                    abandoned.append(name)
+            marker = _marker()
+            due = by_age
+            if due is None:
+                try:
+                    due = now() - os.path.getmtime(marker) >= SWEEP_BY_AGE_EVERY_SECONDS
+                except OSError:
+                    due = True
+            if due and unowned:
+                cur.execute("SELECT table_schema, MAX(create_time) < NOW() - INTERVAL %s SECOND FROM information_schema.tables WHERE table_schema IN %s GROUP BY table_schema",
+                            (int(ABANDONED_HOURS * 3600), tuple(unowned)))
+                abandoned += [row[0] for row in cur.fetchall() if row[1]]
+            if due is not False:
+                try:
+                    with open(marker, "w", encoding="utf-8") as handle:
+                        handle.write(str(now()))
+                except OSError:
+                    pass
+        for name in abandoned:
+            try:
+                drop_database(server_kwargs, name, wait_seconds=5)
+                gone.append(name)
+            except pymysql.MySQLError:
+                pass
+    finally:
+        conn.close()
+    return gone
+
+
 def drop_database(server_kwargs, name, wait_seconds=DROP_WAIT_SECONDS):
     """Drops test database `name`, first ending the connections whose current database it is (TEST.193), and never
     waits more than `wait_seconds` for a lock. A connection left open by a thread that outlived its test (a server
@@ -225,7 +318,7 @@ class WorkerDatabase:
         return pymysql.connect(**self.server, **extra)
 
     def _create(self):
-        name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+        name = owned_name("planetgen_test_")
         conn = self._admin()
         try:
             with conn.cursor() as cur:
