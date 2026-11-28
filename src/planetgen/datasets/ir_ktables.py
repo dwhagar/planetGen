@@ -164,23 +164,16 @@ def reduce_distribution(k, weights, edges):
     """
     The band k-distribution on the g `edges`: `k` is (..., n) opacities with (n,) `weights` (adding to 1); they are sorted ascending
     along the last axis, the cumulative integral of k over the weight is cut at `edges`, and each interval's mean is returned (..., len(edges)-1).
+
+    The cut is `physics.ktable_kernel.cut`, compiled, over the order numpy's `argsort` gives (PERF.291): the same bits as the numpy arithmetic it replaced, five times faster.
+    The kernel is imported here, not at the top, so that the web app (which has no numba cache) never imports it.
     """
-    order = np.argsort(k, axis=-1)
-    k_sorted = np.take_along_axis(k, order, axis=-1)
-    w_sorted = weights[order]
-    cumulative_w = np.concatenate([np.zeros(w_sorted.shape[:-1] + (1,)), np.cumsum(w_sorted, axis=-1)], axis=-1)
-    cumulative_kw = np.concatenate([np.zeros(w_sorted.shape[:-1] + (1,)), np.cumsum(k_sorted * w_sorted, axis=-1)], axis=-1)
-    size = cumulative_w.shape[-1]
-    at_edges = np.empty(k.shape[:-1] + (len(edges),))
-    for j, edge in enumerate(edges):
-        index = np.clip((cumulative_w < edge - 1.0e-12).sum(axis=-1), 1, size - 1)
-        w0 = np.take_along_axis(cumulative_w, (index - 1)[..., None], -1)[..., 0]
-        w1 = np.take_along_axis(cumulative_w, index[..., None], -1)[..., 0]
-        k0 = np.take_along_axis(cumulative_kw, (index - 1)[..., None], -1)[..., 0]
-        k1 = np.take_along_axis(cumulative_kw, index[..., None], -1)[..., 0]
-        share = np.where(w1 > w0, (edge - w0) / np.maximum(w1 - w0, 1.0e-300), 0.0)
-        at_edges[..., j] = k0 + share * (k1 - k0)
-    return np.diff(at_edges, axis=-1) / np.diff(edges)
+    from planetgen.physics import ktable_kernel
+    k = np.asarray(k)
+    rows = np.ascontiguousarray(k.reshape(-1, k.shape[-1]), dtype=float)
+    out = np.empty((rows.shape[0], len(edges) - 1))
+    ktable_kernel.cut(rows, np.argsort(rows, axis=-1), np.ascontiguousarray(weights, dtype=float), np.ascontiguousarray(edges, dtype=float), out)
+    return out.reshape(k.shape[:-1] + (len(edges) - 1,))
 
 
 def reduce_table(data, temperature, pressure, wavelength, edges_cm1=None):
