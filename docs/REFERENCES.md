@@ -5436,6 +5436,7 @@ Sources that are not papers or data: a standard or regulation a number rests on,
 - <a id="paper-r5044"></a>**R5044** Depth. Cyanilux, web page. Last opened 2026-11-01. <https://www.cyanilux.com/tutorials/depth/>
 - <a id="paper-r5037"></a>**R5037** Dither based transparency in Unreal Engine's material editor. Barakat, Z, web page, 2018. Last opened 2026-11-01. <https://danieru.com/2018/07/04/dither-based-transparency-in-unreal-engines-material-editor/>
 - <a id="paper-r5039"></a>**R5039** Dithering. Beltoforion, web page. Last opened 2026-11-01. <https://beltoforion.de/en/dithering/>
+- <a id="paper-r5375"></a>**R5375** Equilibrium of water and hydrocarbon systems with hydrates. PetroWiki (Society of Petroleum Engineers), web page. Last opened 2026-11-26. <https://petrowiki.spe.org/Equilibrium_of_water_and_hydrocarbon_systems_with_hydrates>
 - <a id="paper-r5054"></a>**R5054** Frustum Culling. LearnOpenGL, software documentation, 2021. Last opened 2026-11-01. <https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling>
 - <a id="paper-r5113"></a>**R5113** Gaia Sky: level-of-detail catalogs. Gaia Sky project, Heidelberg University, software documentation. Last opened 2026-11-05. <https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/LOD-catalogs.html>
 - <a id="paper-r5022"></a>**R5022** Hazardous waste operations and emergency response. Occupational Safety and Health Administration, regulation 29 CFR 1910.120. Last opened 2026-11-01. <https://www.ecfr.gov/current/title-29/section-1910.120>
