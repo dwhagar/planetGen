@@ -338,19 +338,51 @@ def test_a_planet_rebuilt_from_its_dict_has_its_position_back():
     assert again.spatial.get_coordinates("system", "cartesian") == planet.spatial.get_coordinates("system", "cartesian")
 
 
-def test_a_close_pairs_planets_are_offset_from_its_center_not_its_primary_star():
-    """TEST.108: the system frame's origin is the barycenter, which a close
-    binary's primary star sits off by a fraction of an AU (a wide pair's is
-    its primary star, thousands of AU from the system center)."""
-    _sector, entry, system = _placed_system(
-        lambda s: getattr(s, "binary_type", None) == "close" and any(getattr(p, "spatial", None) for p in s.primary.orbiters))
-    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
-    center = _system_origin_au(entry, system)
-    star = system.primary_star.spatial.get_coordinates("galactic", "cartesian")
-    assert max(abs(c - s) for c, s in zip(center, star)) > 1e-3
-    offset = planet.spatial.get_coordinates("system", "cartesian")
-    assert planet.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
-        tuple(c + o for c, o in zip(center, offset)), rel=1e-9, abs=1e-3)
+def _seeded_pair(kind):
+    """A pair of the asked kind ("close" or "wide") with a planet, drawn on fixed seeds, so the test reads the same system on every run (TEST.858)."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+
+    for seed in range(1, 120):
+        config = SystemConfig()
+        config.BINARY_SYSTEM = True
+        config.WIDE_BINARY = kind == "wide"
+        with draw.bound(seed):
+            system = StarSystem(system_config=config)
+        if system.binary_type == kind and any(getattr(p, "spatial", None) for p in system.primary.orbiters):
+            return system
+    pytest.fail(f"no {kind} pair with a planet in 119 seeds")
+
+
+def _place_pair(system):
+    from planetgen.galaxy.sector import SpaceSector
+
+    sector = SpaceSector("Bodies", edge_ly=11.5)
+    sector.place_in_galaxy((26000.0, -40.0, 12.0))
+    return sector.add_system(system, position=(1.5, -2.0, 0.25))
+
+
+@pytest.mark.parametrize("kind", ["close", "wide"])
+def test_a_pairs_stars_sit_about_its_center_and_its_planets_are_offset_from_the_center(kind):
+    """TEST.108, TEST.858: the system frame's origin is the pair's barycenter, so the two stars straddle it, mass weighted
+    (a close pair's primary star sits a fraction of an AU off it, a wide pair's thousands of AU), and a circumbinary
+    planet's galactic place is the center plus its system-frame offset."""
+    system = _seeded_pair(kind)
+    entry = _place_pair(system)
+    center = tuple(c * constants.LY_TO_AU for c in entry.spatial.get_coordinates("galactic", "cartesian"))
+    primary = system.primary_star.spatial.get_coordinates("galactic", "cartesian")
+    secondary = system.secondary_star.spatial.get_coordinates("galactic", "cartesian")
+    assert max(abs(c - s) for c, s in zip(center, primary)) > 1e-3
+    assert max(abs(a - b) for a, b in zip(primary, secondary)) > 1e-3
+    total = system.primary_star.mass + system.secondary_star.mass
+    weighted = tuple((system.primary_star.mass * p + system.secondary_star.mass * q) / total for p, q in zip(primary, secondary))
+    assert weighted == pytest.approx(center, rel=0.0, abs=1e-3)
+    if kind == "close":
+        planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
+        offset = planet.spatial.get_coordinates("system", "cartesian")
+        assert planet.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
+            tuple(c + o for c, o in zip(center, offset)), rel=1e-9, abs=1e-3)
 
 
 # --- Velocity in two frames, and the epoch -----------------------------------------
