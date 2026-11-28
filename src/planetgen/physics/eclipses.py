@@ -183,19 +183,18 @@ def kept_share(factor):
 
 def light_factor_of(planet):
     """
-    The share of its host's light a planet keeps after the eclipses of its sky (GEN.1484): 1 less `pair_light_lost` for a planet of a close pair (its host is the pair's proxy, which holds both stars, their
-    separation and period, and the plane they swing in), `None` for every other planet (a lone star, a moon, a planet of one star of a wide pair), so their light is as it was. The sibling planets and
+    The share of its host's light a planet keeps after the eclipses of its sky (GEN.1484): 1 less `pair_light_lost` for a planet of a close pair (its host is the pair's host, which holds both stars and the node of their
+    orbit (their separation and period, and the plane they swing in)), `None` for every other planet (a lone star, a moon, a planet of one star of a wide pair), so their light is as it was. The sibling planets and
     moons that cross a star cover under 1e-4 of the light for 93 percent of planets (section 6.249 of the gap plan, rows EC1 to EC4) and are not applied.
     """
     host = getattr(planet, "star", None)
     stars = getattr(host, "stars", None)
     if getattr(planet, "is_moon", False) or not stars or len(stars) != 2 or not getattr(planet, "distance", None):
         return None
-    period = getattr(host, "binary_mutual_orbital_period_years", None)
-    plane = (getattr(host, "binary_mutual_orbital_inclination_deg", None), getattr(host, "binary_mutual_orbital_ascending_node_deg", None))
-    if not period or None in plane:
+    pair = getattr(host, "pair_orbit", None)      # the host's pair, read from its node (`generation.pair_host.PairHost`)
+    if pair is None or not pair.period_years:
         return None
     tilt = spin.obliquity_between(spin.orbit_normal_of(planet),
-                                  spin.orbit_normal(*plane))
-    lost = pair_light_lost(stars[0], stars[1], host.binary_separation_au, period, float(planet.distance), tilt, constants.AU_TO_KM)
+                                  spin.orbit_normal(pair.inclination_deg, pair.ascending_node_deg))
+    lost = pair_light_lost(stars[0], stars[1], pair.separation_au, pair.period_years, float(planet.distance), tilt, constants.AU_TO_KM)
     return None if lost <= 0.0 else max(0.0, 1.0 - lost)

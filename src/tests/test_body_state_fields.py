@@ -53,11 +53,17 @@ def _snapshot(body):
     return {field: copy.deepcopy(getattr(body, field, None)) for field in Planet.SERIALIZABLE_FIELDS}
 
 
+MAX_REMAKE_SEEDS = 40
+
+
 def test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_present_state_out_again():
     # a rocky planet moved 12 percent outward and made again (`remake_after_orbit_change`): its birth fields (but the orbit draw it was moved off) are untouched, and the present fields
     # that depend on the orbit move
     moved, tested = set(), 0
-    for seed in range(6):
+    needed = {"period", "surface_temperature", "orbital_speed_kms"}
+    for seed in range(MAX_REMAKE_SEEDS):
+        if seed >= 6 and needed <= moved:
+            break           # six seeds at least; more only while a field that moves (the period moves with a moon the tide carries to a new orbit, which one system in a few has) is not yet seen moving
         config = SystemConfig()
         config.PLANETS = True
         with draw.bound(seed):
@@ -75,7 +81,13 @@ def test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_pr
                 for field in fields.birth_fields(Planet):
                     if field in ORBIT_DRAWS:
                         continue            # the orbit the test moved; a moon's own orbit follows its parent's change a little (`follow_orbit_change`): the orbit draws keep their first values in GEN.582's draw record
-                    if field in AIR_SHARE_FIELDS:       # the air's share comes out of the solid fractions (`envelope_share.fill`), so an air that appears or goes at the new distance moves them a little
+                    if field in envelope_share.SOLIDS or field == "envelope_mass_fraction":       # the air's share comes out of the solid fractions in proportion (`envelope_share.fill`), so each solid, and the envelope, move by at most the air's own share, before or after
+                        formed = getattr(body, "_formation_fractions", None) or {}
+                        share_before = (before[id(body)]["envelope_mass_fraction"] or 0.0) - (formed.get("envelope_mass_fraction") or 0.0)
+                        bound = max(envelope_share.air_share(body), share_before, 0.0) * (1.0 + 1.0e-9) + 1.0e-12
+                        assert abs((getattr(body, field, None) or 0.0) - (before[id(body)][field] or 0.0)) <= bound, (seed, body.name, field)
+                        continue
+                    if field in AIR_SHARE_FIELDS:       # the air's helium and heavy-element shares: an air that appears or goes at the new distance moves them a little
                         assert getattr(body, field, None) == pytest.approx(before[id(body)][field], abs=1e-6), (seed, body.name, field)
                         continue
                     if field == "composition":      # the phrase states the stored shares (GEN.430), which the air moves a little: it must state the shares the body has now, and it is the first phrase unless a share sat on a level's edge
@@ -87,5 +99,5 @@ def test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_pr
                     assert getattr(body, field, None) == before[id(body)][field], (seed, body.name, field)
                 moved |= {field for field in fields.present_fields(Planet) if getattr(body, field, None) != before[id(body)][field]}
     assert tested >= 3
-    for field in ("period", "surface_temperature", "orbital_speed_kms"):
+    for field in sorted(needed):
         assert field in moved, field

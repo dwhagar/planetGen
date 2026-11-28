@@ -2,7 +2,7 @@
 
 """
 GEN.332, slice A: the inner pair nodes of a tree have circumbinary planets. A `close` node other than the system's own pair, whose subtree holds
-stars only and whose P-type window (`physics.planet_zones`) exists, is a `BinaryStarProxy` of its two sides (`StarSystem.node_hosts`); its
+stars only and whose P-type window (`physics.planet_zones`) exists, is a `PairHost` of its two sides (`StarSystem.node_hosts`); its
 planets are drawn from a stream of the node's own inside that window, saved with `planets.host_node_id` and no star row, read back, named
 after the pair (`Voranthis CD I`), lit by the pair and described under it. A system with no such node has none and draws what it drew before.
 """
@@ -15,7 +15,7 @@ from planetgen.db import edits as editStore
 from planetgen.db import store
 from planetgen.describe import build, model
 from planetgen.generation import validation
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import planet_zones
@@ -61,7 +61,7 @@ def _with_node_belt(stars=3):
 def _four_star_system_with_a_pair_of_pairs():
     for seed in range(300):
         tree, _cfg = _system(seed, 4, planets=False)
-        if any(isinstance(part, BinaryStarProxy) for host in tree.node_hosts for part in host.stars):
+        if any(isinstance(part, PairHost) for host in tree.node_hosts for part in host.stars):
             return tree
     pytest.fail("no four-star system with a pair of pairs in 300 draws")
 
@@ -105,10 +105,10 @@ def test_the_proxy_of_a_node_merges_its_stars():
 
 def test_a_pair_of_pairs_is_a_proxy_of_two_proxies():
     tree = _four_star_system_with_a_pair_of_pairs()
-    host = next(host for host in tree.node_hosts if any(isinstance(part, BinaryStarProxy) for part in host.stars))
+    host = next(host for host in tree.node_hosts if any(isinstance(part, PairHost) for part in host.stars))
     assert len(host.leaf_stars) == 4 or len(host.leaf_stars) == 3
     assert host.mass == pytest.approx(sum(star.mass for star in host.leaf_stars))
-    inner = next(part for part in host.stars if isinstance(part, BinaryStarProxy))
+    inner = next(part for part in host.stars if isinstance(part, PairHost))
     assert inner.host_node_no is None or inner.host_node_no != host.host_node_no
 
 

@@ -604,6 +604,12 @@ def get_system_description(db, system_id):
     return _request(f"/systems/{system_id}/description", {"db": db})
 
 
+def get_free_moon_description(db, moon_id):
+    """Returns `GET /api/moons/<id>/description` -- the Document of a moon of a free planet (UX.138)."""
+    _require_db(db)
+    return _request(f"/moons/{moon_id}/description", {"db": db})
+
+
 def get_system_scene(db, system_id):
     """Returns `GET /api/systems/<id>/scene` -- the 3D system view's data,
     see `planetgen.web.maps.systemscene`."""

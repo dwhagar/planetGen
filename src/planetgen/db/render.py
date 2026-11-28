@@ -10,7 +10,7 @@ when someone asks, for the code views, the downloads and the command line.
 """
 
 from planetgen import describe
-from planetgen.db.store import load_star_system
+from planetgen.db.store import load_free_moon, load_star_system
 
 FORMATS = tuple(describe.RENDERERS)
 """tuple: The formats a system can be rendered in (`describe.RENDERERS`)."""
@@ -66,3 +66,16 @@ def describe_system(conn, star_system_id):
         ValueError: If no such system exists.
     """
     return describe.describe(load_star_system(conn, star_system_id))
+
+
+def describe_free_moon(conn, moon_id):
+    """
+    The Document (`describe.describe_free_moon`) of a stored moon of a free planet (UX.138), JSON-safe.
+
+    Raises:
+        ValueError: If no moon of a free planet has that id.
+    """
+    moon = load_free_moon(conn, moon_id)
+    if moon is None:
+        raise ValueError(f"no moon of a free planet with id {moon_id}")
+    return describe.describe_free_moon(moon)

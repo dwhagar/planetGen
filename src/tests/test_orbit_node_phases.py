@@ -55,15 +55,14 @@ def test_a_scatter_row_s_nodes_are_never_written_and_the_binary_keeps_its_own_ph
             " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
             " VALUES (1, 1, 0, 1.0, 1.0e6, 0.0, 0.0, 0.0, 0.0, 12.5, 100.0, 1.0, 'close')")
         conn.commit()
-        columns = "binary_mutual_orbital_phase_deg AS p, binary_mutual_position_x_km AS x, binary_epoch_unix AS e"
         pair = orbit_trees.pair_places_km(conn, system_id)["node"]
-        binary_before = dict(conn.execute(f"SELECT {columns} FROM star_systems WHERE id = ?", (system_id,)).fetchone())
+        binary_before = dict(conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone())
         clock = store.orbit_clock(conn, pair.period_years * 3.25)
         store.advance_orbital_phases(conn, clock)
         row = conn.execute("SELECT mean_anomaly_deg AS m, epoch_unix AS e FROM scatter_nodes WHERE source_id = 1").fetchone()
         assert (row["m"], row["e"]) == (12.5, 100.0)
-        # GEN.640 slice a: the pair's own columns are not written; its node moved by the turn from its epoch (the instant it was saved) to the update's end
-        assert dict(conn.execute(f"SELECT {columns} FROM star_systems WHERE id = ?", (system_id,)).fetchone()) == binary_before
+        # GEN.640: the pair has no column of its own to write; its node moved by the turn from its epoch (the instant it was saved) to the update's end
+        assert dict(conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()) == binary_before
         moved = orbit_trees.pair_places_km(conn, system_id)["node"]
         turns = (clock.end_unix - pair.epoch_unix) / (pair.period_years * SECONDS_PER_YEAR)
         assert moved.mean_anomaly_deg == pytest.approx((pair.mean_anomaly_deg + turns * 360.0) % 360.0, abs=1e-4)

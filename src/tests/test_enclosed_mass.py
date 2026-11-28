@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from planetgen.galaxy import density, disk_history, enclosed_mass, keepout, mass_chain, seed as galaxySeed, shape_draw
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.physics import constants
@@ -102,7 +102,7 @@ def test_a_star_and_a_pair_take_their_hill_spheres_from_the_mass_inside_their_ow
         for distance_pc in (50.0, 700.0, 9000.0):
             distance_ly = pc_to_ly(distance_pc)
             perimeter = star.calculate_system_perimeter(distance_ly)
-            pair = BinaryStarProxy._calculate_system_perimeter_static(star.mass, distance_ly)
+            pair = PairHost._calculate_system_perimeter_static(star.mass, distance_ly)
             central = enclosed_mass.enclosed_mass_kg(shape, SEED, distance_pc)
             expected = calculate_hill_sphere(distance_pc * constants.PARSEC_M, star.mass, central) / constants.AU_TO_M
             assert perimeter == pytest.approx(expected, rel=1e-9)

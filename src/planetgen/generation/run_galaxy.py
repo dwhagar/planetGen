@@ -2226,21 +2226,6 @@ def _report_fill_order(candidates, edge_pc):
                + (f", {mean:.1f} sector edges on average and {longest:.1f} at most." if jumps else "."))
 
 
-def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
-    """
-    The not-yet-generated sectors among `candidates`
-    (`_neighborhood_candidates`), as `_submit_batch` items, in
-    the order `candidates` came (the fill order of GEN.101: the center first, then
-    outward); `suffix` may hold `{distance}` (pc).
-
-    Returns:
-        tuple: `(batch, already_existed, skipped)`.
-    """
-    pending = _Pending.of_candidates(args, candidates, occupied, batch_density, suffix, skip)
-    batch = list(pending.items())
-    return batch, pending.existed, pending.skipped
-
-
 def _neighborhood_center(args):
     """The stored center, in parsecs, of `args.center_sector`.
 

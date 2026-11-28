@@ -18,10 +18,10 @@ minimal-displacement fix, not a wholesale relayout) -- true position
 first, decluttering only where it's actually needed.
 
 A single-star or 'close' (P-type) binary system's planets all orbit a
-shared origin (the barycenter -- see `binary.BinaryStarProxy`'s
+shared origin (the barycenter -- see `pair_host.PairHost`'s
 docstring: a 'close' pair's own two stars are placed around that same
 origin too, split by their real mass ratio from
-`star_systems.binary_mutual_position_x/y/z_km`, the secondary's position
+`query.system_detail`'s `binary_mutual_position_x/y/z_km` (read from the pair's orbit node), the secondary's position
 relative to the primary). A 'wide' (S-type) pair's two stars each anchor
 their own independent set of planets/belts (`planets.star_id`/
 `asteroid_belts.star_id` says which) -- unlike the old schematic map, this
@@ -166,14 +166,17 @@ _BELT_ORBIT_GAP_PX = 2.0
 # physical model, unlike `starmap.py`'s spectral colors -- there's no
 # single physical quantity a planet class maps to the way a star's
 # spectral letter maps to a blackbody hue) to read as distinct from its
-# neighbors while still gesturing at the class's own flavor: A/B/E/K's
-# reds-and-rust for volcanic/molten worlds, C/D's muted greys for dead/icy
-# small bodies, F/G/H/L's earthy greens-and-tans for the barren-to-
-# vegetated progression, M/O/P's blues for the habitable "water world"
-# spread (M dark, O a brighter ocean blue, P pale glacier blue), I/J/T's
-# gas-giant palette, N/Q/V's outliers (Venus-hot mustard, an eccentric-
-# orbit violet, a high-gravity super-Earth magenta), and S's dark slate for
-# the barren rocky super-Earth.
+# neighbors while still gesturing at the class's own flavor: A/B/K's
+# reds-and-rust for volcanic and scorched worlds, R and Q's hot pinks and
+# salmons, C/D's muted greys for dead/icy small bodies, E/P/W's cold blues
+# (E deep-frozen, P pale glacier, W the steel between them), F/G/H/L's earthy
+# greens-and-tans for the barren-to-vegetated progression, M/O's blues for the
+# habitable "water world" spread (M dark, O a brighter ocean blue), I/J/T's
+# gas-giant palette, N/Z's hot dry mustard and tan (Venus-hot N, thin-air Z),
+# V's high-gravity magenta, S's dark slate for the barren rocky super-Earth,
+# and the four named families: U's haze brown (Titan), Y's acid yellow-green
+# and X's ammonia aqua. Every class letter has a color (`test_systemmap`
+# checks it), so no class reads as the grey default.
 _CLASS_COLORS = {
     "A": "#d9483f",
     "B": "#e8823a",
@@ -193,7 +196,14 @@ _CLASS_COLORS = {
     "P": "#a9d8f0",
     "S": "#5b6878",
     "T": "#7a86d9",
+    "Q": "#d06f6f",
+    "R": "#e86f9a",
+    "U": "#8c6d3f",
     "V": "#9c3f63",
+    "W": "#9bb0c8",
+    "X": "#5ec2a0",
+    "Y": "#c4d13a",
+    "Z": "#d6b08a",
 }
 _DEFAULT_CLASS_COLOR = "#8a8f9c"
 
@@ -1069,14 +1079,14 @@ def _facilities_svg(facilities, hosts, scale):
 
 def _binary_star_positions_km(system, stars):
     """
-    Splits `star_systems.binary_mutual_position_x/y/z_km` (the secondary's
+    Splits `query.system_detail`'s `binary_mutual_position_x/y/z_km` (read from the pair's orbit node) (the secondary's
     position relative to the primary) into each star's own position
     relative to their shared mass-weighted barycenter -- `primary * m2 +
     secondary * m1 = 0` around that point, by definition of a barycenter --
     rather than treating the primary as a fixed, unmoving anchor. Used both
     to actually place each star's own marker and, for a 'close' (P-type)
     pair, as the shared origin every planet/belt in the system also orbits
-    (`binary.BinaryStarProxy` merges the pair into one *effective*
+    (`pair_host.PairHost` merges the pair into one *effective*
     star sitting at that same barycenter -- see its own docstring).
 
     Args:

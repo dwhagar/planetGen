@@ -110,6 +110,7 @@
   "/api/moons/<uid:body_id> DELETE",
   "/api/moons/<uid:body_id>/regenerate POST",
   "/api/moons/<uid:moon_id> PATCH",
+  "/api/moons/<uid:moon_id>/description GET",
   "/api/moons/<uid:moon_id>/habitable-species GET",
   "/api/moons/<uid:moon_id>/life-air GET",
   "/api/moons/<uid:moon_id>/life-readings GET",

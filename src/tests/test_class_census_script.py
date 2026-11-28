@@ -82,11 +82,20 @@ def test_the_spectral_letter_and_the_age_bins(census):
 
 
 def test_the_samples_have_fixed_seeds_and_the_names_the_command_takes(census):
-    assert [len(census.jobs_for(name)) for name in census.SETS] == [600, 160, 120, 40, 100, 190, 400]
+    assert [len(census.jobs_for(name)) for name in census.SETS] == [600, 160, 120, 40, 100, 190, 400, 300]
     assert census.jobs_for("natural")[0] == ("natural", 1000, {}) and census.jobs_for("youngforced")[-1][1] == 20099
     assert census.jobs_for("hab")[0][2] == {"STAR_TYPE": "G2V", "HABITABLE_WORLD": True}
     with pytest.raises(SystemExit):
         census.jobs_for("nothing")
+
+
+def test_a_system_with_a_wide_pair_carries_the_orbit_of_its_pair_and_a_single_star_none(census):
+    # GEN.1879: the record read `system.wide_binary`, which GEN.640 slice b removed (the pair's orbit is its node's, `system.pair_orbit`), so every system failed.
+    wide = census.draw_one(("natural", 1001, {"STAR_TYPE": "G2V", "BINARY_SYSTEM": True, "WIDE_BINARY": True}))
+    assert "error" not in wide and wide["binary_type"] == "wide"
+    assert wide["pair_orbit"]["separation_au"] > 0.0 and 0.0 <= wide["pair_orbit"]["eccentricity"] < 1.0
+    single = census.draw_one(("natural", 1001, {"STAR_TYPE": "G2V", "BINARY_SYSTEM": False}))
+    assert "error" not in single and single["pair_orbit"] is None
 
 
 def test_one_system_is_drawn_into_a_record_the_report_reads(census, tmp_path, capsys):

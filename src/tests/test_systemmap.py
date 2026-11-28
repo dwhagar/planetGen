@@ -1057,3 +1057,11 @@ def test_the_system_map_help_explains_the_gravity_layer_in_plain_words():
     for word in ("Gravity in the Menu", "pull, well depth, or stretch", "Hill spheres", "Lagrange points L1 to L5", "saddle points"):
         assert word in help_text, word
     assert not re.search(r"\b(MAP|API|UX|GEN)\.\d+", help_text)
+
+
+def test_every_planet_class_has_its_own_marker_color():
+    """UX.150: Q, R, U, W, X, Y and Z were added after the colour table was written and fell to the grey default; every class letter now has a colour, and no two share one."""
+    from planetgen.physics import planet_classes
+    colors = {letter: sm.class_color(letter) for letter in planet_classes.LETTERS}
+    assert sm._DEFAULT_CLASS_COLOR not in colors.values(), [letter for letter, color in colors.items() if color == sm._DEFAULT_CLASS_COLOR]
+    assert len(set(colors.values())) == len(colors)

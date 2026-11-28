@@ -398,15 +398,16 @@ def _leads(row):
 
 def _tuning_view(body):
     """The panel of what the queue has learned per job kind (OPS.158), or `None` when there is nothing to show: for each kind the typed claim, the claim from the job profile, a pin, the samples and
-    the newest change; and the latest changes the engine and the admins made."""
+    the newest change; and the latest changes the engine and the admins made. A kind no code emits any more (`current` false, OPS.316) is kept out of `rows` and listed in `retired`, which the page
+    shows folded, so the table lists what the queue still learns and the old ones stay reachable to forget."""
     if not body or not (body.get("kinds") or body.get("changes")):
         return None
     rows = [{"kind": row["kind"], "typed": format_megabytes(row.get("typed_mb")), "learned": format_megabytes(row.get("figure_mb")), "pinned": format_megabytes(row.get("pinned_mb")), "is_pinned": bool(row.get("pinned_mb")),
              "leads": _leads(row), "samples": f"{row.get('samples') or 0:,}", "last_sample": row.get("last_sample") or "",
-             "changed": (row["changed"]["reason"] if row.get("changed") else "")} for row in body["kinds"]]
+             "changed": (row["changed"]["reason"] if row.get("changed") else ""), "current": row.get("current", True)} for row in body["kinds"]]
     changes = [{"at": _iso(item["at"]), "what": item["what"], "kind": item["kind"], "old": f"{item['old']:,.0f}" if item.get("old") is not None else "none", "new": f"{item['new']:,.0f}",
                 "reason": item["reason"]} for item in body["changes"]]
-    return {"on": body.get("self_tuning", True), "rows": rows, "changes": changes}
+    return {"on": body.get("self_tuning", True), "rows": [row for row in rows if row["current"]], "retired": [row for row in rows if not row["current"]], "changes": changes}
 
 
 def _supervisor_view(body, now=None):

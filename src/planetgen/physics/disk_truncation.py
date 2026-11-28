@@ -42,15 +42,15 @@ rocky planets are unchanged and about two thirds of the giants of such a star ar
 
 
 def star_companion_axis_au(star):
-    """The axis of the nearest companion of `star`, AU: the tightest of the companions `radiation_field` attached to it, or, for the proxy a close pair's planets orbit (`binary.BinaryStarProxy`), the separation of its two
+    """The axis of the nearest companion of `star`, AU: the tightest of the companions `radiation_field` attached to it, or, for the host a close pair's planets orbit (`pair_host.PairHost`), the separation of its two
     stars; `math.inf` for a lone star."""
     axis = math.inf
     for companion in radiation_field.companions_of(star):
         if companion.axis_au > 0.0:
             axis = min(axis, companion.axis_au)
-    separation = getattr(star, "binary_separation_au", None)
-    if separation is not None and 0.0 < separation:
-        axis = min(axis, separation)
+    pair = getattr(star, "pair_orbit", None)      # a close pair's host (`generation.pair_host.PairHost`) has its pair's orbit
+    if pair is not None and 0.0 < pair.separation_au:
+        axis = min(axis, pair.separation_au)
     return axis
 
 
