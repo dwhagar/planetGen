@@ -53,7 +53,7 @@ def test_the_valley_slope_and_location_follow_the_published_values_across_the_re
 def test_a_weaker_or_stronger_loss_moves_the_valley_out_of_the_published_range():
     """No fit to a second knob here: the onset age is the one that moves the loss (module constant, patched for the test).
 
-    GEN.1890: under the EUV/X law of Chadney et al. 2015 (R5368) the Sun-like history is weaker in the first Gy,
+    GEN.1890: under the EUV/X law of Chadney et al. 2015 (R0711) the Sun-like history is weaker in the first Gy,
     so 0.3 Gy is no longer far enough out; 0.1 and 3.0 Gy fail the radius target at every f_env0 of the bracket."""
     for onset in (0.1, 3.0):
         old = envelope_escape.ONSET_GY

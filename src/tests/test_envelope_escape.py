@@ -18,7 +18,7 @@ def test_a_planet_at_the_earths_distance_keeps_almost_all_of_its_envelope():
 
 
 def test_the_share_lost_grows_with_the_insolation_and_falls_with_the_mass_of_the_core():
-    # GEN.1890: the EUV/X law of Chadney et al. 2015 (R5368) gives a Sun-like host less
+    # GEN.1890: the EUV/X law of Chadney et al. 2015 (R0711) gives a Sun-like host less
     # XUV in its first Gy than the old law, so a 6 Earth-mass core is stripped near 150
     # times the Earth's insolation (was near 100): the last point moved out to 150.
     by_insolation = [_lost(6.0, 0.05, s) for s in (1.0, 10.0, 30.0, 150.0)]

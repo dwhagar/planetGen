@@ -17,7 +17,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 2. **XUV.** The EUV (12 to 92 nm) follows the X-rays through the stellar surface flux (GEN.1890, Chadney et al. 2015 [R0711], Eq. 2:
    `F_EUV / F_X = 425 F_X^-0.42`, fluxes at the stellar surface in erg/s/cm2, so that a star with a large surface flux of X-rays, an active
    one or a cool one with a small surface, makes less EUV for each X-ray than the Sun does), and `L_XUV = L_X + L_EUV`. It gives the Sun today
-   EUV/X 6.6 (Ribas et al. 2016 [R5368], Table 2: 6.6) and Proxima Centauri 0.88 (Ribas et al. 2016: 0.9; Ribas et al. 2017 [R5369]: about 1.1),
+   EUV/X 6.6 (Ribas et al. 2016 [R5378], Table 2: 6.6) and Proxima Centauri 0.88 (Ribas et al. 2016: 0.9; Ribas et al. 2017 [R5379]: about 1.1),
    where the luminosity law of Sanz-Forcada et al. 2011 this replaced gave 10 and 8.9. A hot photosphere adds its own blackbody output
    above 13.6 eV (`blackbody_fraction_above`), which dominates for O and B
    stars and hot white dwarfs.
@@ -199,7 +199,7 @@ def lx_lbol_at(age_gy, saturated, t_sat_gy, decay, offset_dex=0.0):
 EUV_X_COEFFICIENT = 425.0
 """float: The coefficient of `F_EUV / F_X = EUV_X_COEFFICIENT * F_X ** EUV_X_SLOPE`, the EUV to X-ray ratio of a star from its X-ray flux at its surface, F_X in
 erg/s/cm2 (= mW/m2). Chadney et al. 2015 [R0711], Eq. 2a (`log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle, 2002 to 2013, with the EUV
-12 to 92 nm and the X-rays 0.1 to 12 nm); it gives 6.6 for the Sun today (Ribas et al. 2016 [R5368]: 6.6) and 0.88 for Proxima Centauri (0.9 and about 1.1).
+12 to 92 nm and the X-rays 0.1 to 12 nm); it gives 6.6 for the Sun today (Ribas et al. 2016 [R5378]: 6.6) and 0.88 for Proxima Centauri (0.9 and about 1.1).
 Tier T2 (second-hand for the fit, T1 for the anchors), tweak L0. Stand-in registry AB4."""
 
 EUV_X_SLOPE = -0.42
