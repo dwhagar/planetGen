@@ -271,7 +271,10 @@ def test_a_table_that_cools_with_twice_the_infrared_active_gas_is_named(swept):
     def cooling_with_more(partials, gravity, absorbed):
         calls.append(partials)
         warmed = real(partials, gravity, absorbed)
-        return type("Warming", (), {"surface_temperature_k": warmed.surface_temperature_k * (1.0 if len(calls) % 2 else 0.9)})()      # the second call of each pair is the doubled air
+        if len(calls) % 2:
+            cooling_with_more.as_it_is = warmed.surface_temperature_k
+            return warmed
+        return type("Warming", (), {"surface_temperature_k": cooling_with_more.as_it_is * 0.9})()      # the second call of each pair is the doubled air, read 10 percent under the air as it is (a table that warms the doubled air by more than a tenth would hide a cut of a tenth from the rule)
 
     assert any("cools the ground" in text for text in doubled_infrared_problems(body, warming=cooling_with_more))
     assert doubled_infrared_problems(body) == []

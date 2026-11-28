@@ -847,6 +847,10 @@ def solve(setting, start_temperature_k):
     """
     Solves the air of a body (see the module text).
 
+    A body that starts above the critical temperature of its water (the steam start, GEN.1238) began hot and has not condensed an ocean, so it keeps the hot branch while the branch has a steady state.
+    When its air does not settle (the answers of the hot branch cross the iterate at a jump and `Air.converged` is false: the hot branch has no steady state at this flux), the body has cooled
+    through the critical point and the air is solved again from each of `tuning.STEAM_FALL_STARTS_K` in turn, the cool side; the first that settles under the critical temperature is kept (GEN.1864).
+
     Args:
         setting (Setting): The body.
         start_temperature_k (float): The temperature the first step starts from (the airless one).
@@ -854,6 +858,24 @@ def solve(setting, start_temperature_k):
     Returns:
         Air: The air. Draws from the ambient stream once (the design constants and the seed of the replay).
     """
+    if setting.giant or setting.ocean_cover <= 0.0 or setting.water_kg <= 0.0 or start_temperature_k < surface_pressure.LIQUID_WATER_K[1]:
+        return _solve(setting, start_temperature_k)
+    entry_state = draw.getstate()
+    hot = _solve(setting, start_temperature_k)
+    if hot.converged or not hot.partials_pa:
+        return hot
+    after_hot = draw.getstate()
+    for fall_k in tuning.STEAM_FALL_STARTS_K:
+        draw.setstate(entry_state)
+        cool = _solve(setting, fall_k)
+        if cool.converged and cool.partials_pa and cool.temperature_k < surface_pressure.LIQUID_WATER_K[1]:
+            return cool
+    draw.setstate(after_hot)
+    return hot
+
+
+def _solve(setting, start_temperature_k):
+    """The fixed point of `solve` from one start."""
     entry_state = draw.getstate()
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
@@ -888,15 +910,16 @@ def solve(setting, start_temperature_k):
         """One step of the fixed point from `temperature` and `ln_pressure`, with what the steps before left in `st` (which it updates): `("air", air)` when the air ends here (airless),
         `("stalled", None)` when the equilibrium of the gas stalls, and `("stepped", (mixture, partials, pressure, temperature, warming, condensed_kg, ocean, haze, albedo, ceiling_k, subject))`."""
         pressure = math.exp(ln_pressure)
+        under_critical = temperature < surface_pressure.LIQUID_WATER_K[1]        # GEN.1864: over the critical temperature of water no ocean stands, whatever the step before it or the flips of the ocean
         if st['cycling']:
-            ocean = True
+            ocean = under_critical
         else:
-            ocean = (not setting.giant) and st['reservoir_left'] > 0.0 and (step == 1 and setting.ocean_cover > 0.0
+            ocean = (not setting.giant) and st['reservoir_left'] > 0.0 and (step == 1 and setting.ocean_cover > 0.0 and under_critical
                                                                        or liquid_ocean(setting.ocean_cover, temperature, pressure))
             st['flips'] += ocean != st['last_ocean'] and step > 1
             st['last_ocean'] = ocean
             st['cycling'] = st['flips'] >= MAX_OCEAN_FLIPS
-            ocean = ocean or st['cycling']
+            ocean = ocean or (st['cycling'] and under_critical)
         weathers = _weathers(setting, st['reservoir_left'], temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
         sink_record = st['sink_record']
