@@ -38,6 +38,7 @@ def _entry(object_id, row):
         "composition": {"rock": q(row["rock_fraction"], "frac"), "metal": q(row["metal_fraction"], "frac"),
                         "water": q(row["water_fraction"], "frac"), "ice": q(row["ice_fraction"], "frac")},
         "status": {"word": row["status"]},
+        "strength": {"roundness_ratio": row["roundness_ratio"], "yield_strength_pa": row["yield_strength_pa"], "binding_energy_j": row["binding_energy_j"]},
     }
 
 
@@ -47,8 +48,8 @@ def _field_block(field, object_id, **more):
 
 
 def _rows(conn, field_id):
-    return conn.execute("SELECT member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status"
-                        " FROM field_members WHERE field_id = ? ORDER BY member_rank", (field_id,)).fetchall()
+    return conn.execute("SELECT member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status,"
+                        " roundness_ratio, yield_strength_pa, binding_energy_j FROM field_members WHERE field_id = ? ORDER BY member_rank", (field_id,)).fetchall()
 
 
 def members_of(conn, field_id):

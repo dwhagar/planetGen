@@ -20,6 +20,7 @@ keeps `build.birth_spin`, `planets.generate_orbit_shape` keeps `build.orbit_birt
 | `born_index` | count | the place of a moon in its planet's list of born moons (`_born_moons`), which the lost moons share; the place of a planet in its star's plan (`Planet.plan_slot`), which no trim of the planets moves. Both name the body's slot, so its ID follows it (DB.75b) |
 | `held_eccentricity` | fraction | the eccentricity a resonance holds the body on (`build.resonance_e`: a planet of a resonant chain, oddity W5; a moon of a first-order pair or caught in the evection resonance), the floor `settle_orbit` keeps under the tide (DB.132) |
 | `forced_eccentricity` | fraction | the eccentricity the planets of a resonant chain force on a planet (`oddity_quantities["forced_eccentricity"]`, `resonant_chains.give_forced_eccentricities`), the quantity the oddity of the chain reads (DB.132) |
+| `tilt_chaotic` | flag | 1 when the spin-orbit resonances of the star's other bodies overlap across the planet's tilt, so that it wanders chaotically (`oddity_quantities["tilt_chaotic"]`, `planets.settle_obliquity`), the quantity oddities W6 and W61 read (GEN.1874) |
 | `formula_version` | count | `FORMULA_VERSION`: which set of formulas wrote the row, so a later change to them can tell the rows it must not refill from the rows it can |
 
 **Read back (GEN.1533, GEN.1753, DB.132):** `attach`, called by `store.load_star_system`, gives a restored planet or moon its `build.orbit_birth`, `build.birth_spin`, `formation_distance_au`, (a moon) `_birth_distance_au`, the eccentricity a resonance holds it on (`build.resonance_e`) and a planet's forced one (`oddity_quantities`) from its row, so
@@ -52,6 +53,7 @@ COLUMNS = (
     ("born_index", None, "the place of a moon in its planet's list of born moons, or of a planet in its star's plan"),
     ("held_eccentricity", None, "the eccentricity a resonance holds the body on, the floor its tide cannot wear below"),
     ("forced_eccentricity", None, "the eccentricity the planets of a resonant chain force on a planet"),
+    ("tilt_chaotic", None, "1 when the planet's tilt wanders chaotically"),
     ("formula_version", None, "the version of the formulas that wrote the row"),
 )
 """tuple: `(column, unit key of the unit registry or None for a plain number, what it is)` for each number after the three key columns of `body_history`."""
@@ -98,6 +100,8 @@ def numbers_of(body):
     forced = (getattr(body, "oddity_quantities", None) or {}).get("forced_eccentricity")
     if forced:
         out["forced_eccentricity"] = float(forced)
+    if (getattr(body, "oddity_quantities", None) or {}).get("tilt_chaotic"):
+        out["tilt_chaotic"] = 1
     if out:
         out["formula_version"] = FORMULA_VERSION
     return out
@@ -135,6 +139,9 @@ def attach(body, row):
     if row["forced_eccentricity"] is not None:
         body.oddity_quantities = {**(getattr(body, "oddity_quantities", None) or {}), "forced_eccentricity": float(row["forced_eccentricity"])}
         attached = True
+    if row["tilt_chaotic"] is not None:      # GEN.1874: the quantity the tilt oddities read, so a planet made again from its row has it
+        body.oddity_quantities = {**(getattr(body, "oddity_quantities", None) or {}), "tilt_chaotic": int(row["tilt_chaotic"])}
+        attached = True
     draws = (row["capture_draw_1"], row["capture_draw_2"])
     if row["birth_spin_rate"] is not None and row["birth_obliquity_deg"] is not None and all(draw is not None for draw in draws):
         body.build.birth_spin = (float(row["birth_spin_rate"]), float(row["birth_obliquity_deg"]), tuple(float(draw) for draw in draws))
@@ -167,6 +174,34 @@ def rows(star_system_id, bodies, ids, born=None):
         out.append({"star_system_id": star_system_id, "body_type": effect_ledger.BODY_CODES[where[0]], "body_id": where[1],
                     **{name: numbers.get(name) for name in COLUMN_NAMES}})
     return out
+
+
+FALLEN_FIELDS = ("star_system_id", "planet_id", "fall_index", "mass_kg", "time_yr")
+"""tuple: The columns of a `fallen_moons` row, in table order."""
+
+
+def fallen_rows(star_system_id, planet, planet_id):
+    """
+    The `fallen_moons` rows of one saved planet (GEN.1874): each moon its tide brought inside the Roche limit (`planet.fallen_moons`, `moon_history`) as its mass and the years after the planet formed that it
+    fell, in the order the planet holds them, which the rings of the planet are made from (`rings.apply`).
+
+    Args:
+        star_system_id (int): The system's `star_systems.id`.
+        planet: A generated planet.
+        planet_id (int): Its `planets.id`.
+
+    Returns:
+        list: One dict of `FALLEN_FIELDS` for each fallen moon; empty for a planet with none.
+    """
+    return [{"star_system_id": star_system_id, "planet_id": planet_id, "fall_index": index, "mass_kg": float(moon.mass_kg), "time_yr": float(moon.time_yr)}
+            for index, moon in enumerate(getattr(planet, "fallen_moons", None) or ())]
+
+
+def attach_fallen(planet, rows):
+    """Gives a restored planet the moons it lost to its tide (`planet.fallen_moons`, GEN.1874) from its `fallen_moons` rows (`FALLEN_FIELDS`), in `fall_index` order; a planet with no rows keeps what it has."""
+    from planetgen.physics import ring_origin
+    if rows:
+        planet.fallen_moons = tuple(ring_origin.FallenMoon(float(row["mass_kg"]), float(row["time_yr"])) for row in sorted(rows, key=lambda row: row["fall_index"]))
 
 
 LOST_FIELDS = ("star_system_id", "planet_id", "born_index", "mass_kg", "birth_distance_au", "density_kg_m3", "retrograde")

@@ -139,7 +139,7 @@ def test_a_v242_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mys
 def _row(**changes):
     row = {"star_system_id": 1, "body_type": 2, "body_id": 3, "birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
            "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formation_distance_au": None, "birth_distance_au": None, "born_index": None,
-           "held_eccentricity": None, "forced_eccentricity": None, "formula_version": body_history.FORMULA_VERSION}
+           "held_eccentricity": None, "forced_eccentricity": None, "tilt_chaotic": None, "formula_version": body_history.FORMULA_VERSION}
     return {**row, **changes}
 
 
