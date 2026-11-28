@@ -155982,6 +155982,41 @@
    "volume": "218",
    "year": 1977
   },
+  "10.1086/155692": {
+   "authors": [
+    [
+     "Weaver",
+     "R."
+    ],
+    [
+     "McCray",
+     "R."
+    ],
+    [
+     "Castor",
+     "J."
+    ],
+    [
+     "Shapiro",
+     "P."
+    ],
+    [
+     "Moore",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/155692",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "377",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Interstellar bubbles. II - Structure and evolution",
+   "type": "journal-article",
+   "volume": "218",
+   "year": 1977
+  },
   "10.1086/157301": {
    "authors": [
     [
@@ -186319,6 +186354,29 @@
    "title": "Through a lens darkly: evidence for dusty gravitational lenses",
    "type": "journal-article",
    "volume": "288",
+   "year": 1997
+  },
+  "10.1093/mnras/289.3.570": {
+   "authors": [
+    [
+     "Oey",
+     "M. S."
+    ],
+    [
+     "Clarke",
+     "C. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/289.3.570",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "570",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The superbubble size distribution in the interstellar medium of galaxies",
+   "type": "journal-article",
+   "volume": "289",
    "year": 1997
   },
   "10.1093/mnras/290.3.533": {
@@ -288689,7 +288747,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5371,
+ "id_next": 5375,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -290959,6 +291017,7 @@
   "10.1086/152991": "R4349",
   "10.1086/153422": "R4420",
   "10.1086/155667": "R3001",
+  "10.1086/155692": "R5374",
   "10.1086/157301": "R2048",
   "10.1086/157563": "R0611",
   "10.1086/157632": "R2777",
@@ -291733,6 +291792,7 @@
   "10.1093/mnras/285.4.779": "R3776",
   "10.1093/mnras/286.3.771": "R1264",
   "10.1093/mnras/288.1.138": "R2831",
+  "10.1093/mnras/289.3.570": "R5373",
   "10.1093/mnras/290.3.533": "R1034",
   "10.1093/mnras/69.6.476": "R2754",
   "10.1093/mnras/79.5.319": "R2148",

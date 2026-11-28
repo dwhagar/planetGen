@@ -58,10 +58,10 @@ GalaxyShape = namedtuple(
         "k_norm", "components", "masses", "structure", "system_mass_scale", "abundance_tier", "comet_tier",
         "family", "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude",
         "spheroid_amplitude", "spheroid_sersic_n", "spheroid_effective_radius_pc", "spheroid_axis_ratio_b",
-        "spheroid_axis_ratio_c", "spheroid_orientation_rad", "body_clump_share",
+        "spheroid_axis_ratio_c", "spheroid_orientation_rad", "body_clump_share", "bubbles",
     ],
     defaults=(None, None, galaxyStructure.REFERENCE_STRUCTURE, 1.0, "science", "science",
-              "spiral", None, None, None, None, None, 0.0, 0.0, 0.0, 1.0, 1.0, (0.0, 0.0, 0.0), 0.0),
+              "spiral", None, None, None, None, None, 0.0, 0.0, 0.0, 1.0, 1.0, (0.0, 0.0, 0.0), 0.0, None),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
 caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
@@ -80,12 +80,14 @@ part of the stored row (the plan's pins hold the richness, `with_system_richness
 `SystemConfig.ABUNDANCE_TIER`. `comet_tier` is the galaxy's comet abundance tier (`generation.comet_abundance.TIERS`; the Census dial `comet_abundance`, GEN.1775), `"science"` unless the plan pinned another,
 kept and read in the same way (`SystemConfig.COMET_TIER`).
 
-The last thirteen fields are the stored family and component numbers (`galaxy_shape`, DB.66, GEN.379). `family` is the
+The thirteen fields before `bubbles` are the stored family and component numbers (`galaxy_shape`, DB.66, GEN.379). `family` is the
 galaxy's family (`spiral` for every galaxy built so far). The bar's presence, its two axis ratios and angle, and the
 thick disk's amplitude are `None` for "as the structure draw gives it from the seed" (the value is then in `structure`),
 or a number that pins it (`with_family_columns` puts it in `structure` as well). The Sersic spheroid's fields are the
 spheroid family's (GEN.381): an amplitude of 0 has no spheroid, and the model has no spheroid component yet. `body_clump_share`
-is the irregular family's young clump share (GEN.385)."""
+is the irregular family's young clump share (GEN.385). `bubbles` is the galaxy's `galaxy.bubble_field.BubbleField` (GEN.392: the superbubbles' handle, which carries the
+galaxy's seed so a density read can find the bubbles a point lies in), `None` for a shape built with no seed; it is not part of the stored row and takes no part in the
+density until the call sites of GEN.393 read it."""
 
 FAMILY_COLUMNS = ("family", "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude",
                   "spheroid_amplitude", "spheroid_sersic_n", "spheroid_effective_radius_pc", "spheroid_axis_ratio_b",
@@ -409,7 +411,7 @@ def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     fields = shape._asdict()
-    for name in ("components", "masses", "structure", "system_mass_scale", "abundance_tier", "comet_tier", "spheroid_orientation_rad"):
+    for name in ("components", "masses", "structure", "system_mass_scale", "abundance_tier", "comet_tier", "spheroid_orientation_rad", "bubbles"):
         del fields[name]
     for name in FAMILY_COLUMNS:
         fields.pop(name, None)

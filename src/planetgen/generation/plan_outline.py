@@ -14,6 +14,7 @@ import math
 import time
 
 from planetgen import tuning as program_constants
+from planetgen.galaxy import bubble_field as bubbleField
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import dials
 from planetgen.galaxy import plan_figures as planFigures
@@ -98,7 +99,8 @@ def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHEL
         young = openClusters.generate_open_clusters(galaxy_seed, shape, edge_pc, e_value, epoch_unix=epoch)
     with timer.step("the component field (each cluster's and satellite's systems)"):
         shape = shape._replace(components=componentField.ComponentField(
-            found + young + dwarfs, edge_pc, e_value, mean_by_age=_mean_system_mass_by_age(found + young + dwarfs)))
+            found + young + dwarfs, edge_pc, e_value, mean_by_age=_mean_system_mass_by_age(found + young + dwarfs)),
+                               bubbles=bubbleField.BubbleField(galaxy_seed))      # the superbubbles' handle (GEN.392)
     edge_limit = shapeDraw.edge_limit_pc(dials.resolved(shape_args, "edge"), shape.disk_scale_length_pc)
     max_shell = reach_shell_index if edge_limit is None else min(math.ceil(edge_limit / edge_pc), reach_shell_index)
     unitbeat.step(OUTLINE_STEPS[4])

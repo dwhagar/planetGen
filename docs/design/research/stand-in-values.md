@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2057 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2062 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2030 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2035 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 233 | 23 | 12 | 1 | 0 | 269 |
-| T2 | 190 | 78 | 5 | 0 | 0 | 273 |
-| T3 | 137 | 72 | 12 | 10 | 0 | 231 |
-| T4 | 96 | 17 | 11 | 25 | 13 | 162 |
+| T2 | 191 | 78 | 5 | 0 | 0 | 274 |
+| T3 | 138 | 72 | 12 | 10 | 0 | 232 |
+| T4 | 97 | 17 | 11 | 25 | 13 | 163 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 258 | 146 | 43 | 85 | 8 | 540 |
+| T6 | 258 | 148 | 43 | 85 | 8 | 542 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1168 | 435 | 109 | 279 | 66 | 2057 |
+| All | 1171 | 437 | 109 | 279 | 66 | 2062 |
 
 ## How the labels were given
 
@@ -3655,6 +3655,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DG1 | D | T1 | L1 | `shape_draw.DWARF_SIZE_INTERCEPT` 0.667 and `DWARF_SIZE_SLOPE` 0.296 ([R0655], isolated dwarfs, scatter 0.215 dex, fitted over log M* 5.5 to 8.5) below `DWARF_SIZE_EDGE_SOLAR` 10^8.5, scaled by `DWARF_SIZE_ANCHOR` 1.018 so the median meets [R4048]'s there | the satellites' fit (1.071 + 0.247 log M*, 0.181 dex) is 0.2 dex larger | spirals and dwarfs of 5.5 < log M* < 8.5 | a measured median half-light radius of isolated dwarfs of 1e6 to 3e8 solar masses more than 0.2 dex from this law | a size law of the family a galaxy of that mass belongs to (GEN.385) | [R0655] (READ: the table of fits); test_shape_draw::test_the_dwarf_size_law_meets_the_late_type_law_at_its_edge | predicted only | - | - |
 | DG2 | B | T3 | L1 | the same law continued under log M* 5.5 to the floor of the Scale dial (281 solar masses): 25 pc half-light radius there (31 pc at Segue 1's 562 solar masses against its 23.9 pc) | 0.2 to 0.5 dex about it (Segue 1 is 0.37 dex under the satellites' law and 0.11 dex under this one) | 281 < M* < 3e5 | a measured ultra-faint half-light radius more than 0.5 dex from the continuation at its mass | a size law of the ultra-faint dwarfs fitted to their survey (gap GR13) | Segue 1 in the Local Volume Database and [R4098] (half-light radius 23.9 pc at 562 solar masses; the floor is half of it, Boss, 7:31 PM EDT on 2026-10-21) | predicted only | - | - |
 | DG3 | P | T9 | L3 | a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, `KREGEL_Q`), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening | the flatness lever's own range, 3 to 20 | dwarfs under 3e8 solar masses, which are one disk plus a bulge (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`) | a measured axis ratio of the dwarfs of these masses far from 1/7.3 | the observed flattening of the family's galaxies (GEN.385) | none: a placeholder so the Scale dial's floor has a height | predicted only | - | no data |
+
+## 6.339 Stand-ins of the superbubble factor (GEN.392)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SB1 | T | T6 | L1 | tuning.SUPERBUBBLE_DRIVING_POWER_ERG_S 6.3e36 erg/s, the one power of every bubble (Boss's choice), with SUPERBUBBLE_DRIVING_DENSITY_CM3 0.5 and SUPERBUBBLE_MEAN_MASS_PER_PARTICLE 1.25 in Weaver's `R = 0.76 (L t^3 / rho)^(1/5)`, solved for the age (`bubble_field.age_myr`) | 1e36 to 1e37 erg/s (the observed means of M31, M33 and the SMC are 4.8e36, 6.3e36 and 8.6e36) | any bubble of 50 to 500 pc | a measured age of a bubble of known radius more than a factor 3 from the law at this power | a power drawn per bubble from the luminosity function of its association (slope 1.4 to 2.1, [R5373]) | [R5373: section 3, eq. 24 and Table 3] (read: the Weaver radius law in cgs, n = 0.5 per cm3 with mu = 1.25, mean powers of four galaxies) and [R5374] (the law, cited second-hand through [R5373]'s eq. 24) | predicted only | - | - |
+| SB2 | D | T2 | L0 | tuning.SUPERBUBBLE_EXPANSION_LIFETIME_MYR 40 Myr: the cap on a bubble's age, the time its driving power lasts | 30 to 50 Myr | every bubble | a measured driving time of superbubbles far from 40 Myr | the lifetime of the association's own stars | [R5373: section 2.1] (read: the constant power lasts until the lowest-mass supernova progenitors, about 8 solar masses, expire at about 40 Myr) | predicted only | - | - |
+| SB3 | T | T6 | L1 | tuning.SUPERBUBBLE_SHELL_THICKNESS 0.06 of the radius, with the shell's density `1 / (3 t)` = 5.6 times the disk's and its star formation that to the power SUPERBUBBLE_SCHMIDT_EXPONENT (13.1 times) | 0.03 to 0.12 | young stars on and inside every bubble | the census share of young stars on a shell outside 14 to 30 percent of the young stars [R4347] | a shell thickness from the cooling of the swept-up gas, or a measured shell density | derived from mass kept in the shell (the ball's gas piles into `3 t` of its volume) and a shell cooled to the warm gas's temperature, compressed by `(20 / 8)^2` = 6, so `t` = 1/18; Boss chose the derived shell on 2026-11-26 (card B); the shell sits on [R4916]'s Local Bubble (young stars on its surface) and [R4347]'s 14 to 30 percent | predicted only | - | - |
+| SB4 | B | T3 | L0 | tuning.SUPERBUBBLE_SCHMIDT_EXPONENT 1.5: the rate of star formation per volume goes as the gas density to this power | 1.4 to 1.65 (the surface law's range, `STAR_FORMATION_LAW_EXPONENT`) | gas of 0.001 to 100 atoms per cm3 | a measured volume law far from 1.5 | the disk's own law, 1.4, where the gas has the same density scale | RECALLED (the Schmidt law of the volume density, fitted from 1.4 to 2 in the literature, not opened here; the project's surface law is 1.4 +/- 0.15, [R2321]); the shell factor is 13.1 at 1.5 and 11.0 at 1.4 | predicted only | - | - |
+| SB5 | P | T4 | L0 | tuning.SUPERBUBBLE_EDGE_SHARE 0.25: the half-width of the smooth edge of the shell as a share of its thickness | 0.1 to 0.5 | any bubble | not a physical quantity: no measurement can falsify it; it only removes the step so a bound and a cell mean see a smooth factor | a measured shell profile | design: `docs/design/galaxy/superbubble-density.md` section 3 asks for a factor that is smooth in the depth | predicted only | - | - |
 
 ## 6.337 Stand-ins of the black hole mass trend (GEN.554)
 

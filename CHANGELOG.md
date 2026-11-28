@@ -2,6 +2,109 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4868+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The galaxy shape now carries a superbubble handle: a bubble's effect on the young stars (0.6 inside a full-age cavity, a derived shell of 13.1 times) is built and bounded, ready for the density terms to read.
+
+### Added
+
+- GEN.392: `GalaxyShape.bubbles` holds a `BubbleField` (`galaxy/bubble_field.py`), the galaxy's seed, with a box cut of the bubbles, the young-star factor at a point, a certified maximum over a box and a bubble-free density read. A bubble's age comes from its radius by Weaver's law at one driving power, capped at the 40 Myr the driving power lasts; the shell is 0.06 of the radius thick with star formation at its density to the power 1.5. Stand-ins registered as section 6.339 (SB1 to SB5); design in `docs/design/galaxy/superbubble-density.md` section 8. Nothing reads the factor yet, so the density and every generated galaxy are unchanged until GEN.393.
+
+generation-output: unchanged
+
+## [8.0.4867+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The sample galaxy the site tests walk is the same galaxy every time it is built
+
+### Fixed
+
+- GEN.1883: two builds of one commit made two sample galaxies (the heaviest planet was 006 in one and 002 in the next; a third build gave 003), so `test_irregular_moon_pages::test_the_system_detail_and_the_system_page_carry_the_irregular_moons_to_the_map`, which reads the heaviest planet, failed by chance. Two causes, both in the fixture `tests/test_web_a11y.py` builds (loaded by about twenty files through the dump cache): `plan` took a new galaxy seed from the operating system on each build (no `--seed`), and `fuzz_support.deterministic_entropy` is not enough to pin the run seed, because the run lines' tickets and ids draw from the same pinned stream a varying number of times, which moved the seed of the next command by a word between two builds. The build now gives `plan --seed` and pins `secrets.randbits` on a stream of its own. The new `tests/test_site_galaxy_same_twice.py` builds the sample twice in two scratch databases and holds the rows of the generated tables to be equal. The product is unchanged: the generator already takes a galaxy seed; only the fixture left it to chance. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4866+db281.gen150.api14] - 2026-11-28
+
+**Headline:** Phenomena: the core of a remnant saved with no sector has an ID of its own
+
+### Fixed
+
+- NAV.81: a supernova remnant saved with no sector (`planetgen generate supernova-remnant` with no sector) got an Object ID for the remnant but none for its collapsed core, so `/phenomena` listed the core by its row number and its page answered 404 for that number. The core now takes its ID with the remnant (`assign_uids`), keeping the name `<remnant> Core`, so the list and the page agree.
+
+## [8.0.4865+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The white-dwarf fallback tests no longer pass or fail by which test ran before them in the same worker.
+
+### Changed
+
+- The two "without the sequences" tests of the white-dwarf cooling take away the white-dwarf sequences only (TEST.841), not the whole cache folder, which also took the isochrones away and made the result depend on whether an earlier test of the worker had loaded them.
+
+## [8.0.4864+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A belt member made a planet is finished the way every planet is, so a young star's belts no longer take minutes to build.
+
+### Changed
+- A belt member promoted to a planet is built bare and finished with the late accretion the system gives it (`Planet.finish_climate`, `belt_planets.finish_planet`), the way every other planet is, so its air is made once instead of with the law's draw and again after the belts are final. A system of a 4 Myr star with seven belts (seventy promoted bodies) builds in 113 s instead of 174 s, one with four belts (forty) in 54 s instead of 68 s.
+- Every promoted body is drawn again from its own stream in the order the planets are (motion, air, spin, moons): its spin, tilt and day change, and its moons may; its class, mass, orbit and makeup do not. No other body of the system moves except in the last digit of a tide sum (1e-16 relative).
+- Census (seeds 2, 3 and 4, 120 promoted bodies): the class of none of them changes; the spin, tilt and day of every one does.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4863+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A close pair's host reads its orbit from the pair's node, and the star_systems columns that copied the pair's orbit are gone.
+
+### Changed
+- **`PairHost` replaces `BinaryStarProxy` (GEN.640 slice c).** The two stars of an orbit node, standing as one effective star for the planets that circle both (the system's own close pair, and each inner `close` node of a bigger tree that holds circumbinary planets), are `generation/pair_host.PairHost`. It holds the pair's `OrbitNode` and reads the orbit on each use (`PairHost.pair_orbit`, the `PairOrbit` view of slice b), so there is no `binary_mutual_*`, `binary_primary_position_*`, `binary_secondary_position_*`, `binary_secondary_mass_fraction` or `_binary_separation_au` copy on the host and no draw of a separation, plane or phase in its constructor (the tree drew them). The host takes its two stars heavier first as the tree gives them: the heavier-star swap of the host and of the database loader is gone, so the tree's own swap (`StarSystem._pair`) is the one copy. The readers of the pair's orbit (`physics/eclipses.py`, `physics/insolation.py`, `physics/disk_truncation.py`, `describe/build.py`, `db/orbit_trees.py`) read `pair_orbit`. `StarSystem.to_dict`/`from_dict` write and read the host without the orbit; `SERIALIZATION_SCHEMA_VERSION` is 11. Reuse: `PairOrbit` of slice b, the node-hosts of GEN.332, `orbit_trees.pair_node_no` and `slot_under` (made public) to find the node and the turn of a stored pair.
+- **Migration 0281 (GEN.640 slice d, a placeholder number the train renumbers) drops 21 columns of `star_systems`:** `binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, `binary_mutual_orbital_period_years`, `_speed_kms`, `_inclination_deg`, `_ascending_node_deg`, `_phase_deg`, `binary_mutual_min_update_interval_years`, `binary_mutual_position_x_km`/`y`/`z`, `binary_primary_position_x_km`/`y`/`z`, `binary_secondary_position_x_km`/`y`/`z`, `binary_secondary_mass_fraction`, `binary_epoch_unix`, `binary_next_update_due` and its index. Nothing wrote them since slice a and nothing read them; the pair's orbit is its node in `orbit_nodes`. `binary_separation_km` stays (the sector lists, the maps and the facilities read the pair's axis from the row without the tree). `store.insert_star_system` writes none of them; `db/models.py`, `column_units.py`, `check.py`, `storage_checksum.py`, `fingerprint.py`, `fingerprint_tree.py` and `precision.py` lose them.
+
+generation-affects: none
+
+## [8.0.4862+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The overlap verifier knows the trojan rows: a giant and the planets at its L4 and L5 share one orbit by design, and its trojan regions hold that orbit, so two seeds of the clearance sweep no longer read as overlaps.
+
+### Fixed
+- GEN.1882 (bug): `tests/test_clearance.py::test_a_generated_system_holds_no_overlap[pair-6]` and `[triple-10]` failed on main. Generation was right: in `pair-6` the giant (planet 3, 114 Earth masses at 2.74 AU) has an L4 and an L5 trojan region (belts 3 and 4, GEN.1150), and in `triple-10` planet 4 is the L5 trojan planet of planet 3 (GEN.1151), made on the giant's own orbit. The verifier (`physics/clearance.py`) did not read the Lagrange columns, so it counted the trojan region as a belt holding the giant's orbit (`belt-planet`) and the trojan planet as a crossing of the giant (`planet-crossing`, `planet-spacing`). It now reads `planets.lagrange_host_id` and the belt's `parent_id` with `lagrange_point`: a trojan planet leaves the crossing and spacing clearing (the giant stands for it, so a neighbour is still held to the giant's orbit), a trojan must hold its giant's semi-major axis and eccentricity (new hard kind `trojan-orbit`), and a trojan region may hold its own giant's orbit and that giant's trojans' while any other planet in it is still a `belt-planet` violation. A new test in `test_clearance.py` covers each case. `docs/design/systems/overlap-free-systems.md` lists the rule.
+
+generation-affects: none
+
+## [8.0.4861+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A moon's orbit settling no longer sets its star exposure from its distance to its planet.
+
+### Fixed
+
+- GEN.1881: `planets.settle_orbit`, run for every planet and every moon at the star's final age, ended by setting the exposure (the star's XUV, flares and the stored star distance) of the body and its moons from `flux_distance_au(body.distance, ...)`. For a planet that is its distance from the star; for a moon, `distance` is the distance from its planet (0.000148 AU for Ekausor Ia, the sweep's seed 15), so a moon whose exposure existed already was given its own orbit as its star distance. Moons are normally built bare then (no star distance yet) and the line did nothing, but PERF.290 finishes a promoted belt planet's moons whole, and a system built with `HABITABLE_WORLD` off makes whole moons too: their stored star distance, exposure and the radiation read from it were wrong, and `test_radiation_sweep` found a moon at 17.63 K whose albedo and greenhouse at the stored distance gave 3,133 K. A moon now returns once its own eccentricity and place are settled: its light is its host's, set when the host's orbit moves (the loop that already covers the host's moons). `settle_warm_icy_orbit` reaches the same function and is covered. New test in `test_moon_frame`.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4860+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The class census script draws systems again: it read a pair attribute that the pair-orbit work removed, so every system it drew was an error.
+
+### Fixed
+- GEN.1879 (bug): `scripts/class_census.py` wrote `system.wide_binary` into each system's record, and GEN.640 slice b removed that attribute (a wide pair's orbit is its node's, read as `system.pair_orbit`), so every system of a census failed (25 of 25 in the first minute of a default census). The record now carries `pair_orbit` (separation, eccentricity, period, periapsis and apoapsis of the pair, or none for a single star) and no `wide_binary` key; no table of the report read the old key. `tests/test_class_census_script.py` draws a forced wide pair and a single star through `draw_one`, and its fixed-seed list test now counts the `mdwarf` sample (300 systems) that the script gained.
+
+generation-affects: none
+
+## [8.0.4859+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A star of 10 solar masses or more no longer holds planets, so a young Wolf-Rayet or O star has its belts but no giants at 35 to 56 AU.
+
+### Changed
+
+- A star of 10 solar masses or more at birth holds no planets (GEN.1866, stand-in PH1, section 6.338, `tuning.PLANET_HOST_MAX_MASS_SOLAR`): GEN.1552 let any star whose disk was gone keep its bodies, and a 60 solar mass Wolf-Rayet star at 4 Myr was given giants. Its belts stand, no belt member is promoted to a planet, and a config that asks for a class or lists its slots still gets what it asked for.
+
+## [8.0.4858+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A world whose carbon sink asks no change of its air now keeps exactly the air its doses were made on
+
+### Fixed
+
+- GEN.1853 (TEST.830): `biogenic_oxygen.rebalance_co2` stored the air again, solved again, when the sink asked no change, and the re-solved air ended a little apart (parts in a million: a few pascals of pressure, the trace gases) from the air it was given, while it answered "the air did not change". Since GEN.1821 (Train 58) the burial calls it for every world with life whose oxygen has not risen, so the doses, the ozone column and the ultraviolet index of those worlds (`life._rebuild` is only run when the air changed) were stale against their stored air; the radiation sweep named three of 858 bodies (classes E and G). A no-change answer now gives back every field the trials touched, so the air stands exactly as the doses were made on it. Stored output moves slightly for the worlds this reached.
+
 ## [8.0.4857+db280.gen150.api14] - 2026-11-28
 
 **Headline:** The comet test and the wide-binary tests draw from fixed streams, so they take the same time and the same systems in every run.
