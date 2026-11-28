@@ -105,8 +105,6 @@ VALUE_RULES = (
     ("moons", "core_o_fraction", 0, 1, True, True),
     ("moons", "core_c_fraction", 0, 1, True, True),
     ("moons", "core_h_fraction", 0, 1, True, True),
-    ("star_systems", "binary_eccentricity", 0, 1, True, False),
-    ("star_systems", "binary_mutual_orbital_phase_deg", 0, 360, True, True),
     ("sectors", "galactic_radius_pc", 0, None, True, None),
 )
 """tuple: `(table, column, low, high, low_inclusive, high_inclusive)`; a

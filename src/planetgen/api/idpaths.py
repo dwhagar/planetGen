@@ -43,6 +43,7 @@ ID_PATHS = {
         **_BODIES,
     },
     "api.system_description": {},
+    "api.free_moon_description": {},
     "api.system_scene": {
         "system.id": "system",
         **_BODIES,

@@ -57,6 +57,7 @@ const {
   neighbourBlock, sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
+const { createMiniMap } = await import(`./galaxyminimap.js${VERSION_QUERY}`);
 const Waypoints = await import(`./waypoints.js${VERSION_QUERY}`);
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
@@ -1035,6 +1036,7 @@ function initGalaxyMap3d(canvasEl, data) {
     deepFrame.active = deep;
     if (!deep) {
       renderer.render(scene, camera);
+      drawMiniMap();
       return;
     }
     // The map without the system first, then the system over it from its own frame.
@@ -1043,7 +1045,16 @@ function initGalaxyMap3d(canvasEl, data) {
     frame.group.visible = true;
     renderDeepFrame(frame);
     deepFrame.passes++;
+    drawMiniMap();
   }
+
+  // MAP.75: the mini map, a second locked camera on this renderer, drawn over the corner of the map once the main pass is done. The Sector
+  // Map (pinned) has none: its sector is the whole picture.
+  var miniMap = data.pinned ? null : createMiniMap(THREE, renderer, { galaxyRadius: GALAXY_RADIUS, fovDeg: FOV_DEG });
+  function drawMiniMap() {
+    if (miniMap) miniMap.render(orbit, target, camera.position);
+  }
+  canvasEl.galaxyMiniMap = function () { return miniMap ? miniMap.state() : null; };
 
   // Nothing of the galaxy is clipped to the window the drill-down shows (MAP.264): the stars and clouds all stay
   // when you zoom, and the visibility law decides what is drawn. There are no wedge lines: the galaxy shows its stars

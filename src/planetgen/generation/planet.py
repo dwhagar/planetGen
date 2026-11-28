@@ -67,7 +67,7 @@ class Planet(PlanetaryObject):
     discriminator shared with `AsteroidBelt` (whose `body_type` is always
     `'a'`): `StarSystem` holds `Planet` and `AsteroidBelt` instances
     together in one `planets` list and switches on `.body_type` to tell
-    them apart. `Star.type`/`BinaryStarProxy.type` is an unrelated,
+    them apart. `Star.type`/`PairHost.type` is an unrelated,
     differently-shaped attribute (a full descriptive string like
     `"G2V Yellow Main Sequence Star"`, not a single-character code) that
     happens to share the same name on a different class.
@@ -162,7 +162,7 @@ class Planet(PlanetaryObject):
         position_x, position_y, position_z (float): This body's current
                                    Cartesian position, in AU, relative to
                                    its orbital anchor -- the star (or, for
-                                   a binary system, the `BinaryStarProxy`
+                                   a binary system, the `PairHost`
                                    standing in for the system's combined
                                    center) for a planet, the parent planet
                                    for a moon. Made from `distance` and
@@ -586,10 +586,10 @@ class Planet(PlanetaryObject):
         self._motion_done = True
         planetPhysics.generate_orbit_state(self, self.primary_mass_kg)
 
-    def finish_climate(self):
+    def finish_climate(self, bare_moons=None):
         """
         Makes the air, the class and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now (and its motion first, if
-        `finish_motion` has not). Called by `StarSystem._settle_to_final_age` once the planets' orbit work is done; a body that is not deferred does nothing.
+        `finish_motion` has not). Called by `StarSystem._settle_to_final_age` once the planets' orbit work is done; a body that is not deferred does nothing. The moons of a planet are made bare (`finish_moons` takes their air once their orbits are settled) unless `bare_moons` is `False`: a belt planet's are made whole (`belt_planets.finish_planet`, PERF.290), as they were.
         """
         if self.build.deferred_climate is None:
             return
@@ -598,7 +598,8 @@ class Planet(PlanetaryObject):
         self.build.deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.prepare_class(self)
-        self._finish_motion_and_moons(self.primary_mass_kg, moon_count, bare_moons=not self.is_moon)
+        self._finish_motion_and_moons(self.primary_mass_kg, moon_count, bare_moons=(not self.is_moon) if bare_moons is None else bare_moons)
+        self.belt_member = None       # made: a belt member promoted to a planet keeps `belt_order` and `belt_rank`, not the member's record (as `__init__` leaves a body built whole)
         bodybeat.settled()
 
     def finish_moons(self):
@@ -685,7 +686,7 @@ class Planet(PlanetaryObject):
 
         Args:
             data (dict): A dict in the shape `to_dict()` produces.
-            star (Star or BinaryStarProxy): The system's star, threaded in
+            star (Star or PairHost): The system's star, threaded in
                                             rather than stored per-planet
                                             (see `StarSystem.from_dict`).
             system_config (SystemConfig): The system's shared config.

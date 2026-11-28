@@ -18,7 +18,7 @@ SNOW_LINE_AU = 2.7
 def star_with(*axes_au, separation=None):
     star = SimpleNamespace(_companions=[SimpleNamespace(axis_au=axis) for axis in axes_au])
     if separation is not None:
-        star.binary_separation_au = separation
+        star.pair_orbit = SimpleNamespace(separation_au=separation)      # a close pair's host has its pair's orbit (`PairHost.pair_orbit`)
     return star
 
 

@@ -1187,17 +1187,27 @@ def test_follow_says_so_when_no_warm_up_is_running(script, capsys):
     assert script.ran == [], "following starts nothing"
 
 
-def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(script, redis_server, capsys):
+def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(script, redis_server, capsys, monkeypatch):
     """PERF.235: `planetgen warm --follow` in a second session watches a running warm-up from its run record to its end."""
     import threading
     release = threading.Event()
     real = warmup.warm_family
 
     def held(db, family, cap=None, app=None, config=None, window=None, report=None):
-        release.wait(30)
+        release.wait(600)       # TEST.846: held until the follower is watching (the helper sets it); a failure sets it in `finally`
         return real(db, family, cap=cap, app=app, config=config)
 
     errors, seen = [], {}
+    # TEST.846: the real event the release waits on: the follower has found the run and is watching it (not a half second after its thread
+    # started, which a loaded machine's slow start of a second warm-up run overran, and the held family let go before anyone watched).
+    attached = threading.Event()
+    real_follow = warm_cli.wrapper.follow
+
+    def watching(*args, **kwargs):
+        attached.set()
+        return real_follow(*args, **kwargs)
+
+    monkeypatch.setattr(warm_cli.wrapper, "follow", watching)
 
     def follower():
         try:
@@ -1208,12 +1218,19 @@ def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(s
     def watch_then_release():
         conn = redisqueue.connect(redis_server)
         deadline = time.monotonic() + 30
-        while runrecord.active_run(conn, runrecord.MAINTENANCE) is None and time.monotonic() < deadline:
+        # TEST.846: until the run is the warm-up's, with its steps written (a follower that comes between the run's start and its title or its
+        # steps finds "No cache warm-up is running" and ends at once: the race a loaded machine showed).
+        def warm_run_is_written():
+            run_id = runrecord.active_run(conn, runrecord.MAINTENANCE)
+            run = runrecord.read_run(conn, run_id) if run_id else None
+            return bool(run) and run.get("title") == warm_cli.RUN_TITLE and bool(runrecord.read_steps(conn, run_id))
+
+        while not warm_run_is_written() and time.monotonic() < deadline:
             time.sleep(0.05)
         watcher = threading.Thread(target=follower)
         watcher.start()
-        time.sleep(0.5)
-        seen["waiting"] = watcher.is_alive()        # the follower waits for the held family
+        attached.wait(120)
+        seen["waiting"] = attached.is_set() and watcher.is_alive()        # the follower waits for the held family
         release.set()
         watcher.join(60)
         seen["ended"] = not watcher.is_alive()

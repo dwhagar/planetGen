@@ -15,14 +15,14 @@ from tests.test_galaxy_gen import REFERENCE_SHAPE_ARGV
 
 
 def test_a_system_at_the_galactic_center_still_has_a_hill_sphere():
-    from planetgen.generation.binary import BinaryStarProxy
+    from planetgen.generation.pair_host import PairHost
     from planetgen.physics import constants
 
     mass = constants.SOLAR_MASS_TO_KG
-    at_center = BinaryStarProxy._calculate_system_perimeter_static(mass, 0.0)
+    at_center = PairHost._calculate_system_perimeter_static(mass, 0.0)
     assert at_center > 0.0
-    assert at_center == BinaryStarProxy._calculate_system_perimeter_static(mass, constants.MIN_TIDAL_DISTANCE_LY)
-    assert BinaryStarProxy._calculate_system_perimeter_static(mass, 1000.0) > at_center
+    assert at_center == PairHost._calculate_system_perimeter_static(mass, constants.MIN_TIDAL_DISTANCE_LY)
+    assert PairHost._calculate_system_perimeter_static(mass, 1000.0) > at_center
 
 
 @pytest.mark.db

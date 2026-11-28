@@ -138,10 +138,6 @@ def _expand(conn, run_id, index):
     finally:
         runrecord.end_opening(conn, run_id)
 
-def run_kind(conn, run_id):
-    """The kind of the run (`runrecord.KINDS`), as its record holds it."""
-    return runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))
-
 
 def _say_opening(conn, run_id, index, text, held):
     """Logs one step of an opening with the memory the process holds after it (`units.resident_mb`); returns the most it has held so far."""
