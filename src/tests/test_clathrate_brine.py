@@ -18,6 +18,19 @@ def test_the_curves_are_the_marboeuf_table():
     assert [cb.structure(s) for s in ("CO", "CO2", "CH4", "H2S", "N2", "NH3")] == ["I", "I", "I", "I", "II", "monohydrate"]
 
 
+def test_the_ch4_and_n2_curves_meet_the_published_lower_quadruple_points_within_five_percent():
+    """
+    GEN.471: the fit of each curve against a published point that is not its own constants. [R5375] (PetroWiki, after Sloan and Koh) gives the lower quadruple point Q1 (ice, hydrate,
+    liquid water, gas) "close to 273 K for all hydrate formers" at 2.56 MPa for CH4 and 14.3 MPa for N2; it names no temperature, so the curves are read at the ice point, 273.15 K.
+    The fits give 2.47 MPa (3.6 percent under) and 14.79 MPa (3.5 percent over). The 5 percent holds: the page prints three figures (0.4 percent at most), and the curves climb 2.9 percent
+    (CH4) and 2.3 percent (N2) for each kelvin, so 5 percent is about 2 K of the page's "close to 273 K".
+    """
+    for species, published_pa, per_kelvin in (("CH4", 2.56e6, 0.029), ("N2", 14.3e6, 0.023)):
+        fit = cb.dissociation_pressure_pa(species, cb.ICE_POINT_K)
+        assert fit == pytest.approx(published_pa, rel=0.05)
+        assert abs(math.log(fit / published_pa)) / per_kelvin < 2.0
+
+
 def test_the_co2_curve_meets_the_measured_quadruple_point():
     # [R4015]: Q1 is 271.60 K at 1.044 MPa; the curve is the fit that ends there.
     assert cb.dissociation_pressure_pa("CO2", 271.60) == pytest.approx(1.044e6, rel=0.03)
