@@ -53,7 +53,7 @@ MIN_FLUX_W_M2 = 1.0e-6
 """float: The least heat flux the shell is given, W/m2 (`hydrosphere` uses the same floor)."""
 
 MEMBRANE_FACTOR = 2.0
-"""float: `8 (1 + nu) / (5 + nu)` of the membrane parameter of a thin shell on an ocean (Beuthe 2015, [R5376], Eq. 71 and Table 5, read in the arXiv text), for the Poisson ratio `nu = 1/3` of cold ice: 2. Source tier T1, tweak level L0."""
+"""float: `8 (1 + nu) / (5 + nu)` of the membrane parameter of a thin shell on an ocean ([R5376: Eq. 71] and Table 5, read in the arXiv text), for the Poisson ratio `nu = 1/3` of cold ice: 2. Source tier T1, tweak level L0."""
 MIN_SHELL_FLUX_W_M2 = MIN_FLUX_W_M2
 """float: The flux below which the shell's thickness is not worked out (it is thicker than the body, and `membrane_parameter` takes the whole radius)."""
 
@@ -74,7 +74,7 @@ def membrane_parameter(mass_kg, radius_m, flux_w_m2, top_k, base_k=aquifers.WATE
 
 
 def tide_response(h2, parameter):
-    """The radial Love number of a shell of membrane parameter `parameter` on an ocean whose fluid response is `h2`: `h2 / (1 + h2 Lambda)` (Beuthe 2015, [R5376], the static membrane limit)."""
+    """The radial Love number of a shell of membrane parameter `parameter` on an ocean whose fluid response is `h2`: `h2 / (1 + h2 Lambda)` ([R5376], the static membrane limit)."""
     return h2 / (1.0 + h2 * parameter)
 
 
