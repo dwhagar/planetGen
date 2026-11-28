@@ -17,7 +17,7 @@ The gates, in order (each later one needs the one before it):
    (`acid_vapor_share_of_so2` of its sulfur dioxide) is above the pressure over the solution its water fixes (`sulfuric_vapor.condenses`, GEN.1424) and the
    droplets there are above the freezing point of their strength (`acid_freezing.is_frozen`, GEN.1644; a droplet below it can be a solid, which the cloud step
    does not model). The base is the warmest such level and the strength is that solution's; an air whose acid is liquid at no level has no acid cloud.
-3. **Reduced sulfur** (V4, V5): the star's ultraviolet-C flux at the body (`uv_c_min_w_m2`) photolyses the sulfur dioxide and carbon monoxide or carbonyl sulfide
+3. **Reduced sulfur** (V4, V5): the star's ultraviolet-C flux at the body (`uv_c_flux_w_m2`, its UV-C band; `uv_c_min_w_m2`) photolyses the sulfur dioxide and carbon monoxide or carbonyl sulfide
    (`reductant_min_share`) is the reductant; V5 needs more sulfur (`sulfur_aerosol_min_so2_share`).
 4. **Chlorine** (V3 hydrogen chloride; V6, V9): hydrogen chloride in the air at `chlorine_min_share` (the star's chlorine got into the air through
    `mixture_rocky`'s halogen budget, so the star is not read twice).
@@ -36,9 +36,12 @@ import os
 from dataclasses import dataclass, field
 from statistics import NormalDist
 
-from planetgen.physics import acid_freezing, acid_medium, aerosols, air_column, atmosphere, constants, elements, sulfuric_vapor
+from planetgen.physics import acid_freezing, acid_medium, activity, aerosols, air_column, atmosphere, constants, elements, stellar_spectrum, sulfuric_vapor
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfur_cloud_set.json")
+
+UV_C_EDGES_NM = list(stellar_spectrum.BAND_EDGES_NM["uv_c"])
+"""list: The two edges of the ultraviolet-C band, nm (`stellar_spectrum.BAND_EDGES_NM`), one cell for `uv_c_flux_w_m2`."""
 
 INCLUDE_HYPOTHESES = False
 """bool: Whether the chain may give a body V8 and V9, the single-source hypotheses (iron-PAH from cosmic dust, sulfur-chlorine products). Off by default (Boss's set, 11-08);
@@ -146,12 +149,16 @@ def acid_cloud(values, gas=None):
     return acid_cloud_of_column(column, temperature, acid_medium.skin_k(values, temperature))
 
 
-def uv_c_flux_w_m2(values):
-    """The star's ultraviolet-C flux at the body, W/m2: the energy flux it absorbs times the star's `uv_c_share`; `None` when either is unknown."""
-    flux, share = values.get("energy_flux_w_m2"), values.get("uv_c_share")
-    if not flux or share is None:
+def uv_c_flux_w_m2(star, flux_w_m2):
+    """
+    The star's ultraviolet-C flux (100 to 280 nm) at the body, W/m2 (GEN.1872): the bolometric `flux_w_m2` times the share of a blackbody of the star's temperature that falls in that band, times the
+    star's UV-C power as a multiple of that blackbody's (`uv_c_share`, GEN.971; up to some thousands for a quiet M dwarf's chromosphere, so it is not a share of the total light). The spectrum is
+    `stellar_spectrum.irradiance_w_m2` with the same shares `body_radiation` gives it. `None` when the flux, the temperature or the share is unknown.
+    """
+    temperature, share = getattr(star, "temperature", None), getattr(star, "uv_c_share", None)
+    if not flux_w_m2 or not temperature or share is None:
         return None
-    return flux * share
+    return float(stellar_spectrum.irradiance_w_m2(UV_C_EDGES_NM, temperature, flux_w_m2, share, activity.uv_shares_of(star))[0])
 
 
 _UNSET = object()
@@ -161,14 +168,14 @@ _UNSET = object()
 def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=False, cloud=_UNSET):
     """
     The `Chemistry` of a body's stored `values` (a column-named mapping with its gases: `atmosphere.GAS_FIELD`). `uv_c_w_m2` is the star's ultraviolet-C flux at the
-    body (else `uv_c_flux_w_m2(values)`), `carbon_dust` whether cosmic dust reaches it, `include_off_by_default` whether V8 and V9 may be given. `cloud` is the acid
+    body (`uv_c_flux_w_m2`; `None` when unknown, and gate 3 then stays shut), `carbon_dust` whether cosmic dust reaches it, `include_off_by_default` whether V8 and V9 may be given. `cloud` is the acid
     cloud the body's aerosols were drawn with (`None` for none), so gate 2 and the stored optical depth agree; left out, it is worked out from the values.
     """
     gas, share = _shares(values)
     absent = {}
     if gas is None:
         return Chemistry((), (), None, {species_id: "no air" for species_id in SPECIES})
-    uv_c = uv_c_flux_w_m2(values) if uv_c_w_m2 is None else uv_c_w_m2
+    uv_c = uv_c_w_m2
     sulfur = share.get("SO2", 0.0)
     oxidant = share.get("O2", 0.0) + share.get("CO2", 0.0)
     gate1 = sulfur >= acid_medium.number("so2_min_share") and oxidant >= acid_medium.number("oxidant_min_share") \
@@ -257,7 +264,7 @@ def fill(body, values, carbon_dust=False):
     """
     Sets `cloud_chemistry` on a rocky planet or moon from its finished air, light and ground (`values` is `habitability_world.values_from_body`, with the energy flux set): the
     species of the Venus set the chain gives it (GEN.1425). Gate 2 is the acid cloud the body's aerosols were drawn with (`sulfuric_cloud.window` at the aerosols' skin
-    temperature), the ultraviolet-C flux is the star's `uv_c_share` of the absorbed flux, and V8 and V9 (single-source hypotheses, off by default) follow
+    temperature), the ultraviolet-C flux is the star's UV-C band at the body (`uv_c_flux_w_m2`), and V8 and V9 (single-source hypotheses, off by default) follow
     `INCLUDE_HYPOTHESES`. `carbon_dust` is whether the dust the body takes in reaches the floor V8 needs (`dust_supply.v8_supplied`, passed by `generation/cosmic_dust` once the
     system's belts are final). A body with no air stores `None`.
     """
@@ -267,10 +274,7 @@ def fill(body, values, carbon_dust=False):
     temperature = getattr(body, "surface_temperature", None)
     if column is None or not temperature:
         return
-    star = getattr(body, "star", None)
-    share = getattr(star, "uv_c_share", None)
-    flux = values.get("energy_flux_w_m2")
-    uv_c = flux * share if flux and share is not None else None
+    uv_c = uv_c_flux_w_m2(getattr(body, "star", None), values.get("energy_flux_w_m2"))
     cloud = sulfuric_cloud.window(column, temperature, aerosols.skin_of(body))
     body.cloud_chemistry = encode(chemistry(values, uv_c_w_m2=uv_c, carbon_dust=carbon_dust, include_off_by_default=INCLUDE_HYPOTHESES, cloud=cloud))
 
