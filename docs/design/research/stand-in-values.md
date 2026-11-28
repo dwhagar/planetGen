@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2061 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2058 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2034 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2031 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,13 +52,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 233 | 23 | 12 | 1 | 0 | 269 |
 | T2 | 191 | 78 | 5 | 0 | 0 | 274 |
 | T3 | 138 | 72 | 12 | 10 | 0 | 232 |
-| T4 | 97 | 17 | 11 | 25 | 13 | 163 |
-| T5 | 119 | 31 | 8 | 1 | 2 | 161 |
+| T4 | 97 | 16 | 11 | 25 | 13 | 162 |
+| T5 | 120 | 31 | 8 | 1 | 2 | 162 |
 | T6 | 258 | 148 | 42 | 85 | 8 | 541 |
-| T7 | 78 | 48 | 11 | 31 | 0 | 168 |
+| T7 | 75 | 48 | 11 | 31 | 0 | 165 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1171 | 437 | 108 | 279 | 66 | 2061 |
+| All | 1169 | 436 | 108 | 279 | 66 | 2058 |
 
 ## How the labels were given
 
@@ -826,7 +826,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RT1 | P | T5 | L1 | rock_types.MELT_STAGES (the norm's minerals grouped by when they melt: the low-melting feldspars, quartz and pyroxene together in the proportions the rock holds them, then orthopyroxene, then olivine) | the grouping; stage order fixed by the eutectic | silicate rocks at crustal and upper-mantle pressure | a phase-equilibrium melt (MELTS or pMELTS) of the same rock more than 10 percent in SiO2 or MgO from the staged melt | a MELTS or pMELTS fit of the first melts of peridotite as a function of pressure | test_rock_types::test_the_melt_of_a_mantle_is_a_basalt_at_the_degrees_of_melting_a_mantle_reaches; test_rock_types::test_a_great_degree_of_melting_makes_a_magnesian_liquid_of_komatiite_kind | predicted only | - | - |
 | RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, [R0277]) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types | predicted only | - | - |
 | RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting | predicted only | - | - |
-| RT4 | P | T4 | L1 | surface_composition.GROUND_TYPES row `intermediate` (plagioclase 0.52, orthoclase 0.10, quartz 0.12, diopside 0.08, enstatite 0.15, biotite 0.03: the norm of an average andesite rounded onto the materials table's rows) and its K, Th and U taken as basalt's (RESERVOIR_OF) | each mineral within 0.05; the heat producers within a factor of 3 of the lower continental crust's | intermediate volcanic crust | a measured andesite norm differing by over 0.1 in any mineral, or a lower crust with ten times basalt's K | the norm of the generator's own melt (`rock_types.cipw_norm` of the crust) and a reservoir of its own ([R3842: Table 11], second-hand) | test_surface_composition::test_the_volcanic_crust_is_the_melt_of_the_stored_mantle | predicted only | - | - |
+| AS1 | P | T5 | L0 | rock_assemblage.plagioclase_cumulate and mafic_cumulate: a magma ocean's primary crusts, the flotation crust the plagioclase of the norm and the overturned crust the rest of it, with every grain of plagioclase floated and no melt trapped among the crystals | none: an ideal separation by mass balance | rocky bodies whose magma ocean crystallised before the crust settled and whose rock stores alumina | a measured anorthosite crust holding over 10 percent mafic minerals (the lunar highlands hold 3 percent diopside, [R2024: Table 2]) or an overturned crust holding feldspar | a crystallization sequence of the magma ocean by pressure (the cumulates of each depth) | test_surface_composition::test_the_primary_crusts_of_a_magma_ocean_are_the_floated_and_the_sunk_parts_of_the_norm | predicted only | - | - |
 | MF1 | P | T9 | L3 | surface_composition.MELT_FRACTION_RANGE (0.03, 0.30) and MELT_FLUX_DECADES 5: the share of the mantle that melts to make the volcanic crust, log-linear in the heat flow over the middle of the volcanism floor's range | the end shares 0.01 to 0.05 and 0.2 to 0.4; the decades 3 to 8 | rocky bodies with decompression melting | a mid-ocean-ridge melt share of Earth's heat flow outside 6 to 12 percent, or a measured Io melt fraction outside 10 to 30 | a mantle temperature and solidus model (melt fraction against potential temperature) | test_surface_composition::test_the_melt_share_rises_with_the_heat_flow_and_is_a_mid_ocean_ridge_s_at_earths | predicted only | - | no data |
 
 ## 6.46 Stand-ins of the comet ice budget
@@ -1022,11 +1022,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SSR5 | P | T7 | L0 | surface-ground-types:ultramafic: olivine 0.60 and enstatite 0.40, the primary crust after mantle overturn | the two proportions | a rocky body whose mantle overturned | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
-| SSR6 | P | T7 | L0 | surface-ground-types:anorthositic: plagioclase 0.97 and diopside 0.03, the primary flotation crust | the two proportions | a rocky body with a flotation crust and no overturn | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
-| SSR7 | P | T7 | L0 | surface-ground-types:basaltic: plagioclase 0.76, diopside 0.08, enstatite 0.06, basalt powder 0.05, olivine 0.01, the crust of decompression melting | the five proportions | a rocky body that still resurfaces by melting | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
-| SSR8 | P | T7 | L0 | surface-ground-types:felsic: orthoclase 0.40, quartz 0.35, plagioclase 0.20, biotite 0.05, the granitoid crust | the four proportions | a rocky body with a differentiated crust | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
-| SSR9 | P | T7 | L0 | surface-ground-types:oxidized: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02 | the six proportions | a rocky body with an oxidised surface | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
+| SSR8 | P | T7 | L0 | surface-ground-types:felsic: orthoclase 0.40, quartz 0.35, plagioclase 0.20, biotite 0.05, the granitoid crust | the four proportions | a rocky body with a differentiated crust | a felsic crust worked out by crystallizing the body's own basalt liquid that differs in its minerals | GEN.1900 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
+| SSR9 | P | T7 | L0 | surface-ground-types:oxidized: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02 | the six proportions | a rocky body with an oxidised surface | an oxidized ground worked out from the crust's own iron and the air's oxygen that differs in its minerals | GEN.1901 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
 
 ## 6.57 Stand-ins of the magma-ocean redox model
 

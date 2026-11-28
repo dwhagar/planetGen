@@ -25,7 +25,8 @@ is a Solar System preset: the ground is the one the body's own inputs allow.
    ocean dried back, and sulfur where tidal heating beats the radiogenic flow.
 4. *Grain state* (slab, crushed or powder): a surface under 0.1 Gyr old or molten is not yet regolith.
 
-The assemblages are those of Hu et al. 2012 Table 2 (`GROUND_TYPES`); where the materials table has no row for one of their
+The minerals of the ultramafic, anorthositic, basaltic and intermediate grounds are the norm of the body's own rock (`crust_assemblage`, GEN.474). The assemblages that are still recipes (`GROUND_TYPES`: felsic, clay,
+oxidized, metal, carbon, evaporite, sulfur) are those of Hu et al. 2012 Table 2; where the materials table has no row for one of their
 minerals the nearest row stands in and the row says so. Every range that is a parametrisation rather than a measurement is
 named in `RANGES` with what it stands in for; none is read from a Solar System body.
 
@@ -43,7 +44,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, evaporite_sequence, hydrosphere, ice_species, mantle_oxides, materials, mixture, planet_type, rock_types, saturation, surface_liquid_world, waterworld_carbon
+from planetgen.physics import bulk_draw, evaporite_sequence, hydrosphere, ice_species, mantle_oxides, materials, mixture, planet_type, rock_assemblage, rock_types, saturation, surface_liquid_world, waterworld_carbon
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -115,33 +116,24 @@ VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
 """float: The vapor pressure at which an ice survives in vacuum for billions of years: water's at the 220 K that
 `hydrosphere` already uses, so every ice shares one criterion."""
 
-# GEN.474 replaces the five stand-in rows below.
-GROUND_TYPES_DERIVED = "ground types derived from the bulk composition and the melting of the mantle"
+# The two recipes left (GEN.474 wired the rest): GEN.1900 derives the felsic crust and GEN.1901 the oxidized ground, a weathering product set by the air and not by the melt.
+FELSIC_DERIVED = "a felsic crust derived by fractional crystallization of the basalt liquid"
+OXIDIZED_DERIVED = "an oxidized ground derived from the crust's own iron and the air's oxygen"
 
-# The assemblages of Hu et al. 2012 Table 2, on rows of the materials table. Hu's Mg-smectite has no row (kaolinite, the clay row
+# The assemblages of Hu et al. 2012 Table 2, on rows of the materials table. The ultramafic, anorthositic, basaltic and intermediate crusts are not recipes: they are the norm of the rock
+# the body's own mantle makes (`crust_assemblage`, GEN.474). Hu's Mg-smectite has no row (kaolinite, the clay row
 # with a measured albedo, stands in), its pyrite is the `pyrite` row (GEN.1384, Hu's whole metal-rich crust), its glass is
 # the quenched melt (`basalt powder`) and its augite `diopside`; the others are the minerals Hu names.
 GROUND_TYPES = pt.REGISTRY.register(pt.Table(
     "surface-ground-types", 1,
     [
-        pt.Row("ultramafic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED, fractions={"olivine": 0.60, "enstatite": 0.40},
-               notes="primary crust after mantle overturn"),
-        pt.Row("anorthositic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
-               fractions={"plagioclase": 0.97, "diopside": 0.03}, notes="primary flotation crust, no overturn"),
-        pt.Row("basaltic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
-               fractions={"plagioclase": 0.76, "diopside": 0.08, "enstatite": 0.06, "basalt_powder": 0.05, "olivine": 0.01},
-               notes="secondary crust of decompression melting; Hu's glass is `basalt powder`"),
-        pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
+        pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=FELSIC_DERIVED,
                fractions={"orthoclase": 0.40, "quartz": 0.35, "plagioclase": 0.20, "biotite": 0.05},
                notes="granitoid tertiary crust; Hu's K-feldspar is `orthoclase`"),
-        pt.Row("intermediate", (pt.ANY_CLASS,), 1.0, SOURCES["rock_types"], state=pt.PARTLY_VERIFIED,
-               limit="the assemblage is the norm of an average andesite rounded onto the rows of the materials table (registry RT4)",
-               fractions={"plagioclase": 0.52, "orthoclase": 0.10, "quartz": 0.12, "diopside": 0.08, "enstatite": 0.15, "biotite": 0.03},
-               notes="a melt of 52 to 63 percent silica (andesitic), made from the stored mantle"),
         pt.Row("clay", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
                limit="Hu's Mg-smectite has no row; kaolinite stands in",
                fractions={"kaolinite": 0.50, "serpentine": 0.50}, notes="aqueous alteration of basalt"),
-        pt.Row("oxidized", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
+        pt.Row("oxidized", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=OXIDIZED_DERIVED,
                fractions={"hematite_fine": 0.50, "plagioclase": 0.38, "diopside": 0.04, "enstatite": 0.03,
                           "basalt_powder": 0.03, "olivine": 0.02}, notes="Hu's 50/50 nanophase hematite and basalt"),
         pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], fractions={"pyrite": 1.0},
@@ -159,6 +151,9 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
     components=pt.SHARED_COMPONENTS,
     description="The mineral assemblage of each kind of ground. Nothing is drawn from this table: it holds the recipes."))
 """Table: The recipes of the ground types, on rows of the shared materials table (weights are 1 and unused)."""
+
+ROCK_GROUNDS = ("ultramafic", "anorthositic", "basaltic", "intermediate")
+"""tuple: The ground types that have no recipe: their minerals are the norm of the body's own rock (`crust_assemblage`, GEN.474)."""
 
 DOMINANT_TABLE = pt.REGISTRY.register(pt.Table(
     "surface-dominant-ground", 1,
@@ -389,6 +384,22 @@ def volcanic_ground_type(inputs):
     return "basaltic" if ground == "anorthositic" else ground
 
 
+def crust_assemblage(inputs, ground, melted):
+    """
+    The mineral assemblage of the silicate crust of `ground` (GEN.474), from the oxides of the body's own rock and not from a list of the Earth's and the Moon's crusts (`rock_assemblage`):
+    the norm of the melt of the stored mantle where the crust is volcanic (`melted`), else a magma ocean's primary crust: the plagioclase that floated (`anorthositic`) or the mafic cumulate that
+    sank and overturned (`ultramafic`). `None` where the body stores no silicate rock to work from.
+    """
+    if inputs.rock_oxides is None:
+        return None
+    if melted:
+        melt, _residue = rock_types.partial_melt(inputs.rock_oxides, melt_fraction(inputs.internal_heat_flux_w_m2))
+        return rock_assemblage.assemblage(melt)[0]
+    if ground == "anorthositic":
+        return rock_assemblage.plagioclase_cumulate(inputs.rock_oxides)
+    return rock_assemblage.mafic_cumulate(inputs.rock_oxides)
+
+
 def draw_surface(inputs):
     """
     Draws the surface composition of a body (see the module text for the order).
@@ -412,7 +423,8 @@ def draw_surface(inputs):
     land = 1.0 - covered
     if land > 1e-12:
         dominant = DOMINANT_TABLE.draw(pt.ANY_CLASS, quantities).name
-        if dominant == "basaltic" and inputs.rock_oxides is not None:  # the volcanic crust is the melt of the stored mantle (GEN.474)
+        melted = dominant == "basaltic" and inputs.rock_oxides is not None
+        if melted:  # the volcanic crust is the melt of the stored mantle (GEN.474)
             dominant = volcanic_ground_type(inputs)
         mods = _modifiers(inputs, kind)
         if dominant in ("metal", "carbon"):
@@ -424,7 +436,11 @@ def draw_surface(inputs):
         mix[dominant] = mix.get(dominant, 0.0) + land * (1.0 - total_mods)
         for name, share in mods.items():
             mix[name] = mix.get(name, 0.0) + land * share
-    components = _components(mix, frozen, inputs)
+    crust = None
+    if land > 1e-12 and dominant not in ("metal", "carbon"):
+        assemblage = crust_assemblage(inputs, dominant, melted)
+        crust = None if assemblage is None else (dominant, assemblage)
+    components = _components(mix, frozen, inputs, crust)
     ground_type = max(mix, key=lambda name: (mix[name], name))
     return SurfaceComposition(ground_type=ground_type, mix=mix, components=components, grain=_grain(inputs))
 
@@ -461,8 +477,8 @@ def ocean_salts(inputs):
     return {name: share / total for name, share in salts.items()} if total > 0.0 else {"halite": 1.0}
 
 
-def _components(mix, frozen, inputs):
-    """The mass shares by materials row of the areal `mix`."""
+def _components(mix, frozen, inputs, crust=None):
+    """The mass shares by materials row of the areal `mix`; `crust` is the `(ground type, assemblage)` of the silicate crust the body's own rock makes (`crust_assemblage`), which stands for that type in place of a recipe."""
     parts = {}
 
     def add(name, share):
@@ -480,6 +496,11 @@ def _components(mix, frozen, inputs):
         elif kind == "evaporite":
             for name, share in (dried_salts(inputs) or GROUND_TYPES.row(kind).normalised_fractions()).items():
                 add(name, areal * share)
+        elif crust is not None and kind == crust[0]:
+            for name, share in crust[1].items():
+                add(name, areal * share)
+        elif kind in ROCK_GROUNDS:
+            raise ValueError(f"the {kind} ground is the norm of the body's own rock, and this body stores no silicate rock to work it from")
         else:
             for name, share in GROUND_TYPES.row(kind).normalised_fractions().items():
                 add(name, areal * share)

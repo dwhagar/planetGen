@@ -65,11 +65,8 @@
    "k7": "N2, Ar, OCS and SO2 follow the host's ratios to carbon with a trapping share tuned to one measured comet (67P, [R3835]), and O2, Kr and Xe keep that comet's values; flagged stand-in, replaced by GEN.1021 (GEN.1005)"
   },
   "surface-ground-types": {
-   "anorthositic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "basaltic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "felsic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "oxidized": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "ultramafic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired"
+   "felsic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; a felsic crust derived by fractional crystallization of the basalt liquid replaces it (GEN.1900)",
+   "oxidized": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; an oxidized ground derived from the crust's own iron and the air's oxygen replaces it (GEN.1901)"
   }
  }
 }

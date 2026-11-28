@@ -29,8 +29,8 @@ Limits. The norm has no hydrous or carbonate minerals, no sulfur and no acmite (
 with the pool of divalent oxides of iron and magnesium (so the pyroxenes and olivine carry them). The melt is a staged allocation, not a phase-equilibrium calculation (MELTS or pMELTS would give the real liquid at a pressure; the real
 first melts of a peridotite are alkaline and richer in the pyroxene's magnesium than the stage mix gives); the iron split between minerals is proportional
 (one Fe/(Fe+Mg) for all the mafic minerals, so the norm's olivine is not as magnesian as a real one). The ground type has no mixed or sedimentary rocks. Wired (GEN.474): the surface draw
-takes the volcanic (secondary) crust of a body from its stored mantle through `rock_oxides`, `partial_melt` and `ground_type_of`; the library of `GROUND_TYPES` stays as the
-assemblages of the types and as the calibration.
+takes the volcanic (secondary) crust of a body from its stored mantle through `rock_oxides`, `partial_melt` and `ground_type_of`; the minerals of those grounds are the norm of the melt (`surface_composition.crust_assemblage`); the library of `GROUND_TYPES`
+keeps only the felsic and oxidized recipes.
 """
 
 from planetgen.physics import elements

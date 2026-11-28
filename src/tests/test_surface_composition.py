@@ -6,7 +6,7 @@ import types
 import pytest
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import planet_type, rock_types, surface_composition as sc
+from planetgen.physics import planet_type, rock_assemblage, rock_types, surface_composition as sc
 from planetgen.util import draw
 
 
@@ -19,7 +19,7 @@ def earth(**overrides):
     values = dict(surface_temperature_k=288.0, pressure_pa=101325.0, o2_partial_pa=21000.0,
                   water_mass_fraction=2.3e-4, rock_mass_fraction=0.67, metal_mass_fraction=0.33, rock_feo_fraction=0.08,
                   hydrosphere="surface ocean", ocean_fraction=0.71, internal_heat_flux_w_m2=0.09, age_gy=4.5,
-                  mobile_lid=True)
+                  mobile_lid=True, rock_oxides=rock_types.rock_oxides(0.08, 0.045, 1.2, 0.067))
     values.update(overrides)
     return sc.SurfaceInputs(**values)
 
@@ -152,6 +152,7 @@ def test_a_strongly_tide_heated_moon_gets_the_sulfur_surface_and_a_weakly_heated
     monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: body.internal_heat_flux_w_m2)
     monkeypatch.setattr(interior_heat, "lid_of", lambda body: "stagnant")
     monkeypatch.setattr(sc, "_volatile_shares", lambda body: {})
+    monkeypatch.setattr(sc, "_rock_oxides_of", lambda body: rock_types.rock_oxides(0.08, 0.045, 1.2, 0.067))
     hot = sc.draw_surface(sc.inputs_of(_moon_with_tide(2.0)))
     cold = sc.draw_surface(sc.inputs_of(_moon_with_tide(0.001)))
     assert "sulfur" in hot.mix and "sulfur" not in cold.mix
@@ -202,7 +203,6 @@ def test_the_volcanic_crust_is_the_melt_of_the_stored_mantle():
         seen[mg_si] = sc.draw_surface(earth(rock_oxides=_oxides(mg_si), **base))
         check_sums(seen[mg_si])
     assert seen[1.2].ground_type == "basaltic" and seen[0.7].ground_type == "intermediate" and seen[0.6].ground_type == "felsic"
-    assert set(sc.GROUND_TYPES.row("intermediate").normalised_fractions()) <= set(sc.GROUND_TYPES.row("felsic").normalised_fractions()) | {"enstatite", "diopside"}
     assert sc.volcanic_ground_type(earth(rock_oxides=_oxides(0.9), internal_heat_flux_w_m2=0.09)) == "ultramafic"
 
 
@@ -214,11 +214,14 @@ def test_a_plagioclase_only_melt_reads_basaltic_never_anorthositic():
     assert sc.volcanic_ground_type(earth(rock_oxides=poor, internal_heat_flux_w_m2=3e-4)) == "basaltic"
 
 
-def test_the_primary_crust_and_the_bodies_without_a_stored_rock_keep_the_table_rules():
+def test_the_primary_crust_follows_the_table_rules_and_a_silicate_ground_needs_the_stored_rock():
     base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False)
     for seed in range(20):
         draw.set_run_seed(seed)
         assert sc.draw_surface(earth(internal_heat_flux_w_m2=1.0, **base)).ground_type == "basaltic"
+        with pytest.raises(ValueError, match="stores no silicate rock"):
+            sc.draw_surface(earth(internal_heat_flux_w_m2=1.0, rock_oxides=None, **base))
+        assert sc.draw_surface(earth(rock_oxides=None, carbon_rock=True, **base)).ground_type == "carbon"
         cold = sc.draw_surface(earth(internal_heat_flux_w_m2=0.0, rock_oxides=_oxides(0.7), rock_feo_fraction=0.18, **base)).ground_type
         assert cold in ("ultramafic", "anorthositic"), "no volcanism, no melt: the overturn rule decides"
 
@@ -226,7 +229,7 @@ def test_the_primary_crust_and_the_bodies_without_a_stored_rock_keep_the_table_r
 def test_the_volcanic_crust_draws_nothing_the_table_rules_did_not():
     base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=True, internal_heat_flux_w_m2=0.09)
     after = []
-    for oxides in (None, _oxides(1.2), _oxides(0.6)):
+    for oxides in (_oxides(0.9), _oxides(1.2), _oxides(0.6)):
         draw.set_run_seed(5)
         sc.draw_surface(earth(rock_oxides=oxides, **base))
         after.append(draw.random())
@@ -330,3 +333,50 @@ def test_the_ground_dose_follows_the_stored_ground():
                                       sc.RESERVOIRS["basaltic"]["u_ppm"])
     ocean_only = types.SimpleNamespace(**{f"ground_{name}_fraction": 1.0 if name == "ocean" else 0.0 for name in sc.GROUND_FRACTION_TYPES})
     assert sc.land_rock_ppm(ocean_only) == sc.land_rock_ppm(none)
+
+
+def _land(**overrides):
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False)
+    base.update(overrides)
+    return earth(**base)
+
+
+def test_the_volcanic_crust_is_the_norm_of_its_melt_and_no_recipe():
+    """GEN.474: the minerals of the volcanic ground are the CIPW norm of the melt of the stored mantle, not Hu's list (no `plagioclase`, no `basalt_powder`)."""
+    inputs = _land(rock_oxides=_oxides(1.2))
+    melt, _residue = rock_types.partial_melt(inputs.rock_oxides, sc.melt_fraction(inputs.internal_heat_flux_w_m2))
+    expected, _unmapped = rock_assemblage.assemblage(melt)
+    result = sc.draw_surface(inputs)
+    check_sums(result)
+    assert result.ground_type == "basaltic"
+    assert result.components == pytest.approx(expected)
+    assert "plagioclase" not in result.components and "basalt_powder" not in result.components
+
+
+def test_the_primary_crusts_of_a_magma_ocean_are_the_floated_and_the_sunk_parts_of_the_norm():
+    """The flotation crust is the norm's plagioclase and nothing else; the overturned crust is the rest of the norm, with no feldspar."""
+    oxides = _oxides(1.2)
+    float_crust, sunk_crust = rock_assemblage.plagioclase_cumulate(oxides), rock_assemblage.mafic_cumulate(oxides)
+    assert set(float_crust) == {"albite", "anorthite"} or set(float_crust) == {"anorthite"}
+    assert math.fsum(float_crust.values()) == pytest.approx(1.0) and math.fsum(sunk_crust.values()) == pytest.approx(1.0)
+    assert not set(sunk_crust) & {"albite", "anorthite"} and {"olivine", "enstatite"} & set(sunk_crust)
+    base = dict(internal_heat_flux_w_m2=0.0, rock_oxides=oxides)
+    seen = {}
+    for seed in range(40):
+        draw.set_run_seed(seed)
+        result = sc.draw_surface(_land(rock_feo_fraction=0.04, **base))
+        seen[result.ground_type] = result.components
+    assert set(seen) == {"ultramafic", "anorthositic"}
+    assert set(seen["anorthositic"]) == set(float_crust) and seen["anorthositic"] == pytest.approx(float_crust)
+    assert seen["ultramafic"] == pytest.approx(sunk_crust)
+
+
+def test_a_rock_with_no_plagioclase_has_no_flotation_crust_to_make():
+    dry = {"SiO2": 45.0, "MgO": 40.0, "FeO": 8.0, "CaO": 3.0, "Al2O3": 0.0}
+    assert rock_assemblage.plagioclase_cumulate(dry) == rock_assemblage.assemblage(dry)[0]
+
+
+def test_only_the_felsic_and_oxidized_grounds_are_still_recipes():
+    names = {row.name for row in sc.GROUND_TYPES.rows}
+    assert not names & set(sc.ROCK_GROUNDS)
+    assert {"felsic", "oxidized"} <= names
