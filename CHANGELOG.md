@@ -2,6 +2,93 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4874+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A close pair's two stars are placed about the pair's center in the galaxy again, and the test that checks it reads fixed seeds (TEST.858).
+
+### Fixed
+- A close pair's primary and secondary stars were both placed at the system's center since the pair's orbit moved into its node (GEN.640 slice c): `system_position` still read the dropped `binary_*_position_*` fields of the pair's host and fell back to zero. It now reads each star's place from the pair's node, as it already did for a wide pair, so the stars straddle the center, mass weighted.
+- `test_spatial_position.py` drew random systems until one was a close pair, so it passed or failed by the draw. It now draws a close and a wide pair on fixed seeds and checks that the stars sit about the center.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4873+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The galaxy shape test no longer expects the superbubbles' handle in the Galaxy Map's shape dict.
+
+### Fixed
+
+- TEST.857: `test_galaxy_density_shape_serializes_the_stored_skeleton` loops the fields of `GalaxyShape` and read `shape_dict["bubbles"]`, which GEN.392 added as the superbubbles' handle. The product is right: `density.shape_with_terms` already leaves `bubbles` out of the dict the map reads (the handle is an object for the density model and is not in the stored row), so the test lists `bubbles` with the other object fields.
+
+generation-output: unchanged
+
+## [8.0.4872+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The supervisor's database probe no longer holds a transaction open on the job ledger, so a migration, an ALTER or a DROP of `engine_jobs` is not blocked behind it.
+
+### Fixed
+- OPS.323 (bug): the probe of OPS.248 (`queue/dbsignal.py`, `Prober`, started by `cli/supervisor.py`) reads the newest row of `engine_jobs` every 2 seconds on a control connection of its own that does not autocommit and is kept for the supervisor's life, and it never ended the transaction its read began. That connection held a shared metadata lock on `engine_jobs` and an open snapshot for as long as the supervisor ran: any ALTER or DROP of the table waited behind it (a test run's teardown `DROP DATABASE` waited 81 minutes behind it, which is why `tests/test_web_generate.py` hit the gate's time limit with all 284 tests passed), and the snapshot kept the server from purging old row versions. The probe now rolls back after each statement (nothing is written), closes a connection that failed instead of leaving it to the garbage collector, and closes its connection when the thread ends. The time it measures is the statement's, as before. The other control connections of the queue were checked: each is opened and closed for one use, and the launcher's long-lived one commits each turn. Tests: the probe ends its transaction after an answered and a failed statement, closes failed and last connections, and a second connection can ALTER `engine_jobs` after a probe (it timed out on the lock before). No generation changed.
+
+generation-affects: none
+
+## [8.0.4871+db281.gen150.api14] - 2026-11-28
+
+**Headline:** Species and Polities pages: an empty list says whether the population pass has run
+
+### Fixed
+
+- UX.323: the empty Species and Polities pages said "The population pass has not run on this galaxy yet" even after the pass had run and made no species. They now read the pass's stored watermark: a pass that ran says it "has run on this galaxy and made no species" (and, on Polities, that there are no polities because there are no species); the "has not run" line stays only for a galaxy with no pass yet.
+
+generation-output: unchanged
+
+## [8.0.4870+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The methane and nitrogen clathrate curves are checked against published equilibrium pressures, not only against their own constants.
+
+### Added
+- A test holds the CH4 and N2 dissociation curves (`physics/clathrate_brine.py`) to the lower quadruple point of the hydrates, which PetroWiki gives as 2.56 MPa for methane and 14.3 MPa for nitrogen near 273 K (reference R5375, secondary, after Sloan and Koh). At the ice point the fits give 2.47 and 14.79 MPa, 3.6 percent under and 3.5 percent over; the test allows 5 percent, about 2 K of the page's "close to 273 K". The CO2 curve was already held to its measured quadruple point. No generator or stored-data change.
+
+generation-output: unchanged
+
+## [8.0.4869+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The overlap verifier no longer counts a trojan region among the belts a promoted planet's `belt_order` points into.
+
+### Fixed
+- **A trojan region sat in the ring `clearance._came_from` counts (GEN.1885).** A promoted planet's `belt_order` is the belt's place among the belts of its star, and a trojan region (GEN.1150) is made after the moons and is no belt of that count (`irregular_moons.belts_of`); the verifier counted it, so a trojan region nearer in than the first belt moved every belt's place by one and pointed a promoted planet at the wrong belt (or none). The ring now leaves out a region with a `lagrange_point`, as the count does. The rest of GEN.1885, a trojan planet and its region standing on the giant's orbit by design, is GEN.1882, which merged with Train 64. No generated output changes.
+
+generation-affects: none
+generation-output: unchanged
+
+## [8.0.4868+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The galaxy shape now carries a superbubble handle: a bubble's effect on the young stars (0.6 inside a full-age cavity, a derived shell of 13.1 times) is built and bounded, ready for the density terms to read.
+
+### Added
+
+- GEN.392: `GalaxyShape.bubbles` holds a `BubbleField` (`galaxy/bubble_field.py`), the galaxy's seed, with a box cut of the bubbles, the young-star factor at a point, a certified maximum over a box and a bubble-free density read. A bubble's age comes from its radius by Weaver's law at one driving power, capped at the 40 Myr the driving power lasts; the shell is 0.06 of the radius thick with star formation at its density to the power 1.5. Stand-ins registered as section 6.339 (SB1 to SB5); design in `docs/design/galaxy/superbubble-density.md` section 8. Nothing reads the factor yet, so the density and every generated galaxy are unchanged until GEN.393.
+
+generation-output: unchanged
+
+## [8.0.4867+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The sample galaxy the site tests walk is the same galaxy every time it is built
+
+### Fixed
+
+- GEN.1883: two builds of one commit made two sample galaxies (the heaviest planet was 006 in one and 002 in the next; a third build gave 003), so `test_irregular_moon_pages::test_the_system_detail_and_the_system_page_carry_the_irregular_moons_to_the_map`, which reads the heaviest planet, failed by chance. Two causes, both in the fixture `tests/test_web_a11y.py` builds (loaded by about twenty files through the dump cache): `plan` took a new galaxy seed from the operating system on each build (no `--seed`), and `fuzz_support.deterministic_entropy` is not enough to pin the run seed, because the run lines' tickets and ids draw from the same pinned stream a varying number of times, which moved the seed of the next command by a word between two builds. The build now gives `plan --seed` and pins `secrets.randbits` on a stream of its own. The new `tests/test_site_galaxy_same_twice.py` builds the sample twice in two scratch databases and holds the rows of the generated tables to be equal. The product is unchanged: the generator already takes a galaxy seed; only the fixture left it to chance. Tests only.
+
+generation-output: unchanged
+
+## [8.0.4866+db281.gen150.api14] - 2026-11-28
+
+**Headline:** Phenomena: the core of a remnant saved with no sector has an ID of its own
+
+### Fixed
+
+- NAV.81: a supernova remnant saved with no sector (`planetgen generate supernova-remnant` with no sector) got an Object ID for the remnant but none for its collapsed core, so `/phenomena` listed the core by its row number and its page answered 404 for that number. The core now takes its ID with the remnant (`assign_uids`), keeping the name `<remnant> Core`, so the list and the page agree.
+
 ## [8.0.4865+db281.gen150.api14] - 2026-11-28
 
 **Headline:** The white-dwarf fallback tests no longer pass or fail by which test ran before them in the same worker.
