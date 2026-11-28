@@ -26790,6 +26790,11 @@
       "kind": "web",
       "label": "Equilibrium of water and hydrocarbon systems with hydrates",
       "title": "Equilibrium of water and hydrocarbon systems with hydrates"
+    },
+    "R5376": {
+      "kind": "paper",
+      "label": "Beuthe 2015",
+      "title": "Tidal Love numbers of membrane worlds: Europa, Titan, and Co."
     }
   }
 }

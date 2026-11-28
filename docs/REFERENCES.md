@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5237 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5238 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -425,6 +425,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0374"></a>**R0374** Bétrémieux, Y. & Kaltenegger, L. 2013, TRANSMISSION SPECTRUM OF EARTH AS A TRANSITING EXOPLANET FROM THE ULTRAVIOLET TO THE NEAR-INFRARED, ApJ, 772, L31, doi:10.1088/2041-8205/772/2/l31, arXiv:1307.0416. [paper](https://doi.org/10.1088/2041-8205/772/2/l31) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/2041-8205/772/2/l31/abstract)
 - <a id="paper-r0375"></a>**R0375** Bétrémieux, Y. & Kaltenegger, L. 2015, Refraction in planetary atmospheres: improved analytical expressions and comparison with a new ray-tracing algorithm, MNRAS, 451, 1268, doi:10.1093/mnras/stv1078, arXiv:1507.02107. [paper](https://doi.org/10.1093/mnras/stv1078) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stv1078/abstract)
 - <a id="paper-r0376"></a>**R0376** Beuing, J., Bender, R., C. Mendes de Oliveira, Thomas, D., & Maraston, C. 2002, Line-strength indices and velocity dispersions for 148 early-type galaxies in different environments, A&A, 395, 431, doi:10.1051/0004-6361:20021321. [paper](https://doi.org/10.1051/0004-6361%3A20021321) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361%3A20021321/abstract)
+- <a id="paper-r5376"></a>**R5376** Beuthe, M. 2015, Tidal Love numbers of membrane worlds: Europa, Titan, and Co., Icarus, 258, 239, doi:10.1016/j.icarus.2015.06.008, arXiv:1504.04574. [paper](https://doi.org/10.1016/j.icarus.2015.06.008) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2015.06.008/abstract)
 - <a id="paper-r0377"></a>**R0377** Beuther, D. A. & Martin, R. J. 2006, Efficacy of a Heat Exchanger Mask in Cold Exercise-Induced Asthma, Chest, 129, 1188, doi:10.1378/chest.129.5.1188. [paper](https://doi.org/10.1378/chest.129.5.1188) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1378/chest.129.5.1188/abstract)
 - <a id="paper-r0378"></a>**R0378** Beyer, A. C. & White, R. J. 2024, The Kraft Break Sharply Divides Low Mass and Intermediate Mass Stars, arXiv:2408.02638. [paper](https://arxiv.org/abs/2408.02638) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2408.02638/abstract)
 - <a id="paper-r0379"></a>**R0379** Beyer, K. D., Hansen, A. R., & Poston, M. 2003, The Search for Sulfuric Acid Octahydrate: Experimental Evidence, JPCA, 107, 2025, doi:10.1021/jp026784f. [paper](https://doi.org/10.1021/jp026784f) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1021/jp026784f/abstract)

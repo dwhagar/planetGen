@@ -14909,11 +14909,11 @@
           "fields": [
             [
               "What it is",
-              "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, the shell following the ocean under it; uniform through the thickness)"
+              "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, uniform through the thickness) and icy_tide.MEMBRANE_FACTOR 2 (8 (1 + nu) / (5 + nu) for nu 1/3), which holds the shell to the stiffness of a membrane on an ocean: its radial Love number is h2 / (1 + h2 Lambda) with Lambda = MEMBRANE_FACTOR * mu / (rho g R) * d / R ([R5376], read in the arXiv text, tier T1 for the form; the strain factor is the argued part)"
             ],
             [
               "The range it moves in",
-              "0.5 to 2"
+              "STRAIN_FACTOR 0.5 to 2"
             ],
             [
               "Where it holds",
@@ -14929,7 +14929,7 @@
             ],
             [
               "Evidence",
-              "Europa 5e11 W in a 31 km shell against 1e11 to 1e12 W and 10 to 30 km; Enceladus 1e11 W against 1.6e10 W radiated"
+              "Europa 5e11 W in a 31 km shell against 1e11 to 1e12 W and 10 to 30 km; Enceladus 5.5e8 W in its shell against 1.6e10 W radiated (the shell's share only: the rest is the porous core's, which the shell model does not carry)"
             ]
           ],
           "id": "IC1",
@@ -14940,7 +14940,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, the shell following the ocean under it; uniform through the thickness)"
+          "what": "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, uniform through the thickness) and icy_tide.MEMBRANE_FACTOR 2 (8 (1 + nu) / (5 + nu) for nu 1/3), which holds the shell to the stiffness of a membrane on an ocean: its radial Love number is h2 / (1 + h2 Lambda) with Lambda = MEMBRANE_FACTOR * mu / (rho g R) * d / R ([R5376], read in the arXiv text, tier T1 for the form; the strain factor is the argued part)"
         },
         {
           "burn_down": null,
