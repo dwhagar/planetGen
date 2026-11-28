@@ -6,11 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-<<<<<<< HEAD
-There are 2063 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
-=======
-There are 2062 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
->>>>>>> origin/pr7542
+There are 2065 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -46,37 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-<<<<<<< HEAD
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2036 |
-=======
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2035 |
->>>>>>> origin/pr7542
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2038 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-<<<<<<< HEAD
 | T1 | 232 | 24 | 12 | 1 | 0 | 269 |
-| T2 | 192 | 78 | 5 | 0 | 0 | 275 |
+| T2 | 193 | 78 | 5 | 0 | 0 | 276 |
 | T3 | 138 | 73 | 12 | 10 | 0 | 233 |
-=======
-| T1 | 233 | 23 | 12 | 1 | 0 | 269 |
-| T2 | 192 | 78 | 5 | 0 | 0 | 275 |
-| T3 | 138 | 72 | 12 | 10 | 0 | 232 |
->>>>>>> origin/pr7542
 | T4 | 97 | 17 | 11 | 25 | 13 | 163 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 258 | 148 | 42 | 85 | 8 | 541 |
+| T6 | 258 | 148 | 43 | 85 | 8 | 542 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-<<<<<<< HEAD
-| All | 1171 | 439 | 108 | 279 | 66 | 2063 |
-=======
-| All | 1172 | 437 | 108 | 279 | 66 | 2062 |
->>>>>>> origin/pr7542
+| All | 1172 | 439 | 109 | 279 | 66 | 2065 |
 
 ## How the labels were given
 
@@ -595,13 +577,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TR9 | P | T2 | L0 | tidal_rheology.ICE (rigidity 3.3e9 Pa), ICE_ACTIVATION_J_MOL 4.9e4, ICE_MELTING_VISCOSITY_PA_S 1e14 (ice I) | rigidity 3.3 to 3.5 GPa; activation 40 to 90 kJ/mol; viscosity 1e13 to 1e15 | an ice body or shell | test_tidal_rheology::test_cold_ice_gives_europa_the_k2_over_q_that_tidal_heating_uses_and_a_warm_shell_far_more | the shell treatment of GEN.960 (grain size, a shell on an ocean) | [R1503] (rigidity), [R1614] (creep), all second-hand; [R1190: Table 2] (read, GEN.1186): the Ih dislocation activation energies are 39 kJ/mol below 195 K, 61 from 195 to 240 K and 91 from 240 to 258 K, so the 49 kJ/mol used sits inside a 40 to 90 span the evidence supports; [R1614: Table 5] (read from the page image, GEN.1190): grain-boundary-sliding-accommodated creep below 255 K has n 1.8, grain-size exponent 1.4 and Q 49 kJ/mol (A 3.9e-3 MPa^-1.8 m^1.4 s^-1), basal-limited n 2.4 and Q 60, dislocation n 4 and Q 60, so the 49 kJ/mol used is the sliding law's (verified), and a second source agrees; the sliding law's n and grain-size exponent are not used here (the Arrhenius form has the one activation energy) | predicted only | - | - |
 | TR10 | P | T6 | L3 | tidal_rheology.COLD_Q_CEILING 1000 (the largest Q the Andrade form gives: a cold mantle and a magma ocean both keep the loss of rock's own friction and of a solid lid and core) | 300 to 5000 | every rocky body | test_tidal_rheology::test_a_very_cold_mantle_keeps_the_loss_of_cold_rock | a frictional and extrinsic loss law with temperature | the measured tidal Q of cold rock is low, not high: 38 ± 4 at one month and 41 ± 9 at one year for the Moon ([R4711], as quoted in [R4604], READ) and 85.6 ± 0.4 for Mars ([R1215], as quoted in [R1215], READ), so the ceiling binds only on a mantle colder than either; the 500 to a few thousand of the seismic Q of the Earth's lithosphere and the Moon's interior ([R1204], recalled) is at seismic frequency, not tidal; without it 25 percent of generated planets get a Q above 6e4 and close-in magma-ocean planets never lock | predicted only | - | no data |
 | TR11 | P | T7 | L0 | tidal_rheology.MAX_VISCOSITY_EXPONENT 200 (a numerical cutoff: the Arrhenius exponent `Ea / R T` the viscosity is evaluated at, a viscosity of 1e87 times the prefactor, beyond which a mantle does not relax in any tide and the exponential would overflow) | 100 to 600 | a mantle far below its solidus | test_tidal_rheology::test_a_mantle_far_colder_than_any_body_does_not_overflow_and_is_elastic_with_the_cold_ceiling | a numerical cutoff stays | the response of such a mantle is the elastic one with the cold ceiling on Q whatever the cutoff, so no value in the range changes an output | predicted only | - | - |
-| IC1 | P | T6 | L1 | icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, uniform through the thickness) and icy_tide.MEMBRANE_FACTOR 2 (`8 (1 + nu) / (5 + nu)` for nu 1/3), which holds the shell to the stiffness of a membrane on an ocean: its radial Love number is `h2 / (1 + h2 Lambda)` with `Lambda = MEMBRANE_FACTOR * mu / (rho g R) * d / R` ([R5376], read in the arXiv text, tier T1 for the form; the strain factor is the argued part) | STRAIN_FACTOR 0.5 to 2 | an icy body with a shell over an ocean | test_icy_tide::test_europa_enceladus_and_callisto_come_out_the_size_the_shells_are | a layered Love-number solution for the shell and the ocean | Europa 5e11 W in a 31 km shell against 1e11 to 1e12 W and 10 to 30 km; Enceladus 5.5e8 W in its shell against 1.6e10 W radiated (the shell's share only: the rest is the porous core's, which the shell model does not carry) | predicted only | - | - |
+| IC1 | P | T6 | L1 | icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, uniform through the thickness) and icy_tide.MEMBRANE_FACTOR 2 (`8 (1 + nu) / (5 + nu)` for nu 1/3), which holds the shell to the stiffness of a membrane on an ocean: its radial Love number is `h2 / (1 + h2 Lambda)` with `Lambda = MEMBRANE_FACTOR * mu / (rho g R) * d / R` ([R5376], read in the arXiv text, tier T1 for the form; the strain factor is the argued part) | STRAIN_FACTOR 0.5 to 2 | an icy body with a shell over an ocean | test_icy_tide::test_europa_enceladus_and_callisto_come_out_the_size_the_shells_are | a layered Love-number solution for the shell and the ocean | Europa 5e11 W in a 31 km shell against 1e11 to 1e12 W and 10 to 30 km; Enceladus 5.5e8 W in its shell against 1.6e10 W radiated (the shell's share only: the rest is the rubble core's, IC8) | predicted only | - | - |
 | IC2 | T | T6 | L0 | icy_tide (the shell conducts with k = A / T through its whole depth, no convection; its base is at the melting point of pure water, not the pressure-melted or brine one the hydrosphere uses; the heat is made in the shell alone, the rock under it adds its own radiogenic flux) | none | a conducting ice shell | test_icy_tide::test_the_shell_is_in_equilibrium_with_its_own_tide | a convecting shell [R4376] | the same conductive law the hydrosphere sets the thickness with | predicted only | - | - |
 | IC3 | P | T6 | L1 | icy_tide.LOVE_TEMPERATURE_K 250 (h2 of the tide is 1 plus the k2 of a homogeneous ice sphere at that temperature, 0.25 to 0.5) | 200 to 270 | an icy body | test_icy_tide::test_the_effective_k2_over_q_carries_the_same_power_through_the_peale_law | the h2 of the layered body | the Love number of a Europa with a global ocean is 1.2 | predicted only | - | - |
 | IC4 | P | T6 | L1 | icy_tide.TOP_FALLBACK_K 100 and OWN_FLUX_FALLBACK_W_M2 1e-3 (the surface temperature and radiogenic flux of an icy body before its climate and heat are known, which the circularisation of an icy moon's orbit needs) | 60 to 150 and 3e-4 to 1e-2 | icy moons at generation | test_icy_tide::test_an_icy_body_reads_its_shell_through_the_interior_heat_helpers | the circularisation after the climate | the Galilean moons' 90 to 130 K and 1e-3 to 1e-2 W/m2 | predicted only | - | - |
 | IC5 | P | T5 | L0 | icy_tide.ENERGY_RATIO 9/7 and MAX_K2_OVER_Q 1.5 (the spin tide's strain squared against the eccentricity tide's for the same k2/Q, from the 21/2 of the power and the 3 of the torque; no body has a k2/Q above the fluid Love number over a Q of 1) | none | every icy body | test_icy_tide::test_a_thin_hot_shell_cannot_dissipate_more_than_a_fluid_body_at_a_q_of_one | none | the two standard laws, [R3464] and the despinning torque of [R1584] | predicted only | - | - |
 | IC6 | P | T6 | L1 | body_spin.icy_regime FROZEN (an icy body whose conducting shell, `hydrosphere.ice_shell_thickness_km`, is as thick as its radius or more is ice solid through, with no ocean under it for `icy_tide.k2_over_q` to stand on: its spin's `k2/Q` is `tidal_rheology.ice_response` at the mean of the surface's and the centre's temperature of the conducting profile, `body_spin.frozen_mean_temperature_k`) | none | an icy body of a few hundred kilometres or less, or a cold large one with little heat | test_icy_regime::test_a_body_frozen_through_is_not_given_the_shell_models_k2_over_q | a layered ice and rock body with its own temperature profile | the shell formula's 1.5 against a homogeneous ice sphere's 1e-3 for the same body (measured on the small Class D bodies of 1 to 5 AU, GEN.1755) | predicted only | - | - |
 | IC7 | P | T6 | L0 | body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's `k2/Q` is the rock mantle's, `tidal_rheology.rock_response`, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out) | none | an ocean world, or a body with over 1 percent water too warm for ice | test_icy_regime::test_a_water_rich_body_too_warm_for_ice_meets_the_rock_under_its_sea | the ocean's tide dissipation (`ocean_tides`) on the spin | the shell formula gave 0 for these, a planet that never despun (GEN.1756) | predicted only | - | - |
+| IC8 | P | T6 | L2 | icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock `CORE_ROCK_DENSITY_KG_M3` 2500 over a shell of 1000, [R5377] supplement Table S1), of rigidity `CORE_RIGIDITY_PA` 1.6e7 Pa at its central pressure `CORE_REFERENCE_PRESSURE_PA` 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and `CORE_DISSIPATION` 1/Q 0.5 ([R5377] supplement, read verbatim), its rubble share `exp(-P / CORE_CONSOLIDATION_PA)` of 1e8 Pa (Athy compaction), and `CORE_COUPLING` 0.37 of what an isolated sphere dissipates | 1/Q 0.2 to 0.8 and rigidity 1.6e7 to 3e8 Pa ([R5377]); coupling 0.1 to 1; consolidation 3e7 to 3e8 Pa | an icy body of a few hundred kilometres with an ocean under its shell and a core at under 1e8 Pa (Enceladus and smaller, Mimas) | test_icy_tide::test_the_core_of_a_small_icy_body_is_rubble_that_makes_most_of_its_tide_and_that_of_a_large_one_is_rock_that_makes_none_here | a layered Love-number solution of shell, ocean and porous core | Enceladus 2.1e10 W against 1.6e10 W radiated and a shell of 28 km (20 to 40 km observed); the coupling is the one number set to [R5377]'s 20 GW; the dissipation law is Peale's standard one with the numbers of [R5377]'s supplement, because its main text (the paper's own law and eccentricity) was not read | predicted only | - | - |
 
 ## 6.24 Stand-ins of the spin torques
 

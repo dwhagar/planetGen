@@ -288921,6 +288921,49 @@
    "type": "report",
    "url": "https://ntrs.nasa.gov/citations/20020085330",
    "year": 2002
+  },
+  "10.1038/s41550-017-0289-8": {
+   "authors": [
+    [
+     "Choblet",
+     "G."
+    ],
+    [
+     "Tobie",
+     "G."
+    ],
+    [
+     "Sotin",
+     "C."
+    ],
+    [
+     "Běhounková",
+     "M."
+    ],
+    [
+     "Čadek",
+     "O."
+    ],
+    [
+     "Postberg",
+     "F."
+    ],
+    [
+     "Souček",
+     "O."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41550-017-0289-8",
+   "editors": [],
+   "journal": "NatAs",
+   "page": "841",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Powering prolonged hydrothermal activity inside Enceladus",
+   "type": "journal-article",
+   "volume": "1",
+   "year": 2017
   }
  },
  "id_aliases": {},
@@ -295615,7 +295658,8 @@
   "web:https://www.nfpa.org/codes-and-standards/nfpa-1991-standard-development/1991": "R5023",
   "web:https://www.seeles.ai/resources/blogs/unreal-engine-dither-temporal-aa-lod-fade-guide": "R5060",
   "web:https://xtermjs.org/": "R5035",
-  "web:https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/": "R5038"
+  "web:https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/": "R5038",
+  "10.1038/s41550-017-0289-8": "R5377"
  },
  "setup_datasets": [
   {
