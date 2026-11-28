@@ -39,9 +39,12 @@ and injected through the DevTools protocol, so nothing is fetched at
 test time and the page's own CSP stays in force.
 """
 
+import contextlib
 import os
 import random
+import secrets
 import uuid
+from unittest import mock
 
 import pymysql
 import pytest
@@ -253,32 +256,53 @@ def _seat_loose_systems(config):
         conn.close()
 
 
+SITE_GALAXY_SEED = "5174E5EED2026092400000000000A11E"
+"""str: The galaxy seed of the site galaxy (32 hex digits), given to `plan --seed`: the galaxy's seed came from the operating system on each build (GEN.1883)."""
+
+
+@contextlib.contextmanager
+def _pinned_run_seeds(seed):
+    """
+    Every `planetgen` command seeds the run stream from `secrets.randbits` (`generate.main`), so a build's loose systems draw from what that returns. `fuzz_support.deterministic_entropy` pins it,
+    but from the one stream that also serves `secrets.token_bytes`, which the run lines' tickets and ids consume as many times as the machine's timing asks (a supervisor already up, a poll
+    repeated): the run seed of the next command then moved by a word between two builds. Here `randbits` has a stream of its own.
+    """
+    rng = random.Random(seed)
+    with mock.patch.object(secrets, "randbits", rng.getrandbits):
+        draw.set_run_seed(seed)
+        yield
+
+
 def _build_site_galaxy(config):
-    """Builds the site galaxy in `config`'s empty database: the same draws every time (the run seed)."""
+    """
+    Builds the site galaxy in `config`'s empty database: the same galaxy every time (GEN.1883). Two builds of one commit made two galaxies (the heaviest planet was 006 in one and 002 in the next)
+    because `plan` took a new galaxy seed from the operating system on each build, and a test that reads "the heaviest planet" failed by chance: the seed is given (`SITE_GALAXY_SEED`) and
+    the run seed of each command is pinned (`_pinned_run_seeds`).
+    """
     state = draw.getstate()
-    draw.set_run_seed(20260924)
     try:
-        target = mysql_argv(config)
-        # The real scatter places tens of millions of stars over the
-        # whole galaxy; a few hundred near the core are enough for the
-        # Galaxy Map to draw some.
-        run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + target)
-        _add_bright_stars(config)
-        # TEST.835: the pages these tests walk do not read the record of the air history (GEN.1745), which was most of
-        # the cost of a system: with it the build of this galaxy took 935 s alone (15 min 35 s) and over the watchdog's 1740 s on a shared
-        # run. `tests/air_history_off.py` (TEST.831) builds the same systems without it, proven there by digest.
-        with forced_system_config(PLANETS=True), air_history_off():
-            run_cli("sectors", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
-            for root in ("link", "backfill", "settle"):
-                run_cli(root, ["--quiet"] + target)
-        with forced_system_config(PLANETS=True), air_history_off():   # the sector fill above makes planet-less systems (GEN.227)
-            run_cli("system", ["--quiet"] + target)
-        _seat_loose_systems(config)
-        for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
-            run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
-        _add_population(config)
-        _add_scattered_phenomenon(config)
-        _add_scattered_star(config)
+        with _pinned_run_seeds(20260924):
+            target = mysql_argv(config)
+            # The real scatter places tens of millions of stars over the
+            # whole galaxy; a few hundred near the core are enough for the
+            # Galaxy Map to draw some.
+            run_cli("plan", ["--quiet", "--nuclear-amplitude", "0", "--seed", SITE_GALAXY_SEED] + target)
+            _add_bright_stars(config)
+            # TEST.835: the pages these tests walk do not read the record of the air history (GEN.1745), which was most of
+            # the cost of a system: with it the build of this galaxy took 935 s alone (15 min 35 s) and over the watchdog's 1740 s on a shared
+            # run. `tests/air_history_off.py` (TEST.831) builds the same systems without it, proven there by digest.
+            with forced_system_config(PLANETS=True), air_history_off():
+                run_cli("sectors", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+                for root in ("link", "backfill", "settle"):
+                    run_cli(root, ["--quiet"] + target)
+            with forced_system_config(PLANETS=True), air_history_off():   # the sector fill above makes planet-less systems (GEN.227)
+                run_cli("system", ["--quiet"] + target)
+            _seat_loose_systems(config)
+            for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
+                run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
+            _add_population(config)
+            _add_scattered_phenomenon(config)
+            _add_scattered_star(config)
     finally:
         draw.setstate(state)
 
