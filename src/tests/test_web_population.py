@@ -166,6 +166,17 @@ def test_the_lists_before_the_population_pass_are_empty_pages_not_404s(monkeypat
     assert "Species" not in _nav(page)
 
 
+@pytest.mark.parametrize("url, line", [
+    ("/species", "The population pass has run on this galaxy and made no species."),
+    ("/polities", "The population pass has run on this galaxy and made no species, so it has no polities."),
+])
+def test_the_lists_after_a_pass_that_made_none_say_it_ran(monkeypatch, client, fake, url, line):
+    """UX.323: a pass that ran (its watermark is stored) and made no species is not "has not run"."""
+    _install(monkeypatch, {"generated": True, "species": False, "polities": False, "territories": False})
+    page = client.get(url).get_data(as_text=True)
+    assert line in page and "has not run" not in page
+
+
 def test_status_failure_hides_the_pages(monkeypatch, client, fake):
     def boom(db):
         raise apiclient.TransportUnreachable("down")
