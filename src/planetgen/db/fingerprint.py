@@ -164,7 +164,7 @@ ROW_ID_COLUMNS = {("planets", "lagrange_host_id"): "planets", ("phenomenon_scatt
 (GEN.1151) is the giant a trojan planet shares its orbit with and `phenomenon_scatter.cluster_id` (GEN.163) the globular cluster a scattered object was drawn in (a plain column, not a foreign key: a cluster row may be replaced). Left as the raw id it carried the id the row got in that
 run, so two runs that charted the same sectors in another order read as two galaxies."""
 
-LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
+LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
 
 LEFT_OUT_TABLE_COLUMNS = {

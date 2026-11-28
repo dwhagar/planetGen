@@ -222,7 +222,9 @@ def draw_one(job):
             stars.append(row)
         out["stars"] = stars
         out["binary_type"] = jsonable(system.binary_type)
-        out["wide_binary"] = jsonable(system.wide_binary)
+        pair = system.pair_orbit    # GEN.1879: the pair's orbit is its node's, read as `PairOrbit` (GEN.640); None for a single star
+        out["pair_orbit"] = None if pair is None else {name: jsonable(getattr(pair, name)) for name in (
+            "separation_au", "eccentricity", "period_years", "periapsis_au", "apoapsis_au")}
         out["habitable_request"] = jsonable(getattr(system, "habitable_request", None))
         try:
             status = system.habitable_request_status
