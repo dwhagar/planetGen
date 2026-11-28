@@ -295447,6 +295447,7 @@
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
+  "web:https://petrowiki.spe.org/equilibrium_of_water_and_hydrocarbon_systems_with_hydrates": "R5375",
   "web:https://physics.nist.gov/physrefdata/asd/ionenergy.html": "R5247",
   "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
   "web:https://shoelace.style/": "R5033",
@@ -295996,6 +295997,15 @@
    "provider": "NIST",
    "url": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
    "year": "2024"
+  },
+  {
+   "checked": "2026-11-26",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Equilibrium of water and hydrocarbon systems with hydrates",
+   "provider": "PetroWiki (Society of Petroleum Engineers)",
+   "url": "https://petrowiki.spe.org/Equilibrium_of_water_and_hydrocarbon_systems_with_hydrates",
+   "year": ""
   }
  ]
 }

@@ -510,7 +510,7 @@ def _came_from(planet, belt, belts, tree):
     if order is None:
         return False
     host = _host_of(belt, tree)
-    ring = sorted((other for other in belts if _host_of(other, tree) == host), key=lambda other: other.get("distance_km", other["lower_limit_km"]))
+    ring = sorted((other for other in belts if _host_of(other, tree) == host and other.get("lagrange_point") is None), key=lambda other: other.get("distance_km", other["lower_limit_km"]))
     return 0 <= order < len(ring) and ring[order] is belt
 
 
