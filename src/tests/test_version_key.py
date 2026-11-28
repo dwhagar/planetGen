@@ -16,11 +16,21 @@ from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen.generation import generator_battery
-from planetgen.util import fingerprint_encoding, generator_epoch
+from planetgen.util import fingerprint_encoding, generator_epoch, log
 from planetgen._version import __version__
 from tests.test_galaxy_gen import _mysql_argv, _seed_skeleton
 
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
+
+
+@pytest.fixture(autouse=True)
+def _console_log_at_normal():
+    """TEST.854: a run configures the process's logger (`generate.main` -> `log.configure`), and the one that asked for `--debug` leaves the console at debug
+    severity with the SQL trace on. The next test of the same worker then read a SQL line where the run line should be first (the lines written before the run's
+    own `configure`, such as the control schema's, come out at debug severity). Each test starts and ends with the console at normal severity."""
+    log.configure(log.NORMAL)
+    yield
+    log.configure(log.NORMAL)
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +101,7 @@ def test_the_running_code_has_a_key():
     current = versionKey.current()
     assert current["planetgen_version"] == __version__
     assert current["version_key"] == versionKey.version_key()
-    major, revision, build = (int(part) for part in __version__.split("."))
+    major, revision, build = (int(part) for part in __version__.partition("+")[0].split("."))      # a stamped version has a local suffix (OPS.64), which the key leaves out as `versionKey` does
     assert current["version_key"][:7] == f"{major:X}{revision:02X}{build:04X}"
     assert current["version_key"][15:20] == f"{sys.version_info[0]:X}{sys.version_info[1]:02X}{sys.version_info[2]:02X}"
 
@@ -147,6 +157,7 @@ def _arguments(mysql_config, run_id):
 
 
 def _generate(mysql_config, monkeypatch, *argv):
+    store.get_control_connection(mysql_config, ensure_schema=True).close()      # OPS.278: a run writes its ledger (`engine_runs`) to the control database, the test database here, as the `control_config` fixture makes it
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
     monkeypatch.setattr(sys, "argv", ["planetgen", *argv] + _mysql_argv(mysql_config))
     generate_cli.main()

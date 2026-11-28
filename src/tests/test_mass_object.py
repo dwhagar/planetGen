@@ -69,9 +69,15 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import body_state, constants
 
 
-def _first(predicate):
-    for _ in range(400):
-        system = StarSystem(system_config=SystemConfig())
+def _first(predicate, name, comets=False):
+    """The first system, in the fixed order of the streams `mass-object:<name>:<n>` (TEST.856: the draws were unseeded, so a test that waited for a comet took 8 to 45 minutes by luck), that has
+    what `predicate` finds. `comets` forces the comet cloud on (a comet is then in nearly every system, where the default makes them rare)."""
+    for index in range(400):
+        config = SystemConfig()
+        if comets:
+            config.COMETS = True
+        with draw.bound(draw.Stream(f"mass-object:{name}:{index}")):
+            system = StarSystem(system_config=config)
         found = predicate(system)
         if found:
             return found
@@ -79,7 +85,7 @@ def _first(predicate):
 
 
 def test_a_planets_advance_is_the_state_step_its_batch_update_takes():
-    planet = _first(lambda s: next((p for p in s.primary.orbiters if isinstance(p, Planet)), None))
+    planet = _first(lambda s: next((p for p in s.primary.orbiters if isinstance(p, Planet)), None), "planet-step")
     start = (planet.position_x, planet.position_y, planet.position_z)
     velocity = (planet.velocity_x_kms, planet.velocity_y_kms, planet.velocity_z_kms)
     seconds = 0.3 * planet.period * constants.SECONDS_PER_YEAR
@@ -90,7 +96,7 @@ def test_a_planets_advance_is_the_state_step_its_batch_update_takes():
 
 
 def test_a_planet_comes_back_after_one_period_and_a_step_back_undoes_a_step():
-    planet = _first(lambda s: next((p for p in s.primary.orbiters if isinstance(p, Planet)), None))
+    planet = _first(lambda s: next((p for p in s.primary.orbiters if isinstance(p, Planet)), None), "planet-period")
     start = (planet.position_x, planet.position_y, planet.position_z)
     period_s = planet.period * constants.SECONDS_PER_YEAR
     planet.advance(period_s)
@@ -101,7 +107,7 @@ def test_a_planet_comes_back_after_one_period_and_a_step_back_undoes_a_step():
 
 
 def test_a_moon_advances_about_its_planet_by_the_same_function():
-    planet = _first(lambda s: next((p for p in s.primary.orbiters if getattr(p, "moons", None)), None))
+    planet = _first(lambda s: next((p for p in s.primary.orbiters if getattr(p, "moons", None)), None), "moon")
     moon = planet.moons[0]
     start = (moon.position_x, moon.position_y, moon.position_z)
     moon.advance(0.25 * moon.period * constants.SECONDS_PER_YEAR)
@@ -111,9 +117,10 @@ def test_a_moon_advances_about_its_planet_by_the_same_function():
     assert moon.distance * (1.0 - moon.eccentricity) - 1e-9 <= distance <= moon.distance * (1.0 + moon.eccentricity) + 1e-9
 
 
-def test_a_comet_advances_on_its_hosts_pull():
+@pytest.mark.parametrize("name", ["comet-a", "comet-b", "comet-c"])
+def test_a_comet_advances_on_its_hosts_pull(name):
     comet = _first(lambda s: next((c for c in getattr(s, "comets", []) if isinstance(c, Comet)
-                                   and c.orbit_type == "elliptical"), None))
+                                   and c.orbit_type == "elliptical"), None), name, comets=True)
     before = comet.orbit_from_vector()
     comet.advance(0.1 * before["period"] * constants.SECONDS_PER_YEAR)
     after = comet.orbit_from_vector()

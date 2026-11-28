@@ -1324,6 +1324,8 @@ moon_exosphere = sa.Table(
     sa.CheckConstraint('(`column_cm2` > 0)', name='moon_exosphere_chk_2'),
     mysql_engine="InnoDB",
 )
+
+
 moon_gases = sa.Table(
     'moon_gases',
     metadata,
@@ -2465,6 +2467,8 @@ planet_exosphere = sa.Table(
     sa.CheckConstraint('(`column_cm2` > 0)', name='planet_exosphere_chk_2'),
     mysql_engine="InnoDB",
 )
+
+
 planet_gases = sa.Table(
     'planet_gases',
     metadata,
@@ -4041,9 +4045,6 @@ star_systems = sa.Table(
     sa.Column('is_binary', mysql.TINYINT(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('binary_configuration', sa.String(8), nullable=True),
     sa.Column('binary_separation_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_eccentricity', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_periapsis_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_apoapsis_km', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_type', sa.String(64), nullable=True),
     sa.Column('binary_temperature_k', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_radius_km', mysql.DOUBLE(), nullable=True),
@@ -4058,24 +4059,6 @@ star_systems = sa.Table(
     sa.Column('binary_galactic_orbital_period_gy', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_galactic_orbital_phase_deg', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_galactic_min_update_interval_years', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_orbital_period_years', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_orbital_speed_kms', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_orbital_inclination_deg', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_orbital_ascending_node_deg', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_orbital_phase_deg', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_epoch_unix', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_next_update_due', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_min_update_interval_years', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_position_x_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_position_y_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_mutual_position_z_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_primary_position_x_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_primary_position_y_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_primary_position_z_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_secondary_position_x_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_secondary_position_y_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_secondary_position_z_km', mysql.DOUBLE(), nullable=True),
-    sa.Column('binary_secondary_mass_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_planetary_wobble_x_km', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_planetary_wobble_y_km', mysql.DOUBLE(), nullable=True),
     sa.Column('binary_planetary_wobble_z_km', mysql.DOUBLE(), nullable=True),
@@ -4097,7 +4080,6 @@ star_systems = sa.Table(
     sa.Index('fk_star_systems_inside_remnant', 'inside_remnant_id'),
     sa.Index('ft_star_systems_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_star_systems_binary_name', 'is_binary', 'name', 'id'),
-    sa.Index('idx_star_systems_binary_next_update_due', 'binary_next_update_due'),
     sa.Index('idx_star_systems_cell', 'cell_key', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
     sa.Index('idx_star_systems_modified_at', 'modified_at'),
     sa.Index('idx_star_systems_name', 'name'),

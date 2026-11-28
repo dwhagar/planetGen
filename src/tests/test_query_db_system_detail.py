@@ -44,16 +44,17 @@ def test_system_detail_exposes_binary_mutual_position_for_a_close_binary(mysql_c
 
     conn = store.get_connection(mysql_config)
     try:
-        raw_row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
         detail = query.system_detail(conn, system_id)
     finally:
         conn.close()
 
+    # The pair's own position is read from its orbit node (GEN.640): the generated system's pair orbit puts the secondary where the detail does.
+    pair = system.pair_orbit
     assert detail["binary_configuration"] == "close"
     for axis in ("x", "y", "z"):
         key = f"binary_mutual_position_{axis}_km"
         assert detail[key] is not None
-        assert detail[key] == pytest.approx(raw_row[key])
+        assert detail[key] == pytest.approx(getattr(pair, f"position_{axis}_au") * 1.495978707e8, rel=1e-6, abs=1.0)
 
 
 def test_system_detail_binary_mutual_position_is_none_for_a_single_star(mysql_config):

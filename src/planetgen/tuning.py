@@ -503,7 +503,7 @@ COMPANIONS_PER_DECADE_BY_PRIMARY_MASS = (
 )
 
 # S-type binary separation is drawn from the companions-per-decade lines above (GEN.448), from this lower bound,
-# the top of the close/P-type BinaryStarProxy separation range (0.05-0.25 AU), so the two configurations'
+# the top of the close/P-type PairHost separation range (0.05-0.25 AU), so the two configurations'
 # separations never overlap.
 # The upper bound is not a constant: a pair survives only inside the
 # widest axis its place allows (GEN.103, `generation.place_terms.
@@ -1163,6 +1163,10 @@ PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
 DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6))
+PLANET_HOST_MAX_MASS_SOLAR = 10.0
+"""float: The birth mass of a star at and above which it holds no planets (GEN.1866, registry row PH1 of 6.338): 10 solar masses, the upper edge of the hosts seen. b Cen (AB) (6 to 10 solar masses, one giant at 556 AU) and mu2 Sco
+(about 9) are the heaviest stars with a planet found, and the radial-velocity occurrence of giants falls off above about 2.5 to 3 solar masses, so a star at the cut holds none. The decline between 3 and 10 is not modelled
+(the replacement row). A star at the cut keeps its belts, the debris of what was there. A config that asks for a class or lists its slots overrides it. Second-hand citations ([R2172, R5368, R5369, R5370]; the papers are not read). [Stand-in 6.338 PH1, tier T3, tweak L1.]"""
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface

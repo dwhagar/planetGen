@@ -40,7 +40,7 @@ from planetgen.util import fingerprint_encoding as encoding
 _DECORATION = re.compile(r"\b(?:%s) (?=[A-Z])" % "|".join(GREEK_LETTERS + DIMINUTIVE_PREFIXES))
 """Pattern: A name-collision decoration word (`names.uniqueness`) before a name."""
 
-CLOCK_KEYS = frozenset({"epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
+CLOCK_KEYS = frozenset({"epoch_unix", "next_update_due"})
 """frozenset: Keys left out of every dict: the clocks of GEN.106 record when an orbit was last moved, which for a pair
 saved before the database has an orbit epoch is the moment of the save (GEN.311), not what was made (the same columns
 `fingerprint.LEFT_OUT_COLUMNS` leaves out)."""

@@ -10,6 +10,7 @@ covered by `test_web_pages.py`. Same `sys.path` setup as
 
 import os
 import re
+from urllib.parse import quote
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _HTML_DIR = os.path.join(_SRC_DIR, "html")
@@ -25,13 +26,13 @@ from planetgen._version import __version__  # noqa: E402
 def test_static_url_appends_package_version_and_the_static_fingerprint():
     fingerprint = fmt._static_fingerprint()
     assert re.fullmatch(r"[0-9a-f]{8}", fingerprint)
-    assert fmt.static_url("style.css") == f"static/style.css?v={__version__}-{fingerprint}"
+    assert fmt.static_url("style.css") == f"static/style.css?v={quote(__version__, safe='')}-{fingerprint}"      # the version carries a plus since OPS.64 (`8.0.4844+db280...`): quoted, so a query reads it as a plus and not as a space
     assert fmt.STATIC_VERSION == __version__
 
 
 def test_static_url_keeps_subdirectories():
     url = fmt.static_url("vendor/three.module.min.js")
-    assert url.startswith("static/vendor/three.module.min.js?v=" + __version__ + "-")
+    assert url.startswith("static/vendor/three.module.min.js?v=" + quote(__version__, safe="") + "-")
 
 
 def test_static_url_quotes_an_odd_version(monkeypatch):

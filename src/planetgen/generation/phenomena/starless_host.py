@@ -25,7 +25,7 @@ class StarlessHost:
     The star a rogue planet is built against: the donor star it was ejected from, with no light and the rogue's own age.
 
     Args:
-        donor: The star the body was ejected from (a `Star`, or a `BinaryStarProxy`).
+        donor: The star the body was ejected from (a `Star`, or a `PairHost`).
         age_gy (float): The rogue's age, Gy (`rogue_age.from_record(donor.age, delay).age`).
 
     Every attribute the host does not set itself (the mass, the snow line, the spectral type, the metallicity) is read off the donor.
