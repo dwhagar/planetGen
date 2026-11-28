@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4865+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The white-dwarf fallback tests no longer pass or fail by which test ran before them in the same worker.
+
+### Changed
+
+- The two "without the sequences" tests of the white-dwarf cooling take away the white-dwarf sequences only (TEST.841), not the whole cache folder, which also took the isochrones away and made the result depend on whether an earlier test of the worker had loaded them.
+
 ## [8.0.4864+db281.gen150.api14] - 2026-11-28
 
 **Headline:** A belt member made a planet is finished the way every planet is, so a young star's belts no longer take minutes to build.
