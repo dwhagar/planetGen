@@ -18,7 +18,7 @@ it yet (the later slices of GEN.1746 feed the air and the life ages from it), so
   [R5322], `N(1) = 5.44e-14 (exp(6.93 T) - 1) + 8.38e-4 T` for T in Ga before now, whose rate is `5.44e-14 x 6.93 exp(6.93 T) + 8.38e-4`. Only the impacts over the size the caller names are listed (the small ones
   are too many and kill nothing the record keeps).
 * *The kill of an event.* The kill curve of the marine record gives the share of species killed by the events that recur at a given interval ([R5320]: about 10 percent once per Myr, 30 percent once per 10 Myr, 65
-  percent once per 100 Myr; "does not imply any cause"). An event kills the share the curve gives for how often events as large as it recur on the Earth: an impact by the recurrence of its size, a flood basalt by its
+  percent once per 100 Myr, and the end-Permian's 90 percent once in the 540 Myr of the record; "does not imply any cause"). An event kills the share the curve gives for how often events as large as it recur on the Earth: an impact by the recurrence of its size, a flood basalt by its
   25 Myr. A body with more events than the Earth's has more kills, not larger ones.
 * *Recovery.* The origination that follows an extinction lags it by about 10 Myr, whatever its size [R5321].
 
@@ -65,8 +65,8 @@ NEUKUM_LAMBDA_PER_GYR = 6.93
 NEUKUM_B_PER_GYR = 8.38e-4
 """float: The three constants of the lunar cratering chronology function `N(1) = a (exp(lambda T) - 1) + b T` for craters over 1 km a square kilometre at an age T Ga before now ([R5322], printed from Neukum et al.). [Stand-in 6.313 EV5, tier T2 confident unverified, tweak L0.]"""
 
-KILL_CURVE = ((1.0, 0.10), (10.0, 0.30), (100.0, 0.65))
-"""tuple: The kill curve of the marine record: `(recurrence interval Myr, share of species killed)` ([R5320], through a secondary article; the table itself is not read). [Stand-in 6.313 EV6, tier T2 confident unverified, tweak L0.]"""
+KILL_CURVE = ((1.0, 0.10), (10.0, 0.30), (100.0, 0.65), (540.0, 0.90))
+"""tuple: The kill curve of the marine record: `(recurrence interval Myr, share of species killed)`. The first three points are [R5320], through a secondary article (the table itself is not read) [Stand-in 6.313 EV6, tier T2 confident unverified, tweak L0]; the last is the Earth's largest extinction, the end-Permian, once in the 540 Myr of the Phanerozoic, at 0.90 inside the 0.81 to 0.96 the estimates give (from memory, not read here) [Stand-in 6.313 EV6b, tier T3 marginal unverified, tweak L1]. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event."""
 
 RECOVERY_GYR = 0.010
 """float: The lag of the origination behind an extinction, Gyr, the same after the large ones as after the small [R5321]. [Stand-in 6.313 EV7, tier T1 verified, tweak L0.]"""
@@ -115,7 +115,7 @@ def impact_rate_per_gyr(diameter_km, radius_m, flux_ratio=1.0):
 
 
 def kill_share(recurrence_myr):
-    """The share of species killed by the events that recur every `recurrence_myr` Myr: the kill curve, straight in the log of the interval between its points and held at the ends (0.10 under 1 Myr, 0.65 over 100)."""
+    """The share of species killed by the events that recur every `recurrence_myr` Myr: the kill curve, straight in the log of the interval between its points and held at the ends (0.10 under 1 Myr, 0.90 over 540)."""
     first, last = KILL_CURVE[0], KILL_CURVE[-1]
     if recurrence_myr <= first[0]:
         return first[1]

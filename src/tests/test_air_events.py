@@ -26,12 +26,13 @@ def _a_rocky_world():
     pytest.fail("no generated rocky world")
 
 
-def test_the_kill_curve_passes_through_its_three_points_straight_in_the_log_and_is_held_at_the_ends():
+def test_the_kill_curve_passes_through_its_four_points_straight_in_the_log_and_is_held_at_the_ends():
     assert air_events.kill_share(1.0) == pytest.approx(0.10)
     assert air_events.kill_share(10.0) == pytest.approx(0.30)
     assert air_events.kill_share(100.0) == pytest.approx(0.65)
-    assert air_events.kill_share(0.01) == 0.10 and air_events.kill_share(1.0e5) == 0.65
-    assert 0.10 < air_events.kill_share(3.0) < 0.30 < air_events.kill_share(30.0) < 0.65
+    assert air_events.kill_share(540.0) == pytest.approx(0.90)          # the end-Permian once in the Phanerozoic (GEN.1875: the curve no longer holds 0.65 for every rarer event)
+    assert air_events.kill_share(0.01) == 0.10 and air_events.kill_share(1.0e5) == 0.90
+    assert 0.10 < air_events.kill_share(3.0) < 0.30 < air_events.kill_share(30.0) < 0.65 < air_events.kill_share(250.0) < 0.90
     assert air_events.kill_share(10.0 ** 0.5) == pytest.approx(0.20)
 
 
@@ -98,6 +99,6 @@ def test_the_events_of_a_world_are_ordered_sized_and_drawn_on_the_body_s_own_str
     impacts = [event for event in events if event.kind == air_events.IMPACT]
     assert all(event.size == air_events.FLOOD_BASALT_VOLUME_KM3 for event in flood)
     assert all(5.0 <= event.size <= air_events.IMPACT_LARGEST_KM for event in impacts)
-    assert all(0.10 <= event.kill_share <= 0.65 for event in events)
+    assert all(0.10 <= event.kill_share <= 0.90 for event in events)
     assert len(flood) > 0 or body.star.age < 1.0
     assert len(air_events.events_of(body, 0.5, min_impact_km=20.0)) <= len(events)
