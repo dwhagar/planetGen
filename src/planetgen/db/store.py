@@ -76,7 +76,7 @@ from planetgen.db import alembic_runner, batched, chart_ledger, derived_stamp, d
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
-from planetgen.galaxy import resident_mass, component_field as componentField, dials, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import resident_mass, bubble_field as bubbleField, component_field as componentField, dials, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
 from planetgen.physics import body_history, effect_ledger, moon_history, isotope_record, light_ledger, ore_deposits
@@ -9627,7 +9627,8 @@ def get_galaxy_shape(conn, light=False):
     # the mass and halo the plan pinned when it did (DB.81, GEN.606).
     shape = shape._replace(components=None if light else _component_field(
                                conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
-                           structure=shape_draw.structure_for(seed, pinned_mass, pins.get("stellar_halo_share")))
+                           structure=shape_draw.structure_for(seed, pinned_mass, pins.get("stellar_halo_share")),
+                           bubbles=None if seed is None else bubbleField.BubbleField(seed))      # the superbubbles' handle (GEN.392)
     if "family" in row:      # DB.66 (GEN.379): the family and component numbers; a NULL bar or thick disk number is the draw's
         shape = with_family_columns(shape, row)
     if seed is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
