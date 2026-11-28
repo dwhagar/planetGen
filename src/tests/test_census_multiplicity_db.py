@@ -10,7 +10,7 @@ scatter plans store their rows' members and nodes, and the whole stored census i
 - two plans of the same galaxy store identical members;
 - a built system equals its stored members (the stars, their masses and every node of the tree) and the child rows of what was built
   are gone, for every row of the sectors with the most members;
-- the nightly update moves the barycentres and writes no member or node row.
+- the nightly update moves the barycenters and writes no member or node row.
 """
 
 import collections
@@ -98,7 +98,7 @@ def test_the_phenomenon_scatters_stored_members_are_booked_and_stored_the_same_o
             store.advance_scatter_points(conn, clock)
         moved = {r["id"]: (r["position_x_mpc"], r["position_y_mpc"]) for r in conn.execute(
             "SELECT id, position_x_mpc, position_y_mpc FROM phenomenon_scatter").fetchall()}
-        assert moved != positions, "the nightly update moved no barycentre"
+        assert moved != positions, "the nightly update moved no barycenter"
         assert _snapshot(conn) == before, "the nightly update wrote a member or a node row"
     finally:
         conn.close()
