@@ -27,13 +27,15 @@ not ground down), give most of the light. `belt_fractional_luminosity` therefore
 dust, each ring keeping the belt's eccentricity (the stirring is the belt's: a thin ring has no eccentricity of its own, and `Xc` would pass 1 and the cascade never start). The old rule put all the mass at the middle radius of the belt
 (200 AU for an A star) and gave far too little dust. [Stand-in 6.53 DU4, tier T6, tweak L1: 32 rings.]
 
-Detection
----------
-A survey finds the dust as an excess over the star at a long wavelength, and what it can tell from the star is a fixed share of the star's own flux there. The star's flux in the Rayleigh-Jeans tail goes as
-`R^2 T`, its luminosity as `R^2 T^4`, so the dust (a share `f` of the luminosity) stands out of the photosphere as `f T^3`: the fractional luminosity a survey can find falls as the cube of the star's temperature
-(`detectable_fractional_luminosity`). A hot A star shows a disk of a fraction the Sun's would hide. `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit at the Sun's temperature, a stand-in: [R4081] find most of their disks
-near a fractional luminosity of 1e-5 but the belts the generator builds are all heavy and old, so the limit is tuned to the surveys' shares by mass, 14 percent of G and 13 percent of K dwarfs, 24 percent of F and A stars
-[R4081] (L3, hand-tuned against a sweep of 100 stars each of A1V, F5V, G2V and K3V: 17, 20, 17 and 18 percent). [Stand-in 6.53 DU1, tier T9, tweak L3.]
+Detection (GEN.1884, GEN.1892)
+------------------------------
+A survey finds the dust by its flux, not by its share of the star's light. DEBRIS observed every star at 100 and 160 micrometres to a flux its instrument could tell from the star's noise, and its sample is volume limited
+by spectral type: the nearest 90 or so stars of each, the largest distance of the F, G and K stars being 24, 21 and 16 pc ([R4081] section 2.1 and 2.2). A star that shines more is therefore seen at a larger distance, and
+the dust a survey can find around it is fainter as a share of its light: the dust's luminosity `f L` over the square of the sample's distance must pass one flux, `DETECTABLE_DUST_FLUX`. The distance of the sample goes with
+the star's luminosity as the three published distances do (`survey_distance_pc`, fitted to [R4081] section 2.2: the power 0.164 through the F and K stars, the G star 3 percent off). The first cut of this module (GEN.1278)
+used the star's own light as the yardstick, the share of its flux at a long wavelength, `f T^3`; it gave A, F, G and K stars shares that needed a cut rising 4 times from A to K, which a flux limit at a distance that falls with the
+star's light explains (GEN.1892: dust temperature and wavelength, tried first, did not). `DETECTABLE_DUST_FLUX` is the one dial, tuned to the surveys' shares by type [R4081] (L3, GEN.1884: the belts since GEN.1797
+sit nearer and are heavier, so the cut of GEN.1278 held 40 percent of them). [Stand-in 6.53 DU1, tier T9, tweak L3; the distance law DU5, tier T3, tweak L1.]
 """
 
 import math
@@ -53,16 +55,19 @@ F_MAX_COEFFICIENT = 0.004
 CASCADE_MAX_KM = 2000.0
 """float: The largest body the dust cascade is reckoned for, km: the nominal `Dc` of [R4785] (their Fig. 2 and Eq. 21). [Stand-in 6.53 DU3, tier T1, tweak L1.]"""
 
-DETECTABLE_FRACTIONAL_LUMINOSITY = 5.0e-5
-"""float: The fractional luminosity, dust over star, a survey finds around a star of `REFERENCE_TEMPERATURE_K`, at which the generator's disks are as common as the surveys' (the real survey limit is near 1e-5).
-[Stand-in 6.53 DU1, tier T9, tweak L3.]"""
+DETECTABLE_DUST_FLUX = 1.9e-7
+"""float: The least dust a survey finds, as the dust's luminosity in solar units over the square of the distance of the sample in parsecs (`f L / d^2`): the flux its instrument tells from the star, one for every spectral type.
+Tuned on 100 stars each of A1V, F5V, G2V and K3V so that the F and G shares sit in the survey's bands and the K and A shares come nearest to theirs (A 13, F 28, G 17, K 7 percent against 20 to 33, 19 to 29, 10 to 19 and 9 to 17, [R4081]); a cut on the mass of the generator's heavy old outer disks, not the instrument's own limit (which is
+not given as a fractional luminosity in the paper, only as completeness contours; a fractional luminosity near 1e-5 is where its detected disks lie). [Stand-in 6.53 DU1, tier T9, tweak L3.]"""
 
-REFERENCE_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
-"""float: The Sun's effective temperature, K: the star `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit for. [Stand-in 6.53 DU5, tier T1, tweak L1.]"""
+SURVEY_DISTANCE_PC = 21.0
+"""float: The distance of the survey's sample of a star of one solar luminosity, pc: the farthest G star of the Herschel DEBRIS sample is 21 pc away ([R4081] section 2.2: F, G and K stars at 24, 21 and 16 pc).
+[Stand-in 6.53 DU5, tier T3, tweak L1.]"""
 
-DETECTION_TEMPERATURE_EXPONENT = 3.0
-"""float: How the detectable fractional luminosity falls with the star's temperature: the dust against the photosphere at a long wavelength goes as `f T^3` (Rayleigh-Jeans flux `R^2 T`, luminosity `R^2 T^4`).
-[Stand-in 6.53 DU5, tier T1, tweak L1.]"""
+SURVEY_DISTANCE_LUMINOSITY_EXPONENT = 0.164
+"""float: How the distance of the sample goes with the star's luminosity, the power through the F and K stars of the survey (24 and 16 pc, at the generator's F5V and K3V luminosities of 3.3 and 0.28 solar), which puts the G
+star 3 percent from its 21 pc; the volume-limited sample reaches farther for stars that are rarer and shine more. For an A star (about 30 solar luminosities) it gives 36 pc; the survey says only that its A stars are the farthest.
+[Stand-in 6.53 DU5, tier T3, tweak L1.]"""
 
 ANNULI = 32
 """int: The rings of equal log width a belt is cut into for its dust (`belt_fractional_luminosity`). [Stand-in 6.53 DU4, tier T6, tweak L1.]"""
@@ -123,13 +128,18 @@ def belt_fractional_luminosity(lower_au, upper_au, luminosity_sol, age_myr, larg
                for (a, b), weight in zip(zip(edges, edges[1:]), weights) if weight > 0.0)
 
 
-def detectable_fractional_luminosity(temperature_k):
-    """The fractional luminosity a survey can find around a star of `temperature_k`: `DETECTABLE_FRACTIONAL_LUMINOSITY` at the Sun's temperature, falling as the cube of the temperature."""
-    if not temperature_k > 0.0:
-        raise ValueError("the star needs a positive temperature")
-    return DETECTABLE_FRACTIONAL_LUMINOSITY * (REFERENCE_TEMPERATURE_K / temperature_k) ** DETECTION_TEMPERATURE_EXPONENT
+def survey_distance_pc(luminosity_sol):
+    """The distance, pc, to which a survey's volume-limited sample of stars of `luminosity_sol` solar luminosities reaches (`SURVEY_DISTANCE_PC`, `SURVEY_DISTANCE_LUMINOSITY_EXPONENT`)."""
+    if not luminosity_sol > 0.0:
+        raise ValueError("the star needs a positive luminosity")
+    return SURVEY_DISTANCE_PC * luminosity_sol ** SURVEY_DISTANCE_LUMINOSITY_EXPONENT
 
 
-def is_detectable(fractional, temperature_k):
-    """Whether a disk of fractional luminosity `fractional` around a star of `temperature_k` is one a survey finds."""
-    return fractional >= detectable_fractional_luminosity(temperature_k)
+def detectable_fractional_luminosity(luminosity_sol):
+    """The fractional luminosity a survey can find around a star of `luminosity_sol` solar luminosities: the flux `DETECTABLE_DUST_FLUX` at the distance of its sample, over the star's light."""
+    return DETECTABLE_DUST_FLUX * survey_distance_pc(luminosity_sol) ** 2 / luminosity_sol
+
+
+def is_detectable(fractional, luminosity_sol):
+    """Whether a disk of fractional luminosity `fractional` around a star of `luminosity_sol` solar luminosities is one a survey finds."""
+    return fractional >= detectable_fractional_luminosity(luminosity_sol)
