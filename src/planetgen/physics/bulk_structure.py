@@ -439,9 +439,26 @@ def small_body_radius_earth(mass_earth, cmf, water=0.0):
     return math.exp(sum(a * u ** i * cmf ** j * water ** k for i, j, k, a in SMALL_FIT))
 
 
+CORE_RADIUS_IRON_FRACTION = 1.0 / 3.0
+"""float: The iron mass fraction of the rock and iron core under an envelope, 1 in 3 (2:1 rock to iron, the composition [R2741] takes for its core; derived)."""
+
+CORE_RADIUS_COEFFICIENT = 1.07
+"""float: [R4882: Eq. 2] the zero-iron radius at 1 Earth mass of a rocky planet, in Earth radii (fitted to the PREM-based models of Zeng, Sasselov and Jacobsen over 1 to 8 Earth masses and an iron fraction of 0 to 0.4)."""
+
+CORE_RADIUS_IRON_SLOPE = 0.21
+"""float: [R4882: Eq. 2] how much of that radius each unit of iron mass fraction takes away, in Earth radii."""
+
+CORE_RADIUS_MASS_EXPONENT = 1.0 / 3.7
+"""float: [R4882: Eq. 2] the mass exponent of the rocky radius law, 0.27 (the older [R2741: Eq. 1] has 0.25)."""
+
+
 def core_radius_earth(core_mass_earth):
-    """[R2741: Eq. 1]: the radius of a rock and iron core of 2:1 rock to iron, within about 2 percent."""
-    return core_mass_earth ** 0.25
+    """
+    [R4882: Eq. 2]: the radius of a rock and iron core, R = (1.07 - 0.21 f_iron) M^(1/3.7) in Earth radii, at the 2:1 rock to iron of `CORE_RADIUS_IRON_FRACTION`; about 0.01 Earth radii from the paper's own models
+    between 1 and 8 Earth masses, and extended beyond that range (the interior solver of this module is 2 percent under it at 12 Earth masses and 5 percent at 20). It replaces the 0.25 power of [R2741: Eq. 1], which
+    is 3 percent under the same models at 5 Earth masses (GEN.1862).
+    """
+    return (CORE_RADIUS_COEFFICIENT - CORE_RADIUS_IRON_SLOPE * CORE_RADIUS_IRON_FRACTION) * core_mass_earth ** CORE_RADIUS_MASS_EXPONENT
 
 
 ENVELOPE_LAW_MIN_AGE_GY = 0.1
