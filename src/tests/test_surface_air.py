@@ -492,10 +492,10 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-STEAM_FALL_KEYS = (45, 77, 152, 349)
+STEAM_FALL_KEYS = (152, 213)     # Train 65: (45, 77, 152, 349) before; 45, 77 and 349 no longer draw a steam start the fall decides
 """tuple: Seeded keys of `_first_air_of` for steam-start bodies (past the runaway limit with water, `air_final.past_runaway_with_water`) whose hot branch has no steady state, so that the air that settles is the cool one with its ocean (GEN.1864):
 on the table of GEN.1868 a scan of keys 0 to 200 lists them with the answers 399, 403, 337 and 381 K from the steam start, where the iterate crossed the critical point of water, set the ocean on (4 flips made it permanent)
-and kept hot airs of 990 K and 551 K that carried an ocean's albedo, or left the air unsettled at 1,235 K."""
+and kept hot airs of 990 K and 551 K that carried an ocean's albedo, or left the air unsettled at 1,235 K. On the Train 65 head (the EUV law of GEN.1890 and the sulfur UV-C of GEN.1872 change the star and the air of the draws) a scan of keys 0 to 400 with `STEAM_FALL_STARTS_K` emptied finds two keys with an ocean whose answer depends on the start: 152 (337 K from 300 K, 1,235 K without an ocean from 1,000 K and the steam start) and 213 (301 K from 300 K and 1,000 K, 647 K without an ocean from the steam start); 45 settles at 569 K from every start, 77 is an unsettled air at 654 K, and 349 has two cool steady states (381 K and 587 K) that no start rule picks between."""
 
 
 def test_a_steam_start_body_with_no_hot_steady_state_falls_to_the_cool_air_from_any_hot_start(monkeypatch):
