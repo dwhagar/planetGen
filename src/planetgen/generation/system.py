@@ -1630,9 +1630,10 @@ class StarSystem:
         for belt in bodies:
             if belt.body_type != 'a' or belt.origin != "outer-disk" or not belt.mass_kg > 0.0:
                 continue
-            fractional = debris_dust.belt_fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
+            luminosity_sol = star.luminosity / constants.SOLAR_LUMINOSITY
+            fractional = debris_dust.belt_fractional_luminosity(belt.lower_limit, belt.upper_limit, luminosity_sol, age_myr, belt.largest_body_km,
                                                                 _kg_to_mearth(belt.mass_kg), mass_sol, solids)
-            if debris_dust.is_detectable(fractional, star.temperature) and (brightest is None or fractional > brightest[0]):
+            if debris_dust.is_detectable(fractional, luminosity_sol) and (brightest is None or fractional > brightest[0]):
                 brightest = (fractional, belt)
         if brightest is not None:
             belt = brightest[1]

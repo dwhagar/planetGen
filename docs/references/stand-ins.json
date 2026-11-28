@@ -22438,16 +22438,16 @@
           "burn_down": [
             "no data",
             "-",
-            "no survey measures the dust of the disks this generator builds; the limit at the Sun's temperature stands where the A, F, G and K dwarfs hold a disk as often as the surveys find (GEN.1278 made it fall with the cube of the star's temperature and summed the dust of a wide belt's rings), and goes when the outer disk's mass and width come from a planetesimal-formation model or each survey's own flux limit is used"
+            "no survey measures the dust of the disks this generator builds; the flux cut stands where G dwarfs hold a disk as often as the surveys find, with the sample's distance by luminosity from the survey's own F, G and K distances (GEN.1892), and goes when the outer disk's mass and width come from a planetesimal-formation model or each survey's own flux limit is used"
           ],
           "fields": [
             [
               "What it is",
-              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 7.8e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' for G stars (the survey's own limit is near 1e-5 and its median sensitivity 2e-5, so the cut is about eight times the limit: not near it, the tier stays); it falls as the cube of the star's temperature (DU5)"
+              "debris_dust.DETECTABLE_DUST_FLUX 1.9e-7: the least dust a survey finds, as the dust's luminosity in solar units over the square of its sample's distance in parsecs (f L / d^2), one flux for every spectral type; tuned on 100 stars of each type so that F and G sit in their bands and K and A come nearest to theirs. The survey's own limit is not given as a fractional luminosity in [R4081] (only completeness contours; the detected disks lie near 1e-5), so the cut is a cut on the mass of the generator's outer disks, not the instrument's"
             ],
             [
               "The range it moves in",
-              "5e-5 to 1e-4"
+              "1e-7 to 4e-7"
             ],
             [
               "Where it holds",
@@ -22463,7 +22463,7 @@
             ],
             [
               "Evidence",
-              "GEN.1884 sweep of 100 systems each (seeds 1000 to 1099), 11-28: A1V 0, F5V 7, G2V 17, K3V 26 percent hold a disk: G in its band, A, F and K out (KNOWN GAP, no band of the four fits one cut: the cut each type needs at the Sun's scale is A 2.5e-5, F 5.5e-5, G 8e-5, K 10e-5, a climb from hot to cool stars that the cube of DU5 does not give; the cause is open, GEN.1892). At the old cut 5e-5 the same belts gave 4, 26, 40 and 54 percent: since GEN.1797 (Train 49) planned the planets' spacing the belts start nearer and are heavier, so more disks pass. GEN.1278 sweep, 11-07 (the earlier belts): 17, 20, 17 and 18 percent at 5e-5"
+              "GEN.1884 and GEN.1892, 11-28, 100 systems each (seeds 1000 to 1099), the real code: A1V 13, F5V 28, G2V 17, K3V 7 percent hold a disk (bands A 20 to 33, F 19 to 29, G 10 to 19, K 9 to 17: F and G inside, K 2 points and A 7 under; the A gap is GEN.1895: the belts of hot stars sit far out, a median 95 AU for A stars, and their small grains run hotter than blackbody). At the earlier cut (the cube of the temperature, 5e-5) the same belts gave 4, 26, 40 and 54 percent: since GEN.1797 (Train 49) planned the planets' spacing the belts start nearer and are heavier. GEN.1278 sweep, 11-07 (the earlier belts): 17, 20, 17 and 18 percent at 5e-5 with the cube"
             ]
           ],
           "id": "DU1",
@@ -22474,7 +22474,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 7.8e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' for G stars (the survey's own limit is near 1e-5 and its median sensitivity 2e-5, so the cut is about eight times the limit: not near it, the tier stays); it falls as the cube of the star's temperature (DU5)"
+          "what": "debris_dust.DETECTABLE_DUST_FLUX 1.9e-7: the least dust a survey finds, as the dust's luminosity in solar units over the square of its sample's distance in parsecs (f L / d^2), one flux for every spectral type; tuned on 100 stars of each type so that F and G sit in their bands and K and A come nearest to theirs. The survey's own limit is not given as a fractional luminosity in [R4081] (only completeness contours; the detected disks lie near 1e-5), so the cut is a cut on the mass of the generator's outer disks, not the instrument's"
         },
         {
           "burn_down": null,
@@ -22595,38 +22595,38 @@
           "fields": [
             [
               "What it is",
-              "debris_dust.DETECTION_TEMPERATURE_EXPONENT 3 and REFERENCE_TEMPERATURE_K 5772: the fractional luminosity a survey can tell from the star goes as the star's temperature to the minus 3 (the dust against the photosphere at a long wavelength goes as f T^3: Rayleigh-Jeans flux R^2 T over luminosity R^2 T^4)"
+              "debris_dust.SURVEY_DISTANCE_PC 21 and SURVEY_DISTANCE_LUMINOSITY_EXPONENT 0.164: the distance to which a survey's volume-limited sample of stars of luminosity L reaches, 21 pc times L^0.164 (the Herschel DEBRIS sample, 'the nearest 90 or so targets of each spectral type', has its farthest F, G and K star at 24, 21 and 16 pc, [R4081] section 2.1 and 2.2); a brighter star is seen farther, so the dust a survey can find around it is fainter as a share of its light (f_min goes as d^2 / L). It replaced the cube of the star's temperature (the dust against the photosphere at a long wavelength, T1, derived from the Rayleigh-Jeans law), which needed a cut rising 4 times from A to K stars (GEN.1884, GEN.1892)"
             ],
             [
               "The range it moves in",
-              "2 to 3"
+              "0.1 to 0.25 for the exponent; 18 to 24 pc at 1 solar luminosity"
             ],
             [
               "Where it holds",
-              "surveys at a long wavelength on the Rayleigh-Jeans tail of the star (70 to 160 micrometres)"
+              "volume-limited surveys of a flux limit, F, G and K stars from 0.3 to 3.3 solar luminosities; extended to an A star (36 pc at 30 solar luminosities, the survey gives no number but says the A stars are the farthest)"
             ],
             [
               "What would show it wrong",
-              "a survey whose limit in f is the same for A and K stars"
+              "a survey whose sample is not volume limited by type, or an F, G or K distance more than 20 percent from the law"
             ],
             [
               "What replaces it",
-              "the survey's flux limit and each star's spectrum"
+              "a distance from each star's own space density (the nearest N stars of its type in the galaxy model)"
             ],
             [
               "Evidence",
-              "derived from the Rayleigh-Jeans law, not read from a survey; a hot A star at 9,200 K shows a disk a quarter of the Sun's fractional luminosity (1.9e-5 against 7.8e-5), a K3 star at 4,800 K needs 1.7 times"
+              "READ ([R4081] section 2.2: F 24, G 21, K 16 pc); the exponent is a fit through the F and K distances at the generator's luminosities of 3.3 and 0.28 solar (L1); GEN.1892 measured the cube against the law on 100 systems each: the cut each type needs relative to G was A 0.07, F 0.49, K 2.1 under the cube and A 0.71, F 1.0, K 0.85 under this law. Dust temperature and wavelength were tried first and rejected: at 70 micrometres they remove the G to K climb, but the survey observed at 100 and 160 micrometres (and 70 only as follow-up), where they do not"
             ]
           ],
           "id": "DU5",
           "key": "6.53:DU5",
           "kind": "P",
           "slug": "6-53-du5",
-          "tier": "T1",
-          "tier_code": "T1",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "debris_dust.DETECTION_TEMPERATURE_EXPONENT 3 and REFERENCE_TEMPERATURE_K 5772: the fractional luminosity a survey can tell from the star goes as the star's temperature to the minus 3 (the dust against the photosphere at a long wavelength goes as f T^3: Rayleigh-Jeans flux R^2 T over luminosity R^2 T^4)"
+          "what": "debris_dust.SURVEY_DISTANCE_PC 21 and SURVEY_DISTANCE_LUMINOSITY_EXPONENT 0.164: the distance to which a survey's volume-limited sample of stars of luminosity L reaches, 21 pc times L^0.164 (the Herschel DEBRIS sample, 'the nearest 90 or so targets of each spectral type', has its farthest F, G and K star at 24, 21 and 16 pc, [R4081] section 2.1 and 2.2); a brighter star is seen farther, so the dust a survey can find around it is fainter as a share of its light (f_min goes as d^2 / L). It replaced the cube of the star's temperature (the dust against the photosphere at a long wavelength, T1, derived from the Rayleigh-Jeans law), which needed a cut rising 4 times from A to K stars (GEN.1884, GEN.1892)"
         }
       ],
       "slug": "6-53-stand-ins-of-the-debris-disks",

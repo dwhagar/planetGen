@@ -13,9 +13,9 @@
   },
   "stand_ins": {
     "by_tier": {
-      "T1": 269,
+      "T1": 268,
       "T2": 274,
-      "T3": 232,
+      "T3": 233,
       "T4": 163,
       "T5": 161,
       "T6": 541,
@@ -121,11 +121,11 @@
     },
     "read_from_a_source": {
       "percent": 26,
-      "rows": 543
+      "rows": 542
     },
     "unverified": {
       "percent": 19,
-      "rows": 395
+      "rows": 396
     }
   }
 }
