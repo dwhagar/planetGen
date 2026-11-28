@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4862+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The overlap verifier knows the trojan rows: a giant and the planets at its L4 and L5 share one orbit by design, and its trojan regions hold that orbit, so two seeds of the clearance sweep no longer read as overlaps.
+
+### Fixed
+- GEN.1882 (bug): `tests/test_clearance.py::test_a_generated_system_holds_no_overlap[pair-6]` and `[triple-10]` failed on main. Generation was right: in `pair-6` the giant (planet 3, 114 Earth masses at 2.74 AU) has an L4 and an L5 trojan region (belts 3 and 4, GEN.1150), and in `triple-10` planet 4 is the L5 trojan planet of planet 3 (GEN.1151), made on the giant's own orbit. The verifier (`physics/clearance.py`) did not read the Lagrange columns, so it counted the trojan region as a belt holding the giant's orbit (`belt-planet`) and the trojan planet as a crossing of the giant (`planet-crossing`, `planet-spacing`). It now reads `planets.lagrange_host_id` and the belt's `parent_id` with `lagrange_point`: a trojan planet leaves the crossing and spacing clearing (the giant stands for it, so a neighbour is still held to the giant's orbit), a trojan must hold its giant's semi-major axis and eccentricity (new hard kind `trojan-orbit`), and a trojan region may hold its own giant's orbit and that giant's trojans' while any other planet in it is still a `belt-planet` violation. A new test in `test_clearance.py` covers each case. `docs/design/systems/overlap-free-systems.md` lists the rule.
+
+generation-affects: none
+
 ## [8.0.4861+db281.gen150.api14] - 2026-11-28
 
 **Headline:** A moon's orbit settling no longer sets its star exposure from its distance to its planet.
