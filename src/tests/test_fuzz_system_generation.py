@@ -57,7 +57,7 @@ from planetgen.util import random as sampling
 from planetgen.generation import comet as cometData
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
@@ -154,8 +154,8 @@ POSITIVE_KEYS = {
     "mass", "radius", "period", "temperature", "luminosity", "volume", "hill_radius",
     "min_orbit_distance", "system_perimeter", "age", "lifespan", "gravity", "scale_height",
     "atm_density", "atm_molar_density", "nucleus_diameter_km", "perihelion_distance_au",
-    "distance_au", "orbital_period_years", "_binary_separation_au", "_effective_mass",
-    "separation_au", "binary_mutual_orbital_period_years", "galactic_orbital_period_gy",
+    "distance_au", "orbital_period_years", "_effective_mass",
+    "separation_au", "galactic_orbital_period_gy",
     "galactic_orbital_speed_kms", "primary_mass_solar", "rotation_period_hours",
     "orbital_speed_kms", "min_update_interval_years", "upper_limit", "lower_limit", "a_crit_au",
 }
@@ -312,7 +312,7 @@ def assert_binary_geometry(system):
                 assert _edge_out(obj) <= star.a_crit_au * (1 + 1e-9), (
                     f"body at {_edge_out(obj)} AU past its star's stability limit {star.a_crit_au} AU")
     if system.binary_type == "close":
-        assert isinstance(system.star, BinaryStarProxy)
+        assert isinstance(system.star, PairHost)
         assert system.star.mass == pytest.approx(system.primary_star.mass + system.secondary_star.mass)
         assert system.star._secondary.mass <= system.star._primary.mass
 
@@ -638,8 +638,9 @@ def test_circumbinary_bodies_orbit_outside_the_binary():
         if system.primary.orbiters:
             inner = system.primary.orbiters[0]
             edge = inner.lower_limit if inner.body_type == "a" else inner.distance
-            if edge <= system.star.binary_separation_au:
-                bad.append((seed, edge, system.star.binary_separation_au))
+            separation_au = system.star.pair_orbit.separation_au
+            if edge <= separation_au:
+                bad.append((seed, edge, separation_au))
     assert not bad, f"bodies inside the binary orbit (seed, edge AU, separation AU): {bad[:5]}"
 
 
@@ -759,7 +760,7 @@ HELPERS = {
     "_activity_chance": (cometData._activity_chance, (1.0,)),
     "_calculate_heliosphere_radius_static": (
         Star._calculate_heliosphere_radius_static, (M_SUN, L_SUN, 696000.0, "G2V", "V")),
-    "_calculate_system_perimeter_static": (BinaryStarProxy._calculate_system_perimeter_static, (M_SUN, 26000.0)),
+    "_calculate_system_perimeter_static": (PairHost._calculate_system_perimeter_static, (M_SUN, 26000.0)),
     "sample_bounded_bell": (sampling.sample_bounded_bell, (1.0, 2.0, 0.5)),
 }
 
@@ -950,7 +951,7 @@ def test_valid_domain_kepler_parabolic(t, q, m):
 @given(dist=st.floats(1e-3, 1e6), mass=MASS)
 def test_valid_domain_galactic_and_perimeter(dist, mass):
     speed, period = galactic_orbit.calculate_galactic_orbit(dist)
-    perimeter = BinaryStarProxy._calculate_system_perimeter_static(mass, dist)
+    perimeter = PairHost._calculate_system_perimeter_static(mass, dist)
     assert _finite(speed, period, perimeter) and speed > 0 and period > 0 and perimeter > 0
 
 

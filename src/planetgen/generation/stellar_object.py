@@ -9,7 +9,7 @@ The family class of everything that shines, or once shone, as a star or was made
 a binary's merged proxy, a neutron star and a black hole share. It holds the persisted field list, the class-level
 defaults a reloaded object needs, the save and load of its two non-JSON fields, the age rules that keep a star's
 class true to its planets, and the system perimeter and galactic orbit every one of them has. `Star` adds the
-procedural draw of a main-sequence, giant or dwarf star on top of it; `CompactRemnant` and `BinaryStarProxy` fill in
+procedural draw of a main-sequence, giant or dwarf star on top of it; `CompactRemnant` and `PairHost` fill in
 their own properties and used to do it by telling `Star.__init__` to skip its own (`_skip_property_init`), a
 workaround that went with this class.
 
@@ -36,7 +36,7 @@ class StellarObject(LazySaladName, MassObject):
     """
     A star-like object: its name, its mass and radius, its luminosity, temperature and type, its age and lifespan,
     its habitable zone and system perimeter, its galactic orbit, its spin and activity and its [Fe/H]. A subclass
-    sets them: `Star` by drawing a star, `CompactRemnant` by its collapse, `BinaryStarProxy` from the pair it stands
+    sets them: `Star` by drawing a star, `CompactRemnant` by its collapse, `PairHost` from the pair it stands
     for.
     """
 
@@ -105,7 +105,7 @@ class StellarObject(LazySaladName, MassObject):
     distance that stays long-term stable against its companion's
     perturbation. `None` for a single star or either star of a P-type
     (close) binary, where no such companion-driven limit applies (a P-type
-    pair's planets orbit the merged `BinaryStarProxy`, which never sets
+    pair's planets orbit the merged `PairHost`, which never sets
     this at all). Set directly by `StarSystem.__init__` after both stars
     of a wide pair exist -- a `Star` never computes this on its own, since
     it depends on the companion star's mass/separation/eccentricity, none
@@ -244,7 +244,7 @@ def supported_evolutionary_scales(star):
     `get_evolutionary_state` does. A remnant or substellar object (a letter outside `SPECTRAL_LETTERS`) has none.
 
     Args:
-        star: A `Star` or `BinaryStarProxy` instance.
+        star: A `Star` or `PairHost` instance.
 
     Returns:
         list[str]: The paces, fastest first; empty for a star with no spectral letter of the main sequence.

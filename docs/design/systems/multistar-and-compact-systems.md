@@ -64,11 +64,13 @@ were rerun while writing this document.
 
 ## 1. What the repo does today (checked 2026-10-09)
 
-- **Close (P-type) pair.** `BinaryStarProxy` (`generation/binary.py`) merges two
-  stars into one effective star: separation `uniform(0.05, 0.25)` AU plus both
-  radii, eccentricity 0, circular position, random orientation, mass ratio
+- **Close (P-type) pair.** `PairHost` (`generation/pair_host.py`, GEN.640 slice c; it replaced
+  `BinaryStarProxy`) merges two stars into one effective star for the planets that circle both.
+  The pair's orbit is its node of the tree (a circle of a separation from the tree's draw, random
+  orientation), read as `generation.pair_orbit.PairOrbit`; the host holds the node and no copy of it. Mass ratio
   from the law of [R3108] over 0.1 to 1 (`generation/mass_ratio.py`, GEN.951, with `tuning.BINARY_MASS_RATIO_RANGE` the ends), same age as the primary
-  (GEN.53). The orbit lives in `binary_*` columns on `star_systems`; the proxy has
+  (GEN.53). The orbit is the pair's node in `orbit_nodes` (no `binary_*` orbit columns on
+  `star_systems` since v281, only the axis `binary_separation_km`); the host has
   no `stars` row ([database-schema.md](../../reference/database-schema.md), "Binary
   configuration").
 - **Wide (S-type) pair.** Its draws are in `generation/wide_binary.py` (the pair's orbit is a node of the tree, read as `generation.pair_orbit.PairOrbit`, GEN.640 slice b):
@@ -566,7 +568,7 @@ Ab; Ba, Bb), write a pair of subsystems as "AB,C", and use digits at the next le
   stable hierarchy over game time spans (secular precession and Kozai-Lidov are
   ignored, a documented simplification).
 - **GEN.109:** sector point-mass tables hold one entry per system at its barycentre
-  with the total mass (section 2). `BinaryStarProxy._calculate_system_perimeter_static`
+  with the total mass (section 2). `PairHost._calculate_system_perimeter_static`
   should use the total mass.
 - **Plumbing:** migrate N=2 through the new tables first, so the old code paths are
   proven equal before any N >= 3 data exists.

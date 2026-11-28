@@ -2,8 +2,8 @@
 
 """
 GEN.640 slice a: the system's own pair is read from its orbit tree. `orbit_trees.pair_places_km` gives the secondary's position relative to the primary and each star's place about the pair's center
-of mass from the pair node, and it equals what the `star_systems.binary_mutual_*`, `binary_primary_position_*` and `binary_secondary_position_*` columns hold for a close pair of any tree; for a wide
-pair, whose old column placed the secondary on a circle of its separation, the node's ellipse is the position (the orbit the scene's tree already draws). The orbit update turns the node, so the
+of mass from the pair node, and it equals what the generated system's own `pair_orbit` (the same node, read in memory) places for a close pair of any tree (the `star_systems.binary_*_position_*`
+columns that once held these are gone, GEN.640 slice d); for a wide pair the node's ellipse is the position (the orbit the scene's tree already draws). The orbit update turns the node, so the
 position follows it and no pair column is written.
 """
 
@@ -36,13 +36,16 @@ def _system(seed, stars, wide):
         return StarSystem(config), config
 
 
-def _columns(conn, system_id):
-    row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
-    return {name: [row[f"binary_{name}_position_{axis}_km"] for axis in "xyz"] for name in ("mutual", "primary", "secondary")}
+def _held(system):
+    """The places the generated system's own pair orbit gives, in km (the in-memory copy of what the stored node places)."""
+    pair = system.pair_orbit
+    return {"mutual": [getattr(pair, f"position_{axis}_au") * AU_KM for axis in "xyz"],
+            "primary": [getattr(pair, f"primary_position_{axis}_au") * AU_KM for axis in "xyz"],
+            "secondary": [getattr(pair, f"secondary_position_{axis}_au") * AU_KM for axis in "xyz"]}
 
 
 @pytest.mark.parametrize("stars", [2, 3, 4])
-def test_a_close_pairs_places_are_what_the_columns_held(mysql_config, stars):
+def test_a_close_pairs_places_are_what_the_system_places(mysql_config, stars):
     conn = store.get_connection(mysql_config)
     try:
         checked = 0
@@ -51,7 +54,7 @@ def test_a_close_pairs_places_are_what_the_columns_held(mysql_config, stars):
             if system.binary_type != "close":
                 continue
             system_id = _store(conn, system, config)
-            held, read = _columns(conn, system_id), orbit_trees.pair_places_km(conn, system_id)
+            held, read = _held(system), orbit_trees.pair_places_km(conn, system_id)
             for key, name in (("mutual", "mutual_km"), ("primary", "primary_km"), ("secondary", "secondary_km")):
                 assert read[name] == pytest.approx(held[key], rel=1e-6, abs=1.0), (seed, key)
             checked += 1
@@ -60,8 +63,8 @@ def test_a_close_pairs_places_are_what_the_columns_held(mysql_config, stars):
         conn.close()
 
 
-def test_the_pairs_of_bigger_trees_are_where_their_columns_hold_them(mysql_config):
-    """Every close pair of a tree of 3 to 5 stars (with a member beyond it, a dark member or a sub-pair) is placed where its columns hold it."""
+def test_the_pairs_of_bigger_trees_are_where_the_system_places_them(mysql_config):
+    """Every close pair of a tree of 3 to 5 stars (with a member beyond it, a dark member or a sub-pair) is placed where the generated system's pair orbit puts it."""
     conn = store.get_connection(mysql_config)
     try:
         checked = 0
@@ -72,8 +75,8 @@ def test_the_pairs_of_bigger_trees_are_where_their_columns_hold_them(mysql_confi
             system_id = _store(conn, system, config)
             nodes = orbit_trees.read_nodes(conn, system_id)
             primary = conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'primary'", (system_id,)).fetchone()
-            flipped = orbit_trees._slot_under(nodes, primary, orbit_trees.pair_node_no(conn, system_id)) == 1
-            held, read = _columns(conn, system_id), orbit_trees.pair_places_km(conn, system_id)
+            flipped = orbit_trees.slot_under(nodes, primary, orbit_trees.pair_node_no(conn, system_id)) == 1
+            held, read = _held(system), orbit_trees.pair_places_km(conn, system_id)
             for key, name in (("mutual", "mutual_km"), ("primary", "primary_km"), ("secondary", "secondary_km")):
                 assert read[name] == pytest.approx(held[key], rel=1e-6, abs=1.0), (seed, key, flipped)
             checked += 1
@@ -90,12 +93,12 @@ def test_a_primary_under_the_second_slot_turns_the_nodes_orbit_half_way_round():
                        arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, epoch_unix=0.0, period_years=1.0),
              OrbitNode(node_no=1, parent_node_no=0, slot=1, mass_solar=1.0, separation_km=1.0, eccentricity=0.0, inclination_deg=0.0, ascending_node_deg=0.0,
                        arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, epoch_unix=0.0, period_years=1.0)]
-    assert orbit_trees._slot_under(nodes, {"parent_node_id": 1, "slot": 0}, 0) == 1      # hangs below the slot-1 node
-    assert orbit_trees._slot_under(nodes, {"parent_node_id": 0, "slot": 0}, 0) == 0
-    assert orbit_trees._slot_under(nodes, {"parent_node_id": 1, "slot": 1}, 1) == 1
+    assert orbit_trees.slot_under(nodes, {"parent_node_id": 1, "slot": 0}, 0) == 1      # hangs below the slot-1 node
+    assert orbit_trees.slot_under(nodes, {"parent_node_id": 0, "slot": 0}, 0) == 0
+    assert orbit_trees.slot_under(nodes, {"parent_node_id": 1, "slot": 1}, 1) == 1
 
 
-def test_a_wide_pair_is_placed_on_its_ellipse_with_the_columns_circle_as_its_mean_distance(mysql_config):
+def test_a_wide_pair_is_placed_on_its_ellipse_between_its_periapsis_and_apoapsis(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         checked = 0
@@ -104,12 +107,11 @@ def test_a_wide_pair_is_placed_on_its_ellipse_with_the_columns_circle_as_its_mea
             if system.binary_type != "wide":
                 continue
             system_id = _store(conn, system, config)
-            held, read = _columns(conn, system_id), orbit_trees.pair_places_km(conn, system_id)
+            held, read = _held(system), orbit_trees.pair_places_km(conn, system_id)
             node = read["node"]
             radius = math.dist(read["mutual_km"], (0, 0, 0))
             assert node.separation_km * (1.0 - node.eccentricity) * 0.999999 <= radius <= node.separation_km * (1.0 + node.eccentricity) * 1.000001
-            if node.eccentricity < 1.0e-9:
-                assert read["mutual_km"] == pytest.approx(held["mutual"], rel=1e-6, abs=1.0)
+            assert read["mutual_km"] == pytest.approx(held["mutual"], rel=1e-6, abs=1.0)
             checked += 1
         assert checked >= 3
     finally:

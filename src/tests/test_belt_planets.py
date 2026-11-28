@@ -12,7 +12,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.generation import belt_planets, validation
+from planetgen.generation import belt_planets, late_accretion, validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.names import bodies as body_names
@@ -259,3 +259,19 @@ def test_a_promoted_body_under_the_taper_has_the_radius_of_the_structure_model_e
     for member in (light[0], dict(light[0], radius_km=0.7 * light[0]["radius_km"])):       # as the belt drew it, and denser than any grain mix could be
         planet = belt_planets.planet_of(system, system.star, belt, order, member)
         assert rule.check(sweep.Entry(planet, None, None, "x")) == []
+
+
+def test_a_promoted_planet_is_finished_as_every_planet_is_with_the_late_accretion_the_system_gives_it(monkeypatch):
+    """PERF.290: a promoted planet is built bare and finished (`Planet.finish_climate`, `belt_planets.finish_planet`) with the late accretion of the system, so its air is made once: the number is on it
+    when `late_accretion.apply`, which made the air again of every one of them, does nothing."""
+    monkeypatch.setattr(late_accretion, "apply", lambda planets, lost=None, gate=None: 0)
+    for seed in SEEDS:
+        system = _system(seed)
+        rocky = [body for body in _promoted(system) if late_accretion.is_rocky_of_a_star(body)]
+        if rocky:
+            break
+    else:
+        pytest.fail(f"no system with a rocky promoted belt body in {len(SEEDS)} seeds")
+    for body in rocky:
+        assert body.build.deferred_climate is None and body.belt_member is None
+        assert body.build.late_accreted_percent is not None, body.name

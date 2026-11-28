@@ -25,7 +25,6 @@ PLAIN = {
     "generator_version": "the generator epoch", "is_binary": "a 0 or 1 flag", "is_active": "a 0 or 1 flag",
     # shapes with no physical unit: a ratio with its range, a direction as the three parts of a unit vector
     "eccentricity": "orbital eccentricity: 0 is a circle, between 0 and 1 an ellipse",
-    "binary_eccentricity": "orbital eccentricity of the pair: 0 is a circle, between 0 and 1 an ellipse",
     "spin_breakup_ratio": "spin rate as a share of the rate at which the body breaks up (1 is break-up)",
     "aerosol_draw": "the stored random number in [0, 1) that picked the aerosol optics within their brackets",
     "share": "a part's share of the whole it belongs to, 0 to 1",

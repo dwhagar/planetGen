@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.datasets import fetch, white_dwarf_models
+from planetgen.datasets import fetch, isochrones, white_dwarf_models
 from planetgen.physics import constants, stellar_composition, stellar_evolution
 
 
@@ -99,8 +99,23 @@ def test_the_atmosphere_follows_the_published_share_of_hydrogen_atmospheres():
     assert kinds.count("DA") / len(kinds) == pytest.approx(tuning.STELLAR_WD_DA_SHARE, abs=0.06)
 
 
-def test_without_the_sequences_a_run_that_disregards_missing_data_takes_the_labelled_power_law(monkeypatch, tmp_path):
-    monkeypatch.setenv(fetch.CACHE_DIR_ENV, str(tmp_path))
+@pytest.fixture
+def _no_sequences(monkeypatch):
+    """Takes away the white-dwarf sequences and nothing else (TEST.841): the test owns that one dataset's state. An empty cache folder took the isochrones away too, so the run passed or
+    failed by whether an earlier test of the worker had loaded them."""
+    real_locate = fetch.locate
+    if real_locate(isochrones.DATASET).missing:
+        pytest.skip("the isochrones are not in this machine's cache folder")
+
+    def locate(dataset):
+        if dataset.key == white_dwarf_models.DATASET.key:
+            return fetch.Located(dataset, None, "removed by the test", tuple((piece, "removed by the test") for piece in dataset.pieces))
+        return real_locate(dataset)
+
+    monkeypatch.setattr(fetch, "locate", locate)
+
+
+def test_without_the_sequences_a_run_that_disregards_missing_data_takes_the_labelled_power_law(_no_sequences):
     with fetch.disregard_missing_data():
         state = stellar_evolution.evolve_star(2.0, 9.0, random.Random(5), fe_h=0.0)
         assert ("white_dwarf_models", "the Mestel power law of the white-dwarf cooling") in fetch.stand_ins_used()
@@ -108,8 +123,7 @@ def test_without_the_sequences_a_run_that_disregards_missing_data_takes_the_labe
     assert state["radius_km"] == stellar_evolution.white_dwarf_radius_km(state["mass_sol"])
 
 
-def test_without_the_sequences_a_run_refuses_a_white_dwarf(monkeypatch, tmp_path):
-    monkeypatch.setenv(fetch.CACHE_DIR_ENV, str(tmp_path))
+def test_without_the_sequences_a_run_refuses_a_white_dwarf(_no_sequences):
     with pytest.raises(fetch.DataMissing):
         stellar_evolution.evolve_star(2.0, 9.0, random.Random(5), fe_h=0.0)
 
