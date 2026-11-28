@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4859+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A star of 10 solar masses or more no longer holds planets, so a young Wolf-Rayet or O star has its belts but no giants at 35 to 56 AU.
+
+### Changed
+
+- A star of 10 solar masses or more at birth holds no planets (GEN.1866, stand-in PH1, section 6.338, `tuning.PLANET_HOST_MAX_MASS_SOLAR`): GEN.1552 let any star whose disk was gone keep its bodies, and a 60 solar mass Wolf-Rayet star at 4 Myr was given giants. Its belts stand, no belt member is promoted to a planet, and a config that asks for a class or lists its slots still gets what it asked for.
+
 ## [8.0.4858+db281.gen150.api14] - 2026-11-28
 
 **Headline:** A world whose carbon sink asks no change of its air now keeps exactly the air its doses were made on
