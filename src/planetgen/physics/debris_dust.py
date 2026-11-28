@@ -33,7 +33,8 @@ A survey finds the dust as an excess over the star at a long wavelength, and wha
 `R^2 T`, its luminosity as `R^2 T^4`, so the dust (a share `f` of the luminosity) stands out of the photosphere as `f T^3`: the fractional luminosity a survey can find falls as the cube of the star's temperature
 (`detectable_fractional_luminosity`). A hot A star shows a disk of a fraction the Sun's would hide. `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit at the Sun's temperature, a stand-in: [R4081] find most of their disks
 near a fractional luminosity of 1e-5 but the belts the generator builds are all heavy and old, so the limit is tuned to the surveys' shares by mass, 14 percent of G and 13 percent of K dwarfs, 24 percent of F and A stars
-[R4081] (L3, hand-tuned against a sweep of 100 stars each of A1V, F5V, G2V and K3V: 17, 20, 17 and 18 percent). [Stand-in 6.53 DU1, tier T9, tweak L3.]
+[R4081] (L3, hand-tuned against a sweep of 100 stars each of A1V, F5V, G2V and K3V, GEN.1884: 0, 7, 17 and 26 percent at 7.8e-5, G in its band, A, F and K not: the cut each type needs at the Sun's scale
+climbs from A to K, which one cut and the cube of the temperature cannot follow, GEN.1892; the sweep of GEN.1278 gave 17, 20, 17 and 18 percent at 5e-5, before GEN.1797 moved the belts nearer and made them heavier). [Stand-in 6.53 DU1, tier T9, tweak L3.]
 """
 
 import math
@@ -53,8 +54,8 @@ F_MAX_COEFFICIENT = 0.004
 CASCADE_MAX_KM = 2000.0
 """float: The largest body the dust cascade is reckoned for, km: the nominal `Dc` of [R4785] (their Fig. 2 and Eq. 21). [Stand-in 6.53 DU3, tier T1, tweak L1.]"""
 
-DETECTABLE_FRACTIONAL_LUMINOSITY = 5.0e-5
-"""float: The fractional luminosity, dust over star, a survey finds around a star of `REFERENCE_TEMPERATURE_K`, at which the generator's disks are as common as the surveys' (the real survey limit is near 1e-5).
+DETECTABLE_FRACTIONAL_LUMINOSITY = 7.8e-5
+"""float: The fractional luminosity, dust over star, a survey finds around a star of `REFERENCE_TEMPERATURE_K`, at which the generator's disks are as common as the surveys' (the real survey limit is near 1e-5 and its median sensitivity 2e-5: the cut is about eight times the limit, a cut on the mass of the generator's heavy old outer disks, not an instrument limit).
 [Stand-in 6.53 DU1, tier T9, tweak L3.]"""
 
 REFERENCE_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K

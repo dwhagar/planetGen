@@ -76,7 +76,7 @@ def test_a_hotter_star_shows_a_fainter_disk_as_the_cube_of_its_temperature():
     sun = debris_dust.REFERENCE_TEMPERATURE_K
     assert debris_dust.detectable_fractional_luminosity(sun) == pytest.approx(debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY)
     assert debris_dust.detectable_fractional_luminosity(2.0 * sun) == pytest.approx(debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY / 8.0)
-    assert debris_dust.is_detectable(1.5e-5, 9500.0) and not debris_dust.is_detectable(1.5e-5, 5772.0)
+    assert debris_dust.is_detectable(2.5e-5, 9500.0) and not debris_dust.is_detectable(2.5e-5, 5772.0)
     with pytest.raises(ValueError):
         debris_dust.detectable_fractional_luminosity(0.0)
 
@@ -144,7 +144,7 @@ def test_the_sheet_rule_says_which_stars_have_disk_rows():
 def test_the_share_of_sun_like_stars_with_a_disk_is_near_the_surveys():
     held = sum(bool(system.star.disk_kind) for system in _systems(60))
     survey = dict((upper, share) for upper, share in SURVEY_SHARE_BY_MASS)[1.04]
-    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 15 percent of G2V stars against the survey's 14 (GEN.1261: 1.3 percent at the earlier cut 1.5e-4, once the cold belts lost their unformed share)
+    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 7 percent of the first 60 G2V seeds (17 of 100 in the GEN.1884 sweep) against the survey's 14 (GEN.1261: 1.3 percent at the earlier cut 1.5e-4, once the cold belts lost their unformed share)
 
 
 def test_a_hot_young_star_holds_a_disk_as_often_as_the_surveys_find_one():

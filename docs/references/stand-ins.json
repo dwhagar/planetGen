@@ -22443,11 +22443,11 @@
           "fields": [
             [
               "What it is",
-              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 5e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' (the survey limit itself is near 1e-5); it falls as the cube of the star's temperature (DU5)"
+              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 7.8e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' for G stars (the survey's own limit is near 1e-5 and its median sensitivity 2e-5, so the cut is about eight times the limit: not near it, the tier stays); it falls as the cube of the star's temperature (DU5)"
             ],
             [
               "The range it moves in",
-              "3e-5 to 7e-5"
+              "5e-5 to 1e-4"
             ],
             [
               "Where it holds",
@@ -22463,7 +22463,7 @@
             ],
             [
               "Evidence",
-              "GEN.1278 sweep of 100 systems each, 11-07: A1V 17, F5V 20, G2V 17, K3V 18 percent hold a disk (the single-ring dust and the Sun's limit 3e-5 gave 0, 8, 20 and 27 percent; A and F were short, G and K over)"
+              "GEN.1884 sweep of 100 systems each (seeds 1000 to 1099), 11-28: A1V 0, F5V 7, G2V 17, K3V 26 percent hold a disk: G in its band, A, F and K out (KNOWN GAP, no band of the four fits one cut: the cut each type needs at the Sun's scale is A 2.5e-5, F 5.5e-5, G 8e-5, K 10e-5, a climb from hot to cool stars that the cube of DU5 does not give; the cause is open, GEN.1892). At the old cut 5e-5 the same belts gave 4, 26, 40 and 54 percent: since GEN.1797 (Train 49) planned the planets' spacing the belts start nearer and are heavier, so more disks pass. GEN.1278 sweep, 11-07 (the earlier belts): 17, 20, 17 and 18 percent at 5e-5"
             ]
           ],
           "id": "DU1",
@@ -22474,7 +22474,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 5e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' (the survey limit itself is near 1e-5); it falls as the cube of the star's temperature (DU5)"
+          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 7.8e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' for G stars (the survey's own limit is near 1e-5 and its median sensitivity 2e-5, so the cut is about eight times the limit: not near it, the tier stays); it falls as the cube of the star's temperature (DU5)"
         },
         {
           "burn_down": null,
@@ -22615,7 +22615,7 @@
             ],
             [
               "Evidence",
-              "derived from the Rayleigh-Jeans law, not read from a survey; a hot A star at 9,200 K shows a disk a quarter of the Sun's fractional luminosity (1.2e-5 against 5e-5), a K3 star at 4,800 K needs 1.7 times"
+              "derived from the Rayleigh-Jeans law, not read from a survey; a hot A star at 9,200 K shows a disk a quarter of the Sun's fractional luminosity (1.9e-5 against 7.8e-5), a K3 star at 4,800 K needs 1.7 times"
             ]
           ],
           "id": "DU5",
