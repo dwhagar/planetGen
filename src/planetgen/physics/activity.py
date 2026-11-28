@@ -14,9 +14,11 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    stay saturated for billions of years. `b` depends on mass
    (`DECAY_EXPONENTS`), and each star draws a log-normal scatter on its
    decayed level (`DECAY_SIGMA_DEX`).
-2. **XUV.** The EUV (100 to 920 A) follows the X-rays,
-   `log L_EUV = 4.80 + 0.860 log L_X` (erg/s), and
-   `L_XUV = L_X + L_EUV`. A hot photosphere adds its own blackbody output
+2. **XUV.** The EUV (12 to 92 nm) follows the X-rays through the stellar surface flux (GEN.1890, [R0711: Eq. 2]:
+   `F_EUV / F_X = 425 F_X^-0.42`, fluxes at the stellar surface in erg/s/cm2, so that a star with a large surface flux of X-rays, an active
+   one or a cool one with a small surface, makes less EUV for each X-ray than the Sun does), and `L_XUV = L_X + L_EUV`. It gives the Sun today
+   EUV/X 6.6 ([R5378: Table 2]: 6.6) and Proxima Centauri 0.88 ([R5378]: 0.9; [R5379]: about 1.1),
+   where the luminosity law of the earlier law this replaced gave 10 and 8.9. A hot photosphere adds its own blackbody output
    above 13.6 eV (`blackbody_fraction_above`), which dominates for O and B
    stars and hot white dwarfs.
 3. **Flares.** `log10 N(>1e33 erg)` per year by class and age
@@ -41,7 +43,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 import math
 
 from planetgen.galaxy import scales
-from planetgen.physics import constants, magnetic_geometry, saturation_time, spin, stellar_library, stellar_spectrum, unit_registry as units
+from planetgen.physics import constants, magnetic_geometry, main_sequence, saturation_time, spin, stellar_library, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -194,19 +196,44 @@ def lx_lbol_at(age_gy, saturated, t_sat_gy, decay, offset_dex=0.0):
     return saturated * (age_gy / t_sat_gy) ** -decay * 10 ** offset_dex
 
 
-def coronal_xuv_w(l_x_w):
-    """`L_X + L_EUV`, W, with `log L_EUV = 4.80 + 0.860 log L_X` (erg/s)."""
-    if l_x_w <= 0.0:
+EUV_X_COEFFICIENT = 425.0
+"""float: The coefficient of `F_EUV / F_X = EUV_X_COEFFICIENT * F_X ** EUV_X_SLOPE`, the EUV to X-ray ratio of a star from its X-ray flux at its surface, F_X in
+erg/s/cm2 (= mW/m2). [R0711: Eq. 2a] (`log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle, 2002 to 2013, with the EUV
+12 to 92 nm and the X-rays 0.1 to 12 nm); it gives 6.6 for the Sun today ([R5378]: 6.6) and 0.88 for Proxima Centauri (0.9 and about 1.1).
+Tier T2 (second-hand for the fit, T1 for the anchors), tweak L0. Stand-in registry AB4."""
+
+EUV_X_SLOPE = -0.42
+"""float: The exponent of `F_X` in the EUV to X-ray ratio ([R0711: Eq. 2a]), the one that makes a more active star, younger or
+cooler, make less EUV for each X-ray: their K2, M1 and M4.5 stars sit at 1.28, 0.33 and 0.37 where the Sun is 6.1. Tier T2, tweak L0."""
+
+def euv_to_x_ratio(l_x_w, luminosity_w, temperature_k):
+    """
+    `L_EUV / L_X` of a star of `luminosity_w` and `temperature_k` that makes `l_x_w` of X-rays: the surface flux of X-rays is `L_X` over the surface
+    (`L / (sigma T^4)`) and `EUV_X_COEFFICIENT * F_X ** EUV_X_SLOPE` is the ratio ([R0711], GEN.1890). 0 for a star with no X-rays.
+    """
+    if l_x_w <= 0.0 or luminosity_w <= 0.0 or temperature_k <= 0.0:
         return 0.0
-    l_euv_erg = 10 ** (4.80 + 0.860 * math.log10(l_x_w * ERG_PER_J))
-    return l_x_w + l_euv_erg / ERG_PER_J
+    surface_flux_erg_cm2_s = l_x_w / luminosity_w * constants.STEFAN_BOLTZMANN_CONSTANT * temperature_k ** 4 * ERG_PER_J / 1.0e4
+    return EUV_X_COEFFICIENT * surface_flux_erg_cm2_s ** EUV_X_SLOPE
 
 
-def coronal_xuv_at(mass_sol, age_gy, luminosity_w):
+def coronal_xuv_w(l_x_w, luminosity_w, temperature_k):
+    """`L_X + L_EUV`, W, with the EUV of `euv_to_x_ratio` (GEN.1890) for a star of this luminosity and effective temperature."""
+    return l_x_w * (1.0 + euv_to_x_ratio(l_x_w, luminosity_w, temperature_k))
+
+
+def main_sequence_temperature_k(mass_sol):
+    """The effective temperature a star of `mass_sol` has on the main sequence's first row (`main_sequence.zams_state`), for the corona of a star known by its mass, age and luminosity."""
+    return main_sequence.zams_state(mass_sol).temperature_k
+
+
+def coronal_xuv_at(mass_sol, age_gy, luminosity_w, temperature_k=None):
     """`L_XUV` of the corona of a `mass_sol` star at `age_gy`, W, at the nominal (unscattered) saturation age, the median of
-    `saturation_time`, and the decay of `DECAY_EXPONENTS`; the photosphere's share is not added (the history of an escape model needs the shape of the decay)."""
+    `saturation_time`, and the decay of `DECAY_EXPONENTS`; the photosphere's share is not added (the history of an escape model needs the shape of the decay).
+    The star's effective temperature (its surface, for the EUV) is `temperature_k` or, for a star known by its mass, the main sequence's for the mass."""
     t_sat, decay = saturation_age_gy(mass_sol), decay_exponent(mass_sol)
-    return coronal_xuv_w(lx_lbol_at(age_gy, saturated_lx_lbol(mass_sol), t_sat, decay) * luminosity_w)
+    temperature_k = main_sequence_temperature_k(mass_sol) if temperature_k is None else temperature_k
+    return coronal_xuv_w(lx_lbol_at(age_gy, saturated_lx_lbol(mass_sol), t_sat, decay) * luminosity_w, luminosity_w, temperature_k)
 
 
 def effective_saturation_age_gy(mass_sol, age_gy, log_lx_lbol=None):
@@ -224,10 +251,11 @@ def effective_saturation_age_gy(mass_sol, age_gy, log_lx_lbol=None):
     return age_gy * ratio ** (1.0 / decay)
 
 
-def coronal_xuv_with(mass_sol, at_gy, luminosity_w, t_sat_gy):
+def coronal_xuv_with(mass_sol, at_gy, luminosity_w, t_sat_gy, temperature_k=None):
     """`coronal_xuv_at` along the decay with a given saturation age (`effective_saturation_age_gy` for a star's own)."""
     decay = decay_exponent(mass_sol)
-    return coronal_xuv_w(lx_lbol_at(at_gy, saturated_lx_lbol(mass_sol), t_sat_gy, decay) * luminosity_w)
+    temperature_k = main_sequence_temperature_k(mass_sol) if temperature_k is None else temperature_k
+    return coronal_xuv_w(lx_lbol_at(at_gy, saturated_lx_lbol(mass_sol), t_sat_gy, decay) * luminosity_w, luminosity_w, temperature_k)
 
 
 def blackbody_fraction_above(energy_ev, temperature_k):
@@ -265,7 +293,7 @@ def _fluence_j(luminosity_w, temperature_k, mass_sol, age_gy, t_sat_gy, decay, o
     saturated = saturated_lx_lbol(mass_sol)
     gy_s = _gyr_to_s(1.0)
     sat_end = min(age_gy, t_sat_gy)
-    total = (coronal_xuv_w(saturated * luminosity_w) + photosphere) * sat_end * gy_s
+    total = (coronal_xuv_w(saturated * luminosity_w, luminosity_w, temperature_k) + photosphere) * sat_end * gy_s
     if age_gy > t_sat_gy:
         ratio = (age_gy / t_sat_gy) ** (1.0 / FLUENCE_STEPS)
         t0 = t_sat_gy
@@ -273,7 +301,7 @@ def _fluence_j(luminosity_w, temperature_k, mass_sol, age_gy, t_sat_gy, decay, o
             t1 = t0 * ratio
             mid = math.sqrt(t0 * t1)
             l_x = lx_lbol_at(mid, saturated, t_sat_gy, decay, offset_dex) * luminosity_w
-            total += (coronal_xuv_w(l_x) + photosphere) * (t1 - t0) * gy_s
+            total += (coronal_xuv_w(l_x, luminosity_w, temperature_k) + photosphere) * (t1 - t0) * gy_s
             t0 = t1
     return total
 
@@ -390,16 +418,16 @@ def generate_activity(star):
         ratio = GIANT_LX_LBOL
         star.xuv_saturated = False
         star.flare_n33_per_yr = 0.0
-        star.xuv_fluence_j = _yr_to_s(_gyr_to_yr((coronal_xuv_w(ratio * luminosity) + photosphere) * age))
+        star.xuv_fluence_j = _yr_to_s(_gyr_to_yr((coronal_xuv_w(ratio * luminosity, luminosity, star.temperature) + photosphere) * age))
     star.log_lx_lbol = math.log10(ratio)
-    star.l_xuv_w = coronal_xuv_w(ratio * luminosity) + photosphere
+    star.l_xuv_w = coronal_xuv_w(ratio * luminosity, luminosity, star.temperature) + photosphere
     star.uv_c_share = _uv_c_share(star)
 
 
 def _corona_share(star, luminosity):
     """The star's coronal XUV as a share of its luminosity (from its stored `log_lx_lbol`; 0 without one)."""
     log_ratio = getattr(star, "log_lx_lbol", None)
-    return 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    return 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity, luminosity, getattr(star, "temperature", None) or 0.0) / luminosity
 
 
 def uv_shares_of(star):
@@ -424,7 +452,7 @@ SUN_AGE_GY = 4.57
 def _sun_far_uv_flux_w_m2():
     """The 91.2 to 200 nm flux the Sun gives at 1 AU in the same model as any other star (`far_uv_flux_ratio` is 1 there by construction)."""
     luminosity = constants.SOLAR_LUMINOSITY
-    corona = coronal_xuv_at(1.0, SUN_AGE_GY, luminosity) / luminosity
+    corona = coronal_xuv_at(1.0, SUN_AGE_GY, luminosity, SUN_TEMPERATURE_K) / luminosity
     return stellar_library.far_uv_power_w(SUN_TEMPERATURE_K, SUN_LOGG, luminosity, corona) / (4.0 * math.pi * constants.AU_M ** 2)
 
 

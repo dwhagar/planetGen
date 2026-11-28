@@ -19,14 +19,40 @@ from tests.fuzz_support import deterministic_entropy
 SUN = constants.SOLAR_LUMINOSITY
 
 
+SUN_TEMPERATURE_K = 5772.0
+PROXIMA = dict(mass_sol=0.122, age_gy=4.8, luminosity_w=0.00155 * SUN, temperature_k=2990.0)
+"""dict: Proxima Centauri ([R5378]: 0.122 solar masses, 4.8 Gyr, 0.00155 solar luminosities)."""
+
+
+def _lx_w(mass_sol, age_gy, luminosity_w):
+    t_sat, decay = activity.saturation_age_gy(mass_sol), activity.decay_exponent(mass_sol)
+    return activity.lx_lbol_at(age_gy, activity.saturated_lx_lbol(mass_sol), t_sat, decay) * luminosity_w
+
+
 def test_the_sun_today_matches_the_design_validation():
-    t_sat, decay = activity.saturation_age_gy(1.0), activity.decay_exponent(1.0)
-    l_x = activity.lx_lbol_at(4.57, activity.saturated_lx_lbol(1.0), t_sat, decay) * SUN
+    l_x = _lx_w(1.0, 4.57, SUN)
     assert 1e27 <= l_x * activity.ERG_PER_J <= 2e27
-    flux = activity.coronal_xuv_w(l_x) / (4 * math.pi * constants.AU_TO_M ** 2) / constants.EARTH_XUV_FLUX_W_M2
-    assert flux == pytest.approx(1.2, abs=0.2)
-    # Saturated XUV of a G star is 3.3e-3 of its luminosity (section 2.1).
-    assert activity.coronal_xuv_w(7.4e-4 * SUN) / SUN == pytest.approx(3.3e-3, rel=0.03)
+    flux = activity.coronal_xuv_w(l_x, SUN, SUN_TEMPERATURE_K) / (4 * math.pi * constants.AU_TO_M ** 2) / constants.EARTH_XUV_FLUX_W_M2
+    # [R3753]'s 4.6 erg/s/cm2 at 1 AU is the unit (`EARTH_XUV_FLUX_W_M2`); the design's L_X of the Sun today (1.3e27 erg/s, `DECAY_EXPONENTS`, tweak L3) is 30 percent under the measured 1.9e27,
+    # and the EUV to X-ray ratio is the measured one ([R5378]: 6.6), so the flux is within 30 percent of the unit
+    assert flux == pytest.approx(1.0, rel=0.3)
+
+
+def test_the_euv_to_x_ray_ratio_is_the_measured_one_of_the_sun_and_of_proxima_centauri():
+    """GEN.1890: the ratio follows the X-ray flux at the star's surface ([R0711: Eq. 2a]). [R5378] (Table 2) measure the Sun's 6.6 and Proxima's 0.9 ([R5379]: about 1.1);
+    the luminosity law of the earlier law this replaced gave 10 and 8.9."""
+    sun = activity.euv_to_x_ratio(_lx_w(1.0, 4.57, SUN), SUN, SUN_TEMPERATURE_K)
+    assert sun == pytest.approx(6.6, rel=0.1)
+    proxima = activity.euv_to_x_ratio(_lx_w(0.122, 4.8, 0.00155 * SUN), PROXIMA["luminosity_w"], PROXIMA["temperature_k"])
+    assert proxima == pytest.approx(1.0, abs=0.2)
+    assert activity.euv_to_x_ratio(0.0, SUN, SUN_TEMPERATURE_K) == 0.0
+
+
+def test_a_more_active_star_makes_less_euv_for_each_x_ray():
+    """[R0711] Sect. 2.3: 'more active (and hence younger) stars have a lower F_EUV/F_X ratio'; the saturated Sun's ratio is under 1, where the Sun today has 6."""
+    saturated = activity.euv_to_x_ratio(7.4e-4 * SUN, SUN, SUN_TEMPERATURE_K)
+    today = activity.euv_to_x_ratio(_lx_w(1.0, 4.57, SUN), SUN, SUN_TEMPERATURE_K)
+    assert saturated < 1.0 < today
 
 
 def test_saturation_falls_through_the_f_stars():

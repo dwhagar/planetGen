@@ -26795,6 +26795,16 @@
       "kind": "paper",
       "label": "Weaver et al. 1977",
       "title": "Interstellar bubbles. II - Structure and evolution"
+    },
+    "R5378": {
+      "kind": "paper",
+      "label": "Ribas et al. 2016",
+      "title": "The habitability of Proxima Centauri b. I. Irradiation, rotation and volatile inventory from formation to the present"
+    },
+    "R5379": {
+      "kind": "paper",
+      "label": "Ribas et al. 2017",
+      "title": "The full spectral radiative properties of Proxima Centauri"
     }
   }
 }

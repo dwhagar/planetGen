@@ -75,23 +75,24 @@ the [R] items are listed under Evidence notes.
   for the Sun today. Exponent 2.0 for M >= 0.5 Msun gives 3.5e-7 for the Sun now
   and 2.1e-5 at 0.6 Gyr (Hyades about 1e-5 [R]); fully convective stars decline
   slowly ([R4781] [R]), so use 1.0 below 0.3 Msun.
-- **XUV from X-ray.** `log L_EUV(100 to 920 A) = 4.80 + 0.860 log L_X` (erg/s)
-  [R: as used by [R0711]]. It gives `L_XUV(Sun now)` =
-  1.5e28 erg/s, 5.3 erg/cm2/s at 1 AU against Ribas's 4.6 [R], and
-  `L_XUV ~ t^-1.29`, matching the -1.2 to -1.3 band exponents of Ribas et al.
-  2005 [S].
+- **XUV from X-ray (GEN.1890).** The EUV (12 to 92 nm) follows the X-rays through the flux at the star's surface, `F_EUV / F_X = 425 F_X^-0.42`
+  (fluxes in erg/s/cm2; [R0711: Eq. 2a], `log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle that they check against
+  eps Eri, AU Mic and AD Leo: more active stars have a lower ratio), and `L_XUV = L_X + L_EUV`, the surface from the star's luminosity and effective
+  temperature. It gives the Sun today EUV/X 6.5 ([R5378: Table 2]: 6.6) and Proxima Centauri 0.88 ([R5378]: 0.9; [R5379]: about 1.1), the two measured anchors. The law of the earlier law this replaced, `log L_EUV = 4.80 + 0.860 log L_X` (erg/s), is a function of
+  luminosity alone and gave 10 and 8.9: its EUV at Proxima b was 30 times the measured 144 erg/s/cm2 (GEN.1889). The saturated G star's XUV share falls from 3.3e-3
+  to 9.3e-4 of its luminosity (EUV/X 0.26, where a saturated star's corona is hot and its surface flux large).
 
 Defaults [C: design defaults calibrated as above; the `t_sat` column is the design's first estimate: generation takes the saturation age from [R2183] by mass and rotation percentile (GEN.493, [host-activity-tuning.md](../composition/host-activity-tuning.md) section 4) and retunes the exponents from 0.45 Msun up (1.35, 1.8, 1.45, 1.45) to keep the same present-day level]:
 
 | Mass (Msun) | Type | `L_X/L_bol` saturated | `t_sat` (Gyr) | Decay exponent | `L_XUV/L_bol` saturated |
 |---|---|---|---|---|---|
-| 1.0 to 1.4 | F, G | 7.4e-4 (G); falls to 5e-5 by 1.4 | 0.10 | 2.0 | 3.3e-3 |
-| 0.8 | K | 7.4e-4 | 0.15 | 2.0 | 3.6e-3 |
-| 0.6 | K/M | 7.4e-4 | 0.4 | 2.0 | 4.1e-3 |
-| 0.45 | M | 7.4e-4 | 1.0 | 1.75 | 5.0e-3 |
-| 0.3 | M | 7.4e-4 | 2.0 | 1.0 | 5.6e-3 |
-| 0.2 | M | 7.4e-4 | 3.0 | 1.0 | 6.0e-3 |
-| 0.1 | late M | 7.4e-4 | 4.0 | 1.0 | 7.3e-3 |
+| 1.0 to 1.4 | F, G | 7.4e-4 (G); falls to 5e-5 by 1.4 | 0.10 | 2.0 | 9.3e-4 |
+| 0.8 | K | 7.4e-4 | 0.15 | 2.0 | 9.9e-4 |
+| 0.6 | K/M | 7.4e-4 | 0.4 | 2.0 | 1.1e-3 |
+| 0.45 | M | 7.4e-4 | 1.0 | 1.75 | 1.1e-3 |
+| 0.3 | M | 7.4e-4 | 2.0 | 1.0 | 1.2e-3 |
+| 0.2 | M | 7.4e-4 | 3.0 | 1.0 | 1.2e-3 |
+| 0.1 | late M | 7.4e-4 | 4.0 | 1.0 | 1.4e-3 |
 
 Validation: the Sun at 4.57 Gyr gives `L_X` 1.4e27 (target 1e27 to 2e27);
 Proxima (0.12 Msun) 3.8e27 against about 4e26 to 1.7e27 observed [R], so late M
