@@ -211,7 +211,7 @@ SYSTEM_TYPE_RATES = {
         271, "F", (10, 11), note="Within 4 AU (Maoz et al.); axis log-uniform 0.001 to 4 AU; Peters rule."),
     "double-white-dwarf-merger": _t(
         "13.3", "Double white dwarf merger product", "white dwarfs", 0.10, "S", ("old",), "draw_white_dwarf_merger",
-        271, "F", (10, 11), by_class={"wide DWD heavier star": 0.26},
+        271, "F", (10, 11), low=0.08, high=0.12, by_class={"wide DWD heavier star": 0.26},
         note="The high-mass bump, 0.8 to 1.1 solar masses; 26% to 54% of wide double white dwarfs have a "
              "merger-product heavier star. The share of a white dwarf follows its mass: 25% to 78% above "
              "0.9 solar masses, 8% to 12% of an old population."),
