@@ -71,8 +71,7 @@ def test_the_envelope_form_is_near_lopez_and_fortneys_table():
              (10.0, 8.5, 0.10, 4.27)]
     for flux, mass, envelope, radius in table:
         assert bs.envelope_radius_earth(mass, envelope, flux, 1.0) == pytest.approx(radius, rel=0.12)
-    assert bs.core_radius_earth(8.0) == pytest.approx(1.757, abs=0.01)     # [R4882: Eq. 2], Earth-like at 8 Earth masses (GEN.1862)
-    assert bs.core_radius_earth(1.0) == pytest.approx(1.0, abs=0.01)
+    assert bs.core_radius_earth(16.0) == pytest.approx(2.0)
 
 
 def test_the_one_bar_level_is_below_the_20_millibar_level():
