@@ -25,7 +25,7 @@ import dataclasses
 import math
 from dataclasses import dataclass, field
 
-from planetgen.physics import body_status, captured_composition, compaction, hill_perturbers, irregular_orbits, irregular_population, irregular_zone, moon_composition
+from planetgen.physics import body_status, body_strength, captured_composition, compaction, hill_perturbers, irregular_orbits, irregular_population, irregular_zone, moon_composition
 from planetgen.util import draw
 
 RESERVOIR_BINARY_FRACTION = 0.3
@@ -41,7 +41,8 @@ COMPOSITION_MASS_CAP_KG = compaction.TAPER_END_KG * 0.999
 
 
 MOON_KEYS = ("rank", "window", "mass_kg", "radius_km", "density_kg_m3", "taxon", "source_distance_au", "ice_loss", "rock", "metal", "water", "ice",
-             "semi_major_axis_au", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")
+             "semi_major_axis_au", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank",
+             *body_strength.MEMBER_FIELDS)
 """tuple: The keys of an `IrregularMoon.to_dict`, which are also the keys of the stored row (`db.store`) bar the distances' units."""
 
 
@@ -78,6 +79,9 @@ class IrregularMoon:
     orbit: object
     belt_order: object = None
     belt_rank: object = None
+    roundness_ratio: object = None
+    yield_strength_pa: object = None
+    binding_energy_j: object = None
 
     @property
     def retrograde(self):
@@ -89,14 +93,16 @@ class IrregularMoon:
         return {"rank": self.rank, "window": self.window, "mass_kg": self.mass_kg, "radius_km": self.radius_km, "density_kg_m3": self.density_kg_m3, "taxon": self.taxon,
                 "source_distance_au": self.source_distance_au, "ice_loss": self.ice_loss, "rock": self.rock, "metal": self.metal, "water": self.water, "ice": self.ice,
                 "semi_major_axis_au": o.semi_major_axis_au, "eccentricity": o.eccentricity, "inclination_deg": o.inclination_deg, "ascending_node_deg": o.ascending_node_deg,
-                "arg_periapsis_deg": o.arg_periapsis_deg, "mean_anomaly_deg": o.mean_anomaly_deg, "belt_order": self.belt_order, "belt_rank": self.belt_rank}
+                "arg_periapsis_deg": o.arg_periapsis_deg, "mean_anomaly_deg": o.mean_anomaly_deg, "belt_order": self.belt_order, "belt_rank": self.belt_rank,
+                "roundness_ratio": self.roundness_ratio, "yield_strength_pa": self.yield_strength_pa, "binding_energy_j": self.binding_energy_j}
 
     @classmethod
     def from_dict(cls, data):
         orbit = irregular_orbits.Orbit(data["semi_major_axis_au"], data["eccentricity"], data["inclination_deg"], data["ascending_node_deg"], data["arg_periapsis_deg"],
                                        data["mean_anomaly_deg"])
         return cls(data["rank"], data["window"], data["mass_kg"], data["radius_km"], data["density_kg_m3"], data["taxon"], data["source_distance_au"], data["ice_loss"],
-                   data["rock"], data["metal"], data["water"], data["ice"], orbit, data.get("belt_order"), data.get("belt_rank"))
+                   data["rock"], data["metal"], data["water"], data["ice"], orbit, data.get("belt_order"), data.get("belt_rank"),
+                   *(data.get(name) for name in body_strength.MEMBER_FIELDS))
 
 
 @dataclass(frozen=True)
@@ -241,11 +247,21 @@ def _compose(source, window, mass_kg, stream, inner_au, outer_au):
                                         stream.random(), stream.random(), stream.random())
 
 
+def _with_strength(moon):
+    """`moon` with its roundness ratio, yield strength and binding energy (GEN.1159): the one strength module's, from the body's own mass, size and makeup and keyed on them and its rank, so no stream moves. The porosity is what
+    its bulk density leaves of the grains' (`body_strength.grain_density_kg_m3`)."""
+    ice = moon.water + moon.ice
+    grains = body_strength.grain_density_kg_m3(ice, moon.metal)
+    values = body_strength.member_values(moon.mass_kg, moon.radius_km, moon.density_kg_m3, ice, moon.metal, max(0.0, 1.0 - moon.density_kg_m3 / grains), None, moon.mass_kg, 2.0 * moon.radius_km, moon.rank,
+                                         moon.orbit.semi_major_axis_au)
+    return dataclasses.replace(moon, **{name: values[name] for name in body_strength.MEMBER_FIELDS})
+
+
 def _composed_moon(rank, window, mass_kg, captured, orbit, belt_order=None):
     """The `IrregularMoon` of a body `_compose` gave the makeup `captured`."""
     makeup = captured.makeup
-    return IrregularMoon(rank, window, mass_kg, captured.radius_km, captured.density_kg_m3, captured.taxon, captured.source_distance_au, captured.ice_loss,
-                         makeup.rock, makeup.metal, makeup.water, makeup.ice, orbit, belt_order, None)
+    return _with_strength(IrregularMoon(rank, window, mass_kg, captured.radius_km, captured.density_kg_m3, captured.taxon, captured.source_distance_au, captured.ice_loss,
+                                        makeup.rock, makeup.metal, makeup.water, makeup.ice, orbit, belt_order, None))
 
 
 def _stays(zone, orbit):
@@ -348,8 +364,11 @@ def _from_belt(source, claimed, belt, order, rank, window, mass, orbit, stream):
         if free:
             member = min(free, key=lambda one: abs(math.log(one["mass_kg"] / mass)))
             caught.add(member["rank"])
-            return IrregularMoon(rank, window, member["mass_kg"], member["radius_km"], member["density_g_cm3"] * 1000.0, member["taxon"], member["distance_au"], 0.0,
+            moon = IrregularMoon(rank, window, member["mass_kg"], member["radius_km"], member["density_g_cm3"] * 1000.0, member["taxon"], member["distance_au"], 0.0,
                                  member["rock_fraction"], member["metal_fraction"], member["water_fraction"], member["ice_fraction"], orbit, order, member["rank"])
+            if all(member.get(name) is not None for name in body_strength.MEMBER_FIELDS):      # a stored member of the belt keeps the numbers the belt shows for it
+                return dataclasses.replace(moon, **{name: member[name] for name in body_strength.MEMBER_FIELDS})
+            return _with_strength(moon)
     return _composed_moon(rank, window, mass, _compose(source, window, mass, stream, belt.lower_limit, belt.upper_limit), orbit, order)
 
 

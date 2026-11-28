@@ -68,6 +68,10 @@ _EMPTY_TABLE_ROWS = {
     "lost_moons": (
         "INSERT INTO lost_moons (star_system_id, planet_id, born_index, mass_kg, birth_distance_au, density_kg_m3, retrograde)"
         " VALUES ((SELECT MIN(id) FROM star_systems), 1, 0, 1, 1, 1, 0)"),
+    # GEN.1874: a planet keeps a fallen moon only when its tide took one, which the seeded galaxy's draws may not do.
+    "fallen_moons": (
+        "INSERT INTO fallen_moons (star_system_id, planet_id, fall_index, mass_kg, time_yr)"
+        " VALUES ((SELECT MIN(id) FROM star_systems), 1, 0, 1, 0)"),
     # DB.75: a system keeps its body numbers only once its content has been drawn again.
     "body_numbers": (
         "INSERT INTO body_numbers (star_system_id, slot_key, body_number)"

@@ -65,6 +65,7 @@ def _entry(planet_id, moon, belts, hill_km):
         "inclination": q(moon.orbit.inclination_deg, "deg"),
         "hill_fraction": None if not hill_km else a / hill_km,
         "status": {"word": None, "soter_mu": None},
+        "strength": {"roundness_ratio": moon.roundness_ratio, "yield_strength_pa": moon.yield_strength_pa, "binding_energy_j": moon.binding_energy_j},      # GEN.1159
         "population": None,
     }
 
