@@ -1319,6 +1319,27 @@ def test_a_renamed_remnant_takes_its_core_along(mysql_config):
         conn.close()
 
 
+def test_an_unplaced_remnant_saved_alone_numbers_its_core_too(mysql_config):
+    """NAV.81: the core of a remnant saved with no sector had no ID, so `/phenomena` listed it by its row number and its page, asked for that, answered 404."""
+    from planetgen.api import ids
+
+    remnant = _remnant_with_core("Quendarin")
+    remnant_id = store.save_phenomenon(remnant, SystemConfig(), "supernova-remnant", config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        row = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
+        assert row["uid"] is not None
+        core_table, kind = ("black_holes", "black_hole") if row["compact_remnant_black_hole_id"] else ("neutron_stars", "neutron_star")
+        core_id = row["compact_remnant_black_hole_id"] or row["compact_remnant_neutron_star_id"]
+        core = conn.execute(f"SELECT uid, name FROM {core_table} WHERE id = ?", (core_id,)).fetchone()
+        assert core["uid"] is not None, "the core has an ID of its own"
+        assert core["name"].endswith(" Core"), "an unplaced core keeps the name of its remnant"
+        printed = ids.printed(conn, kind, core_id)
+        assert printed is not None and ids.row_id(conn, kind, printed) == core_id, "the listed ID reaches the row again"
+    finally:
+        conn.close()
+
+
 def test_comets_carry_designations_that_follow_their_host(mysql_config):
     from planetgen.generation.comet import PERIODIC_COMET_MAX_PERIOD_YEARS
 
