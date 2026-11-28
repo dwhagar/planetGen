@@ -203,8 +203,8 @@ def test_the_black_hole_of_a_classical_bulge_follows_the_bulge_mass_relation_acr
 
 # --- The reference galaxies ---------------------------------------------------------------------------------------------------------------------
 
-# `reports/galaxy-size-sources-2026-10-21.md`, section 1 (read from the papers: Bland-Hawthorn and Gerhard 2016 [R0422], and for Andromeda Courteau 2011,
-# Dorman 2013, Dalcanton 2023, Sick 2014, Tamm 2012, Kafle 2018, Patel 2017 [R0909, R0979, R1145, R4084]): each quantity as the range its sources span.
+# `reports/galaxy-size-sources-2026-10-21.md`, section 1 (read from the papers: [R0422], and for Andromeda
+# [R0909, R0979, R1145, R2225, R3447, R4084, R4299]): each quantity as the range its sources span.
 REFERENCES = {
     "Milky Way": {"stellar mass": (4.0e10, 6.0e10), "disk length pc": (2100.0, 3100.0), "disk height pc": (250.0, 350.0), "halo mass": (0.8e12, 1.4e12)},
     "Andromeda": {"stellar mass": (8.6e10, 12.6e10), "disk length pc": (4800.0, 5900.0), "disk height pc": (690.0, 850.0), "halo mass": (0.6e12, 2.8e12)},
