@@ -74,16 +74,9 @@ def binary_nodes(star_system, epoch_unix):
     kind = star_system.binary_type
     if kind is None:
         return ()
-    if kind == "close":
-        pair = star_system.star
-        separation_au, eccentricity = pair.binary_separation_au, 0.0
-        inclination, node, phase = (pair.binary_mutual_orbital_inclination_deg,
-                                    pair.binary_mutual_orbital_ascending_node_deg, pair.binary_mutual_orbital_phase_deg)
-        period = pair.binary_mutual_orbital_period_years
-    else:
-        pair = star_system.pair_orbit      # (a wide pair's orbit is its node's: GEN.640 slice b)
-        separation_au, eccentricity = pair.separation_au, pair.eccentricity
-        inclination, node, phase, period = pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years
+    pair = star_system.pair_orbit      # (the pair's orbit is its node's, close or wide: GEN.640 slices b and c)
+    separation_au, eccentricity = pair.separation_au, pair.eccentricity
+    inclination, node, phase, period = pair.inclination_deg, pair.ascending_node_deg, pair.phase_deg, pair.period_years
     mass_solar = sum(star.mass for star in star_system.stars) / SOLAR_MASS_KG
     return (OrbitNode(
         node_no=ROOT_NODE_NO, parent_node_no=None, slot=0, mass_solar=mass_solar, separation_km=separation_au * AU_KM,
@@ -164,12 +157,6 @@ def star_places(star_system):
         return [(parent, offset, slot) for offset, (parent, slot) in zip(offsets, slots)]
     if star_system.binary_type is None:
         return [(None, (0.0, 0.0, 0.0), None)]
-    if star_system.binary_type == "close":
-        pair = star_system.star
-        return [(ROOT_NODE_NO, (pair.binary_primary_position_x, pair.binary_primary_position_y,
-                                pair.binary_primary_position_z), 0),
-                (ROOT_NODE_NO, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
-                                pair.binary_secondary_position_z), 1)]
     pair = star_system.pair_orbit
     return [(ROOT_NODE_NO, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au), 0),
             (ROOT_NODE_NO, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au), 1)]
@@ -194,7 +181,7 @@ def pair_node_no(conn, star_system_id):
         places["primary"], places["secondary"])
 
 
-def _slot_under(nodes, star, node_no):
+def slot_under(nodes, star, node_no):
     """The slot of node `node_no` the star row `star` (`parent_node_id`, `slot`) hangs under, directly or through the nodes below it."""
     parent = {node.node_no: (node.parent_node_no, node.slot) for node in nodes}
     at, slot = star["parent_node_id"], star["slot"]
@@ -223,7 +210,7 @@ def pair_places_km(conn, star_system_id):
     total = stars["primary"]["mass_kg"] + stars["secondary"]["mass_kg"]
     fraction = min(stars["primary"]["mass_kg"], stars["secondary"]["mass_kg"]) / total    # the pair classes' primary is the heavier star, whichever role it has
     mutual = [_au_to_km(value) for value in system_tree.node_relative_au(node, node.epoch_unix)]
-    if _slot_under(nodes, stars["primary"], node_no) == 1:
+    if slot_under(nodes, stars["primary"], node_no) == 1:
         mutual = [-value for value in mutual]    # the node is the orbit of its slot-1 child about its slot-0 child; the pair is the second star about the first
     return {
         "node": node, "mutual_km": mutual, "secondary_mass_fraction": fraction,

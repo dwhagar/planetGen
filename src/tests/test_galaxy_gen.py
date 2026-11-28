@@ -276,7 +276,7 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
 
     assert shape_dict is not None
     for field in _SKELETON_SHAPE._fields:
-        if field in ("components", "masses", "structure", "system_mass_scale", "abundance_tier", "comet_tier"):  # objects for the density model (the tiers are settings for each system made here, which the pins carry), not JSON for the map
+        if field in ("components", "masses", "structure", "system_mass_scale", "abundance_tier", "comet_tier", "bubbles"):  # objects for the density model (the tiers are settings for each system made here, which the pins carry; `bubbles` is the superbubbles' handle, GEN.392, which the stored row does not hold), not JSON for the map
             assert field not in shape_dict
             continue
         if field == "spheroid_orientation_rad" or field in FAMILY_COLUMNS:  # DB.66 columns the map does not read (a name the terms share keeps theirs)

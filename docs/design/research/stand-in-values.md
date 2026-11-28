@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2055 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2061 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2028 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2034 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 233 | 23 | 12 | 1 | 0 | 269 |
-| T2 | 190 | 78 | 5 | 0 | 0 | 273 |
-| T3 | 137 | 71 | 12 | 10 | 0 | 230 |
-| T4 | 96 | 17 | 11 | 25 | 13 | 162 |
+| T2 | 191 | 78 | 5 | 0 | 0 | 274 |
+| T3 | 138 | 72 | 12 | 10 | 0 | 232 |
+| T4 | 97 | 17 | 11 | 25 | 13 | 163 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 258 | 146 | 42 | 85 | 8 | 539 |
+| T6 | 258 | 148 | 42 | 85 | 8 | 541 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1168 | 434 | 108 | 279 | 66 | 2055 |
+| All | 1171 | 437 | 108 | 279 | 66 | 2061 |
 
 ## How the labels were given
 
@@ -3655,8 +3655,24 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DG2 | B | T3 | L1 | the same law continued under log M* 5.5 to the floor of the Scale dial (281 solar masses): 25 pc half-light radius there (31 pc at Segue 1's 562 solar masses against its 23.9 pc) | 0.2 to 0.5 dex about it (Segue 1 is 0.37 dex under the satellites' law and 0.11 dex under this one) | 281 < M* < 3e5 | a measured ultra-faint half-light radius more than 0.5 dex from the continuation at its mass | a size law of the ultra-faint dwarfs fitted to their survey (gap GR13) | Segue 1 in the Local Volume Database and [R4098] (half-light radius 23.9 pc at 562 solar masses; the floor is half of it, Boss, 7:31 PM EDT on 2026-10-21) | predicted only | - | - |
 | DG3 | P | T9 | L3 | a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, `KREGEL_Q`), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening | the flatness lever's own range, 3 to 20 | dwarfs under 3e8 solar masses, which are one disk plus a bulge (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`) | a measured axis ratio of the dwarfs of these masses far from 1/7.3 | the observed flattening of the family's galaxies (GEN.385) | none: a placeholder so the Scale dial's floor has a height | predicted only | - | no data |
 
+## 6.339 Stand-ins of the superbubble factor (GEN.392)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SB1 | T | T6 | L1 | tuning.SUPERBUBBLE_DRIVING_POWER_ERG_S 6.3e36 erg/s, the one power of every bubble (Boss's choice), with SUPERBUBBLE_DRIVING_DENSITY_CM3 0.5 and SUPERBUBBLE_MEAN_MASS_PER_PARTICLE 1.25 in Weaver's `R = 0.76 (L t^3 / rho)^(1/5)`, solved for the age (`bubble_field.age_myr`) | 1e36 to 1e37 erg/s (the observed means of M31, M33 and the SMC are 4.8e36, 6.3e36 and 8.6e36) | any bubble of 50 to 500 pc | a measured age of a bubble of known radius more than a factor 3 from the law at this power | a power drawn per bubble from the luminosity function of its association (slope 1.4 to 2.1, [R5373]) | [R5373: section 3, eq. 24 and Table 3] (read: the Weaver radius law in cgs, n = 0.5 per cm3 with mu = 1.25, mean powers of four galaxies) and [R5374] (the law, cited second-hand through [R5373]'s eq. 24) | predicted only | - | - |
+| SB2 | D | T2 | L0 | tuning.SUPERBUBBLE_EXPANSION_LIFETIME_MYR 40 Myr: the cap on a bubble's age, the time its driving power lasts | 30 to 50 Myr | every bubble | a measured driving time of superbubbles far from 40 Myr | the lifetime of the association's own stars | [R5373: section 2.1] (read: the constant power lasts until the lowest-mass supernova progenitors, about 8 solar masses, expire at about 40 Myr) | predicted only | - | - |
+| SB3 | T | T6 | L1 | tuning.SUPERBUBBLE_SHELL_THICKNESS 0.06 of the radius, with the shell's density `1 / (3 t)` = 5.6 times the disk's and its star formation that to the power SUPERBUBBLE_SCHMIDT_EXPONENT (13.1 times) | 0.03 to 0.12 | young stars on and inside every bubble | the census share of young stars on a shell outside 14 to 30 percent of the young stars [R4347] | a shell thickness from the cooling of the swept-up gas, or a measured shell density | derived from mass kept in the shell (the ball's gas piles into `3 t` of its volume) and a shell cooled to the warm gas's temperature, compressed by `(20 / 8)^2` = 6, so `t` = 1/18; Boss chose the derived shell on 2026-11-26 (card B); the shell sits on [R4916]'s Local Bubble (young stars on its surface) and [R4347]'s 14 to 30 percent | predicted only | - | - |
+| SB4 | B | T3 | L0 | tuning.SUPERBUBBLE_SCHMIDT_EXPONENT 1.5: the rate of star formation per volume goes as the gas density to this power | 1.4 to 1.65 (the surface law's range, `STAR_FORMATION_LAW_EXPONENT`) | gas of 0.001 to 100 atoms per cm3 | a measured volume law far from 1.5 | the disk's own law, 1.4, where the gas has the same density scale | RECALLED (the Schmidt law of the volume density, fitted from 1.4 to 2 in the literature, not opened here; the project's surface law is 1.4 +/- 0.15, [R2321]); the shell factor is 13.1 at 1.5 and 11.0 at 1.4 | predicted only | - | - |
+| SB5 | P | T4 | L0 | tuning.SUPERBUBBLE_EDGE_SHARE 0.25: the half-width of the smooth edge of the shell as a share of its thickness | 0.1 to 0.5 | any bubble | not a physical quantity: no measurement can falsify it; it only removes the step so a bound and a cell mean see a smooth factor | a measured shell profile | design: `docs/design/galaxy/superbubble-density.md` section 3 asks for a factor that is smooth in the depth | predicted only | - | - |
+
 ## 6.337 Stand-ins of the black hole mass trend (GEN.554)
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | BHM1 | P | T6 | L2 | `fryer_remnants.mass_trend` over the stars of `remnant_progenitors.kind_windows("black-hole")` at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and `tuning.BLACK_HOLE_MASS_TOP_SOLAR` 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50 | the top 40 to 56 (the lower edge of the pair-instability gap 45, the carbon-oxygen reaction rate's one-sigma range, [R5365]); the windows' shape (the failed share) | stellar-mass black holes of any place with a metallicity (members, composition, scattered and filled holes); not the intermediate-mass or supermassive holes | a measured mass distribution of the holes of a metal-poor population (a dwarf galaxy, the halo) with no hole heavier than 20 solar masses, or the disk's holes as heavy as the halo's | a mass from the progenitor itself once the progenitor is drawn before the mass (the standalone remnants draw the mass first, `docs/design/systems/black-hole-mass-by-metals.md`) | [R1466]'s fits are of the delayed engine's baryonic masses at the paper's grid of metallicities, and at the sun they leave the wind-stripped stars of the top of the failure windows at 2 to 3 solar masses, below any observed hole, so only their trend is used; the anchor holds the observed holes of the disk (the X-ray binaries of [R3397], 7.8 +- 1.2 chosen by flux, and the 5 to 28 of [R1328]) and the simulated 14.2 and 11.7 of [R3348]; observed in the Galaxy's X-ray binaries and in gravitational waves (the heavy holes of the metal-poor places, tens of solar masses) | predicted only | - | - |
+
+## 6.338 Stand-in of the heaviest star that holds planets (GEN.1866)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PH1 | B | T3 | L1 | `tuning.PLANET_HOST_MAX_MASS_SOLAR` 10: a star of 10 solar masses at birth or more holds no planet; below it the generator is unchanged | 6 to 15 solar masses | stars with a birth mass at and above the cut, single or the primary of a pair | a planet found around a single star over 10 solar masses, or a disk survey of O stars with disks past 1 Myr | a smooth decline of the share of stars that hold giants from 3 to 10 solar masses (the radial-velocity occurrence falls off above about 2.5 to 3), and a formation-time model of the disks of the O and early B stars | b Cen (AB)b: host 6 to 10 solar masses, one giant at 556 AU [R5369]; mu2 Sco b: host about 9 solar masses [R5370]; the occurrence of giants falls above 2.5 to 3 solar masses [R2172, R5368]; all second hand, the papers not read; the generator holds no giant-core growth time and the disk law is flat above 1.3 solar masses, so the cut cannot be derived from them | predicted only | - | - |

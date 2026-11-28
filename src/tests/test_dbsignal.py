@@ -5,6 +5,8 @@ import pytest
 
 from planetgen.queue import dbsignal, pressure
 
+from planetgen.db import store
+
 from tests.test_launcher import control  # noqa: F401 -- the fixture
 
 
@@ -19,16 +21,24 @@ class Clock:
 class Conn:
     """A connection whose statement takes `took` seconds of the clock."""
 
-    def __init__(self, clock, took):
-        self.clock, self.took, self.sent = clock, took, []
+    def __init__(self, clock, took, fail=False):
+        self.clock, self.took, self.fail, self.sent, self.ended, self.closed = clock, took, fail, [], 0, False
 
     def execute(self, sql):
         self.sent.append(sql)
         self.clock.now += self.took
+        if self.fail:
+            raise OSError("the database is gone")
         return self
 
     def fetchone(self):
         return None
+
+    def rollback(self):
+        self.ended += 1
+
+    def close(self):
+        self.closed = True
 
 
 def _learned(baseline, ms, times=dbsignal.BASELINE_PROBES):
@@ -145,3 +155,49 @@ def test_the_probe_statement_runs_against_the_ledger_table(control):
     prober = dbsignal.Prober(lambda: control)
     prober.probe(control)
     assert prober.latest() is not None and prober.completed == 1
+
+
+def test_a_probe_ends_its_transaction_whether_it_was_answered_or_not():
+    """OPS.323: the probe's connection lives as long as the supervisor and does not autocommit, so a read left its transaction open for good."""
+    clock = Clock()
+    prober = dbsignal.Prober(lambda: None, clock=clock)
+    answered = Conn(clock, 0.001)
+    prober.probe(answered)
+    assert answered.ended == 1
+    gone = Conn(clock, 0.001, fail=True)
+    with pytest.raises(OSError):
+        prober.probe(gone)
+    assert gone.ended == 1
+
+
+def test_a_connection_that_failed_is_closed_and_the_one_at_the_end_is_closed_too(monkeypatch):
+    """OPS.323: a dropped connection kept its transaction until the garbage collector found it."""
+    clock = Clock()
+    made = [Conn(clock, 0.001, fail=True), Conn(clock, 0.001)]
+    prober = dbsignal.Prober(lambda: made[len([c for c in made if c.sent])], clock=clock)
+    monkeypatch.setattr(dbsignal, "PROBE_SECONDS", 0.0)
+    seen = []
+    original = prober.probe
+
+    def probe(conn):
+        original(conn)
+        seen.append(conn)
+        if conn is made[1]:
+            prober.stop.set()
+
+    prober.probe = probe
+    prober.run()
+    assert made[0].closed and made[1].closed and made[1].ended == 1
+
+
+def test_a_second_connection_can_alter_the_ledger_table_while_the_probe_has_run(control, mysql_config):
+    """OPS.323: after a probe the connection holds no metadata lock on `engine_jobs` (it held a shared one for the life of the supervisor, which stopped a test's DROP for 81 minutes)."""
+    prober = dbsignal.Prober(lambda: control)
+    prober.probe(control)
+    other = store.get_control_connection(mysql_config)
+    try:
+        other.execute("SET SESSION lock_wait_timeout = 3")
+        other.execute("ALTER TABLE engine_jobs COMMENT = 'ops323'")
+        other.execute("ALTER TABLE engine_jobs COMMENT = ''")
+    finally:
+        other.close()

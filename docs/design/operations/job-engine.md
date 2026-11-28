@@ -65,7 +65,7 @@ One process per host (`queue/supervisor.py`, `cli/supervisor.py`). Its loop take
 | `RunStarts` | Starts runs: a process that wants a run leaves an ask (`queue/runline.py`) and follows the run the supervisor starts for it; a run that finds the machine taken waits in the line. |
 | `RunWatches` | The watch on every live run's units (`unitwatch.UnitWatch`, `beatjudge`, `unitstuck.Stuck`) that used to live in the starter. |
 | `pressure.Controller` | The one memory controller (section 6). |
-| the database signal | The same controller with the latency of the engine's own statement as its signal (`queue/dbsignal.py`, OPS.248). |
+| the database signal | The same controller with the latency of the engine's own statement as its signal (`queue/dbsignal.py`, OPS.248). The probe's connection lives as long as the supervisor and does not autocommit, so the probe ends its transaction after every statement (a rollback, nothing is written) and closes a connection that failed; left open it held a shared metadata lock on `engine_jobs` that stopped every ALTER and DROP of it (OPS.323). Every other control connection of the queue is opened and closed for one use, and the launcher commits each turn. |
 | `controls.Controls` | Pause, resume, Stop All, cancel, clear and the stuck-unit stop, as requests (section 9). |
 | `lightjobs.LightJobs` | The site's light jobs (section 5). |
 | `Launches` | The launcher: hands out the ledger's ready jobs (section 5). Holds its hand-outs while the queues are paused by hand. |

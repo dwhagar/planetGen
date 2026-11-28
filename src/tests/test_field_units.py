@@ -11,7 +11,7 @@ other than the column the attribute is stored in (DB.76's column registry).
 import pytest
 
 from planetgen.db import column_units, store
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.mass_object import PLAIN, MassObject
@@ -23,7 +23,7 @@ from planetgen.generation.stellar_object import StellarObject
 from planetgen.physics import unit_registry as units
 from planetgen.physics.quantity import Quantity
 
-STELLAR = (Star, BlackHole, NeutronStar, BinaryStarProxy)
+STELLAR = (Star, BlackHole, NeutronStar, PairHost)
 DECLARED = STELLAR + (Comet, InterstellarComet, AsteroidField, RoguePlanet)
 
 # The kind table each class is stored in, with the `Field` list that writes and loads it and how many unit-valued
@@ -150,8 +150,8 @@ def test_a_remnant_and_a_binary_proxy_answer_in_their_own_units():
     neutron_star.spin_period_ms = 1.4
     assert neutron_star.quantity("spin_period_ms").s == pytest.approx(1.4e-3)
     assert neutron_star.quantity("magnetic_field_gauss").T == pytest.approx(neutron_star.magnetic_field_gauss * 1e-4)
-    assert BinaryStarProxy.field_unit("_effective_mass") == "kg"
-    assert BinaryStarProxy.field_unit("binary_mutual_orbital_speed_kms") == "km_s"
+    assert PairHost.field_unit("_effective_mass") == "kg"
+    assert PairHost.field_unit("_effective_luminosity") == "W"
 
 
 def test_the_base_class_declares_nothing_and_a_family_that_has_not_declared_yet_is_empty():
