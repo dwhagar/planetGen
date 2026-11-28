@@ -6,5 +6,7 @@
 
 ### Changed
 - The registry rows of the close double white dwarf and the post-common-envelope white dwarf pair list the intermediate population as well as the old one (the generator draws both for a white dwarf of any age after the young population), and the design note's table says so.
+- GEN.1896: the lightest white dwarf that can be a double white dwarf merger product is 0.65 solar masses, not 0.7 (`tuning.WHITE_DWARF_MERGER_FLOOR_SOL`, stand-in WM3, section 6.330, tier T4, tweak level L0 to L1: inside its registered 0.6 to 0.8). The type audit found 7.4 percent of old white dwarfs flagged (527,519 of 7,124,595), under the 8 to 12 percent of [R5354] that the registry's note gives (each region 6.4 to 8.0 percent); at 0.65 the audit's old white dwarfs come to 10.8 percent (9.7 to 11.9 over the region classes). The registry row of the type has that range (`low` 0.08, `high` 0.12), so the audit compares the share against the source's range (widened by the Poisson sigma, as for the contact binary) and not against the point 0.10. The audit's white dwarf rows carry the white dwarf mass of the initial-final relation (`remnant_mass.white_dwarf_mass_sol`) and no longer a fixed 0.6 solar masses, under which the mass-dependent merger share (GEN.708) is zero. The white dwarfs a scatter flags as merger products are more by the 0.65 to 0.7 band; the white dwarfs of 0.7 solar masses and up are unchanged. The reference pages and the stand-in list are regenerated.
 
-generation-output: unchanged
+generation-output: changed
+generation-affects: scatter, fill
