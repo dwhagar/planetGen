@@ -269,7 +269,10 @@ def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_r
     assert RECIPES.probability_of("b4", s) == pytest.approx(0.1454 * _delivery_law(1.5, 5.0)[3], abs=1e-9)
     p = dict(RECIPES.probabilities("e", s))
     lost = envelope_escape.lost_fraction(5.0, 0.05, 20.0, 1.0, 1.0, 5.0, 255.0 * 20.0 ** 0.25)
-    # GEN.1890: under the EUV/X law of Chadney et al. 2015 (R0711) the share is 0.16 (0.28 before); still partial
+    # GEN.1890: this bound is a model-output pin (not an accuracy target): it only checks that a planet at 20 times the
+    # Earth's insolation has lost a part, neither none nor all. The lower side moved from 0.2 to 0.1 because the
+    # EUV/X law of [R0711] gives a Sun-like host less XUV in its first Gy, so the share lost is 0.16 (0.28 before).
+    # The value still follows from the physics (partial loss, the envelope not yet gone), and the upper side is unchanged.
     assert 0.1 < lost < 0.9, "a 5 Earth-mass planet at 20 times the Earth's insolation has lost part of its envelope"
     assert p["e1"] / (p["e1"] + p["e2"]) == pytest.approx(lost, abs=1e-9)
     assert p["e3"] == pytest.approx(0.111, abs=1e-3) and p["e4"] == pytest.approx(0.032, abs=1e-3)

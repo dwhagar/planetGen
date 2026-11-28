@@ -54799,7 +54799,7 @@
           "fields": [
             [
               "What it is",
-              "activity.EUV_X_COEFFICIENT 425 and EUV_X_SLOPE -0.42: the EUV (12 to 92 nm) to X-ray (0.1 to 12 nm) ratio of a star is 425 F_X^-0.42 of its X-ray flux at its surface in erg/s/cm2 (Chadney et al. 2015 [R0711], Eq. 2a, a fit of the Sun through its cycle; GEN.1890, which replaced the luminosity law log L_EUV = 4.80 + 0.860 log L_X of Sanz-Forcada et al. 2011)"
+              "activity.EUV_X_COEFFICIENT 425 and EUV_X_SLOPE -0.42: the EUV (12 to 92 nm) to X-ray (0.1 to 12 nm) ratio of a star is 425 F_X^-0.42 of its X-ray flux at its surface in erg/s/cm2 ([R0711: Eq. 2a], a fit of the Sun through its cycle; GEN.1890, which replaced the luminosity law log L_EUV = 4.80 + 0.860 log L_X of the law this replaces)"
             ],
             [
               "The range it moves in",
@@ -54807,11 +54807,11 @@
             ],
             [
               "Where it holds",
-              "every star with a corona (F, G, K and M dwarfs, subgiants and giants by their own surface); the fit is of one star through its cycle, checked by Chadney et al. against eps Eri, AU Mic and AD Leo (their Table 4 ratios: 1.28, 0.33 and 0.37, against the Sun's 6.13)"
+              "every star with a corona (F, G, K and M dwarfs, subgiants and giants by their own surface); the fit is of one star through its cycle, checked by [R0711] against eps Eri, AU Mic and AD Leo (their Table 4 ratios: 1.28, 0.33 and 0.37, against the Sun's 6.13)"
             ],
             [
               "What would show it wrong",
-              "a measured EUV to X-ray ratio of a late M dwarf outside 0.5 to 2 (Proxima: 0.9 [R5378], about 1.1 [R5379]) or of a G star outside 4 to 9 for today's Sun (Ribas et al. 2016: 6.6)"
+              "a measured EUV to X-ray ratio of a late M dwarf outside 0.5 to 2 (Proxima: 0.9 [R5378], about 1.1 [R5379]) or of a G star outside 4 to 9 for today's Sun ([R5378]: 6.6)"
             ],
             [
               "What replaces it",
@@ -54830,7 +54830,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "activity.EUV_X_COEFFICIENT 425 and EUV_X_SLOPE -0.42: the EUV (12 to 92 nm) to X-ray (0.1 to 12 nm) ratio of a star is 425 F_X^-0.42 of its X-ray flux at its surface in erg/s/cm2 (Chadney et al. 2015 [R0711], Eq. 2a, a fit of the Sun through its cycle; GEN.1890, which replaced the luminosity law log L_EUV = 4.80 + 0.860 log L_X of Sanz-Forcada et al. 2011)"
+          "what": "activity.EUV_X_COEFFICIENT 425 and EUV_X_SLOPE -0.42: the EUV (12 to 92 nm) to X-ray (0.1 to 12 nm) ratio of a star is 425 F_X^-0.42 of its X-ray flux at its surface in erg/s/cm2 ([R0711: Eq. 2a], a fit of the Sun through its cycle; GEN.1890, which replaced the luminosity law log L_EUV = 4.80 + 0.860 log L_X of the law this replaces)"
         }
       ],
       "slug": "6-130-stand-ins-of-the-decay-exponent-after-x-ray-saturation",

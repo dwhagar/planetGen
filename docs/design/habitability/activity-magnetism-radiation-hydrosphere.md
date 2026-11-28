@@ -76,10 +76,9 @@ the [R] items are listed under Evidence notes.
   and 2.1e-5 at 0.6 Gyr (Hyades about 1e-5 [R]); fully convective stars decline
   slowly ([R4781] [R]), so use 1.0 below 0.3 Msun.
 - **XUV from X-ray (GEN.1890).** The EUV (12 to 92 nm) follows the X-rays through the flux at the star's surface, `F_EUV / F_X = 425 F_X^-0.42`
-  (fluxes in erg/s/cm2; Chadney et al. 2015 [R0711], Eq. 2a, `log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle that they check against
+  (fluxes in erg/s/cm2; [R0711: Eq. 2a], `log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle that they check against
   eps Eri, AU Mic and AD Leo: more active stars have a lower ratio), and `L_XUV = L_X + L_EUV`, the surface from the star's luminosity and effective
-  temperature. It gives the Sun today EUV/X 6.5 (Ribas et al. 2016 [R5378], Table 2: 6.6) and Proxima Centauri 0.88 (Ribas et al. 2016: 0.9; Ribas et al. 2017
-  [R5379]: about 1.1), the two measured anchors. The law of Sanz-Forcada et al. 2011 this replaced, `log L_EUV = 4.80 + 0.860 log L_X` (erg/s), is a function of
+  temperature. It gives the Sun today EUV/X 6.5 ([R5378: Table 2]: 6.6) and Proxima Centauri 0.88 ([R5378]: 0.9; [R5379]: about 1.1), the two measured anchors. The law of the earlier law this replaced, `log L_EUV = 4.80 + 0.860 log L_X` (erg/s), is a function of
   luminosity alone and gave 10 and 8.9: its EUV at Proxima b was 30 times the measured 144 erg/s/cm2 (GEN.1889). The saturated G star's XUV share falls from 3.3e-3
   to 9.3e-4 of its luminosity (EUV/X 0.26, where a saturated star's corona is hot and its surface flux large).
 

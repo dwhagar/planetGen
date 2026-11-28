@@ -14,11 +14,11 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    stay saturated for billions of years. `b` depends on mass
    (`DECAY_EXPONENTS`), and each star draws a log-normal scatter on its
    decayed level (`DECAY_SIGMA_DEX`).
-2. **XUV.** The EUV (12 to 92 nm) follows the X-rays through the stellar surface flux (GEN.1890, Chadney et al. 2015 [R0711], Eq. 2:
+2. **XUV.** The EUV (12 to 92 nm) follows the X-rays through the stellar surface flux (GEN.1890, [R0711: Eq. 2]:
    `F_EUV / F_X = 425 F_X^-0.42`, fluxes at the stellar surface in erg/s/cm2, so that a star with a large surface flux of X-rays, an active
    one or a cool one with a small surface, makes less EUV for each X-ray than the Sun does), and `L_XUV = L_X + L_EUV`. It gives the Sun today
-   EUV/X 6.6 (Ribas et al. 2016 [R5378], Table 2: 6.6) and Proxima Centauri 0.88 (Ribas et al. 2016: 0.9; Ribas et al. 2017 [R5379]: about 1.1),
-   where the luminosity law of Sanz-Forcada et al. 2011 this replaced gave 10 and 8.9. A hot photosphere adds its own blackbody output
+   EUV/X 6.6 ([R5378: Table 2]: 6.6) and Proxima Centauri 0.88 ([R5378]: 0.9; [R5379]: about 1.1),
+   where the luminosity law of the earlier law this replaced gave 10 and 8.9. A hot photosphere adds its own blackbody output
    above 13.6 eV (`blackbody_fraction_above`), which dominates for O and B
    stars and hot white dwarfs.
 3. **Flares.** `log10 N(>1e33 erg)` per year by class and age
@@ -198,18 +198,18 @@ def lx_lbol_at(age_gy, saturated, t_sat_gy, decay, offset_dex=0.0):
 
 EUV_X_COEFFICIENT = 425.0
 """float: The coefficient of `F_EUV / F_X = EUV_X_COEFFICIENT * F_X ** EUV_X_SLOPE`, the EUV to X-ray ratio of a star from its X-ray flux at its surface, F_X in
-erg/s/cm2 (= mW/m2). Chadney et al. 2015 [R0711], Eq. 2a (`log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle, 2002 to 2013, with the EUV
-12 to 92 nm and the X-rays 0.1 to 12 nm); it gives 6.6 for the Sun today (Ribas et al. 2016 [R5378]: 6.6) and 0.88 for Proxima Centauri (0.9 and about 1.1).
+erg/s/cm2 (= mW/m2). [R0711: Eq. 2a] (`log F_EUV = 2.63 + 0.58 log F_X`, a fit of the Sun through its cycle, 2002 to 2013, with the EUV
+12 to 92 nm and the X-rays 0.1 to 12 nm); it gives 6.6 for the Sun today ([R5378]: 6.6) and 0.88 for Proxima Centauri (0.9 and about 1.1).
 Tier T2 (second-hand for the fit, T1 for the anchors), tweak L0. Stand-in registry AB4."""
 
 EUV_X_SLOPE = -0.42
-"""float: The exponent of `F_X` in the EUV to X-ray ratio (Chadney et al. 2015 [R0711], Eq. 2a), the one that makes a more active star, younger or
+"""float: The exponent of `F_X` in the EUV to X-ray ratio ([R0711: Eq. 2a]), the one that makes a more active star, younger or
 cooler, make less EUV for each X-ray: their K2, M1 and M4.5 stars sit at 1.28, 0.33 and 0.37 where the Sun is 6.1. Tier T2, tweak L0."""
 
 def euv_to_x_ratio(l_x_w, luminosity_w, temperature_k):
     """
     `L_EUV / L_X` of a star of `luminosity_w` and `temperature_k` that makes `l_x_w` of X-rays: the surface flux of X-rays is `L_X` over the surface
-    (`L / (sigma T^4)`) and `EUV_X_COEFFICIENT * F_X ** EUV_X_SLOPE` is the ratio (Chadney et al. 2015, GEN.1890). 0 for a star with no X-rays.
+    (`L / (sigma T^4)`) and `EUV_X_COEFFICIENT * F_X ** EUV_X_SLOPE` is the ratio ([R0711], GEN.1890). 0 for a star with no X-rays.
     """
     if l_x_w <= 0.0 or luminosity_w <= 0.0 or temperature_k <= 0.0:
         return 0.0
