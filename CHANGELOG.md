@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4876+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A seeded million-row scatter of each placed class now checks every companion state, star count, object density and stored tree of the multi-star machinery on the census harness.
+
+### Added
+- TEST.162: the multiplicity audit (`tests/audit/multiplicity.py`, run by `tests/test_census_multiplicity.py`, `python -m tests.audit.multiplicity [report.txt]`, and printed after the representation audit's report by `python -m tests.audit.representation`). A seeded sample of 1e6 rows of each placed class of the phenomenon scatter (a stellar and an intermediate-mass black hole, a neutron star, a planetary nebula's central star), 1e6 star rows over the nine spectral classes and 1e6 white dwarf rows draws its member trees through `scatter_companions` and tests, within four Poisson sigma (the harness's rule): the share of rows with each companion state against `multistar.MEMBER_STATE_BY_PLACED`, the stars of a star row against the `star-count` table, the same-class companions against `multistar.same_class_companions` (so a class's rows and companions keep its object density), that nobody is both a row and a member, every stored tree against the stability, Kozai and Peters screens, that the same seed draws the same members, that nothing in a tree is a planet, a moon or a belt, and the black hole pairs between the gravitational-wave stock and the Lamberts count. The database half (`tests/test_census_multiplicity_db.py`): the stored members and nodes of a scatter equal its rows' counts and masses, a second plan stores the same members, a built system equals its stored members with the child rows gone, and the nightly update writes no member or node row. The double pulsar and V404 Cygni are not fixed content: the audit checks the type (a young compact pair may be as tight as the double pulsar, an old one may not).
+
+generation-output: unchanged
+
+## [8.0.4875+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A test now holds the companions a build makes to the stars its tree drew.
+
+### Added
+- **GEN.1017: the tree and the build make the same companions.** The primary's [Fe/H] has reached the tree draw since GEN.705, and the build makes every companion from its member record with the same seed, mass, age and [Fe/H]; `test_gen_tree_build_agree.py` builds 40 systems of five star types and fails if any built companion is not the member the tree drew (on the 11-28 census of 750 systems: 495 member checks, none off).
+
+generation-affects: none
+generation-output: unchanged
+
 ## [8.0.4874+db281.gen150.api14] - 2026-11-28
 
 **Headline:** A close pair's two stars are placed about the pair's center in the galaxy again, and the test that checks it reads fixed seeds (TEST.858).
