@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4875+db281.gen150.api14] - 2026-11-28
+
+**Headline:** A test now holds the companions a build makes to the stars its tree drew.
+
+### Added
+- **GEN.1017: the tree and the build make the same companions.** The primary's [Fe/H] has reached the tree draw since GEN.705, and the build makes every companion from its member record with the same seed, mass, age and [Fe/H]; `test_gen_tree_build_agree.py` builds 40 systems of five star types and fails if any built companion is not the member the tree drew (on the 11-28 census of 750 systems: 495 member checks, none off).
+
+generation-affects: none
+generation-output: unchanged
+
 ## [8.0.4874+db281.gen150.api14] - 2026-11-28
 
 **Headline:** A close pair's two stars are placed about the pair's center in the galaxy again, and the test that checks it reads fixed seeds (TEST.858).
