@@ -187,89 +187,9 @@ def _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k
     if not all(math.isfinite(value) and value > 0.0 for value in (radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k)):
         raise ValueError(f"exobase needs finite positive inputs, got radius {radius_m}, gravity {gravity_ms2}, mean mass {mean_mass}, "
                          f"temperature {temperature_k}, mesopause {mesopause_k}")
-    over_mass_gravity = mean_mass * gravity_ms2
-    length = bates_heights * _K * mesopause_k / over_mass_gravity
-    inv_length = 1.0 / length
-    limit = (max_radii - 1.0) * radius_m
-    rise = temperature_k - mesopause_k
-    exp, log = math.exp, math.log
-    coefficient = over_mass_gravity * radius_m ** 2 / _K                     # `1 / H = coefficient / ((R + z)^2 T)`
-    log_offset = log(mesopause_pa / (_K * mesopause_k)) + log(mesopause_k) + log(cross_section_m2)       # `f = log_offset - I - ln T - ln (1 / H)`
-    panel_scale = EXOBASE_PANEL_SCALE_HEIGHTS
-    inner = math.sqrt(0.2)                                                  # Gauss-Lobatto of four points: nodes -1, -1/sqrt(5), 1/sqrt(5), 1 with weights 1/6, 5/6, 5/6, 1/6
-
-    z = integral = 0.0
-    decay = 1.0
-    temperature = mesopause_k
-    inverse_height = coefficient / (radius_m * radius_m * temperature)
-    value = log_offset - log(temperature) - log(inverse_height)
-    height = None
-    if value <= 0.0:
-        height = 0.0
-    else:
-        bracket = None
-        for _ in range(max_panels):
-            rise_decay = rise * decay
-            width = min(1.0 / inverse_height, length, 0.5 * (radius_m + z))
-            if rise_decay > 0.0:
-                width = min(width, temperature * length / rise_decay)
-            z_end = min(z + panel_scale * width, limit)
-            half = 0.5 * (z_end - z)
-            middle = z + half
-            offset = inner * half
-            z_a, z_b = middle - offset, middle + offset
-            t_a = temperature_k - rise * exp(-z_a * inv_length)
-            t_b = temperature_k - rise * exp(-z_b * inv_length)
-            decay_end = exp(-z_end * inv_length)
-            t_end = temperature_k - rise * decay_end
-            radius_end = radius_m + z_end
-            inverse_end = coefficient / (radius_end * radius_end * t_end)
-            integral_end = integral + half * ((inverse_height + inverse_end) / 6.0
-                                              + (5.0 / 6.0) * (coefficient / ((radius_m + z_a) ** 2 * t_a) + coefficient / ((radius_m + z_b) ** 2 * t_b)))
-            value_end = log_offset - integral_end - log(t_end) - log(inverse_end)
-            if value_end <= 0.0:
-                bracket = (z, integral, value, z_end, integral_end, value_end)
-                break
-            if z_end >= limit:
-                break
-            z, decay, temperature, inverse_height, integral, value = z_end, decay_end, t_end, inverse_end, integral_end, value_end
-        if bracket is None:
-            height = limit         # the profile does not close inside `MAX_EXOBASE_RADII` (or the panels ran out): the air is taken to reach the limit
-            if z_end < limit:
-                height = z_end
-        else:
-            low_z, low_i, low_f, high_z, high_i, high_f = bracket
-            height = high_z
-            for _ in range(100):
-                base_z, base_i, base_f = (high_z, high_i, high_f) if abs(high_f) < abs(low_f) else (low_z, low_i, low_f)
-                base_t = temperature_k - rise * exp(-base_z * inv_length)
-                base_inverse = coefficient / ((radius_m + base_z) ** 2 * base_t)
-                slope = 2.0 / (radius_m + base_z) - base_inverse
-                x = base_z - base_f / slope if slope != 0.0 else 0.5 * (low_z + high_z)
-                if not low_z < x < high_z:
-                    x = 0.5 * (low_z + high_z)
-                half = 0.5 * (x - base_z)
-                middle = base_z + half
-                offset = inner * half
-                z_a, z_b = middle - offset, middle + offset
-                t_a = temperature_k - rise * exp(-z_a * inv_length)
-                t_b = temperature_k - rise * exp(-z_b * inv_length)
-                t_x = temperature_k - rise * exp(-x * inv_length)
-                inverse_x = coefficient / ((radius_m + x) ** 2 * t_x)
-                integral_x = base_i + half * ((base_inverse + inverse_x) / 6.0
-                                              + (5.0 / 6.0) * (coefficient / ((radius_m + z_a) ** 2 * t_a) + coefficient / ((radius_m + z_b) ** 2 * t_b)))
-                value_x = log_offset - integral_x - log(t_x) - log(inverse_x)
-                if value_x > 0.0:
-                    low_z, low_i, low_f = x, integral_x, value_x
-                else:
-                    high_z, high_i, high_f = x, integral_x, value_x
-                converged = abs(x - height) <= 1e-12 * x or high_z - low_z <= 1e-12 * high_z or value_x == 0.0
-                height = x
-                if converged:
-                    break
-    temperature_at = temperature_k - rise * exp(-height / length)
-    scale = _K * temperature_at / (over_mass_gravity * (radius_m / (radius_m + height)) ** 2)
-    return radius_m + height, 1.0 / (cross_section_m2 * scale), scale
+    from planetgen.physics import exobase_kernel         # here, not at the top: the web app never loads numba (`exobase_kernel`)
+    return exobase_kernel.solve(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, max_radii, max_panels, bates_heights, mesopause_pa, cross_section_m2,
+                                EXOBASE_PANEL_SCALE_HEIGHTS, _K, 2.0)
 
 
 def jeans_parameter(mass_kg, temperature_k, gm_m3_s2, radius_m):
