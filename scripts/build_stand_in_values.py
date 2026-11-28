@@ -667,6 +667,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.332", "6.332 Stand-ins of the size of a dwarf galaxy (GEN.612)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.339", "6.339 Stand-ins of the superbubble factor (GEN.392)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.337", "6.337 Stand-ins of the black hole mass trend (GEN.554)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.338", "6.338 Stand-in of the heaviest star that holds planets (GEN.1866)",

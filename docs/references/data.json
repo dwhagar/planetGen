@@ -831,6 +831,16 @@
       "name": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
       "provider": "NIST",
       "year": "2024"
+    },
+    {
+      "checked": "2026-11-26",
+      "id": "R5375",
+      "identifier": "",
+      "kind": "web page",
+      "link": "https://petrowiki.spe.org/Equilibrium_of_water_and_hydrocarbon_systems_with_hydrates",
+      "name": "Equilibrium of water and hydrocarbon systems with hydrates",
+      "provider": "PetroWiki (Society of Petroleum Engineers)",
+      "year": ""
     }
   ]
 }
