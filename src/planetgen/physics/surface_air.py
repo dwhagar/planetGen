@@ -849,7 +849,7 @@ def solve(setting, start_temperature_k):
 
     A body that starts above the critical temperature of its water (the steam start, GEN.1238) began hot and has not condensed an ocean, so it keeps the hot branch while the branch has a steady state.
     When its air does not settle (the answers of the hot branch cross the iterate at a jump and `Air.converged` is false: the hot branch has no steady state at this flux), the body has cooled
-    through the critical point and the air is solved again from `tuning.STEAM_FALL_START_K`, the cool side; that answer is kept when it settles (GEN.1864).
+    through the critical point and the air is solved again from each of `tuning.STEAM_FALL_STARTS_K` in turn, the cool side; the first that settles under the critical temperature is kept (GEN.1864).
 
     Args:
         setting (Setting): The body.
@@ -865,10 +865,11 @@ def solve(setting, start_temperature_k):
     if hot.converged or not hot.partials_pa:
         return hot
     after_hot = draw.getstate()
-    draw.setstate(entry_state)
-    cool = _solve(setting, tuning.STEAM_FALL_START_K)
-    if cool.converged and cool.partials_pa:
-        return cool
+    for fall_k in tuning.STEAM_FALL_STARTS_K:
+        draw.setstate(entry_state)
+        cool = _solve(setting, fall_k)
+        if cool.converged and cool.partials_pa and cool.temperature_k < surface_pressure.LIQUID_WATER_K[1]:
+            return cool
     draw.setstate(after_hot)
     return hot
 

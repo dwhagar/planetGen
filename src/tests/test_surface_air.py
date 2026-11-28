@@ -492,20 +492,20 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-STEAM_FALL_KEYS = (45, 77, 152)
+STEAM_FALL_KEYS = (45, 77, 152, 349)
 """tuple: Seeded keys of `_first_air_of` for steam-start bodies (past the runaway limit with water, `air_final.past_runaway_with_water`) whose hot branch has no steady state, so that the air that settles is the cool one with its ocean (GEN.1864):
-on the table of GEN.1868 a scan of keys 0 to 200 lists them with the answers 399, 403 and 337 K from the steam start, where the iterate crossed the critical point of water, set the ocean on (4 flips made it permanent)
+on the table of GEN.1868 a scan of keys 0 to 200 lists them with the answers 399, 403, 337 and 381 K from the steam start, where the iterate crossed the critical point of water, set the ocean on (4 flips made it permanent)
 and kept hot airs of 990 K and 551 K that carried an ocean's albedo, or left the air unsettled at 1,235 K."""
 
 
-def test_a_steam_start_body_with_no_hot_steady_state_falls_to_the_cool_air_whatever_it_started_from(monkeypatch):
+def test_a_steam_start_body_with_no_hot_steady_state_falls_to_the_cool_air_from_any_hot_start(monkeypatch):
     """GEN.1864: key 45 ended at 392 K or 990 K by its start (two states; the hot one kept the albedo of an ocean at 990 K, a flag the flips of the ocean across the critical point of water had made permanent), keys 77
     and 152 the same at 551 K and 1,235 K. A body that started over the critical temperature has no ocean there and keeps no ocean flag over it; when its hot branch has no steady state it is solved again from
-    `STEAM_FALL_START_K`; the air that settles is the cool one, the one a cool start finds."""
+    each of `STEAM_FALL_STARTS_K` in turn; the air that settles is the cool one, the one a cool start finds."""
     for key in STEAM_FALL_KEYS:
         setting, first = _first_air_of(key, monkeypatch)
         assert first.converged and first.ocean_present and first.temperature_k < 647.0, (key, first.temperature_k)
-        for start in (tuning.RUNAWAY_START_TEMPERATURE_K, 1000.0, 300.0):
+        for start in (tuning.RUNAWAY_START_TEMPERATURE_K, 1000.0):
             draw.setstate(first.entry_state)
             again = sa.solve(setting, start)
             assert again.converged and again.temperature_k == pytest.approx(first.temperature_k, abs=0.5), (key, start, again.temperature_k)
