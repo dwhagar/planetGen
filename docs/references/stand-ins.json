@@ -48909,6 +48909,44 @@
           "fields": [
             [
               "What it is",
+              "air_events.KILL_CURVE fourth point (540 Myr, 0.90): the end-Permian, the Earth's largest extinction, once in the 540 Myr of the Phanerozoic, at 0.90 of species inside the 0.81 to 0.96 the estimates give; the curve is straight in the log from the 100 Myr point (0.65) to it and holds 0.90 for rarer events. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event: that cap was only the last point of the secondary article's table held flat, with no source for it (the sources reachable here, the abstract of Raup 1991 and the PNAS abstract of Raup 1994, give no kill beyond 100 Myr; the 1991 abstract says craters of 100 to 150 km, about 10 km impactors, kill 45 to 60 percent of species, consistent with the curve)"
+            ],
+            [
+              "The range it moves in",
+              "0.81 to 0.96 at 540 Myr (the interval 300 to 1000 Myr)"
+            ],
+            [
+              "Where it holds",
+              "impacts over about 12 km (rarer than once in 100 Myr) and nothing else (floods and the threshold of life ages are under it)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured kill of the largest events of the record that differs from 0.90 at its interval, or a second event as large as the end-Permian in the Phanerozoic"
+            ],
+            [
+              "What replaces it",
+              "the kill curve of the paper read in full ([R5320])"
+            ],
+            [
+              "Evidence",
+              "the figures of the end-Permian from memory, not read in this session: a secondary page's 81 to 96 percent range; the single event in 540 Myr is a count of one, so the interval is a lower bound"
+            ]
+          ],
+          "id": "EV6b",
+          "key": "6.226:EV6b",
+          "kind": "D",
+          "slug": "6-226-ev6b",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "air_events.KILL_CURVE fourth point (540 Myr, 0.90): the end-Permian, the Earth's largest extinction, once in the 540 Myr of the Phanerozoic, at 0.90 of species inside the 0.81 to 0.96 the estimates give; the curve is straight in the log from the 100 Myr point (0.65) to it and holds 0.90 for rarer events. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event: that cap was only the last point of the secondary article's table held flat, with no source for it (the sources reachable here, the abstract of Raup 1991 and the PNAS abstract of Raup 1994, give no kill beyond 100 Myr; the 1991 abstract says craters of 100 to 150 km, about 10 km impactors, kill 45 to 60 percent of species, consistent with the curve)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "evaporite_sequence.NAHCOLITE_MIN_PCO2_PA 5e4: above it the sodium left with carbonate dries as nahcolite, below as trona"
             ],
             [
@@ -77035,7 +77073,7 @@
           "fields": [
             [
               "What it is",
-              "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages)"
+              "life_ages.AGE_KILL_THRESHOLD 0.60: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 72 Myr (about 10 km), read from the kill curve. The Boss picked 0.60 from the measured range (11:18 PM EST 11-26, GEN.1852: 9.7 events a Gyr against the Earth's Big Five at about 9; it was 0.30 until then, the pick of 5:50 PM EST 11-19, 24 a Gyr)"
             ],
             [
               "The range it moves in",
@@ -77047,7 +77085,7 @@
             ],
             [
               "What would show it wrong",
-              "a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share"
+              "a record of eras whose boundaries are not the extinctions that kill 60 percent or more, or a Boss pick of another share"
             ],
             [
               "What replaces it",
@@ -77066,7 +77104,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages)"
+          "what": "life_ages.AGE_KILL_THRESHOLD 0.60: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 72 Myr (about 10 km), read from the kill curve. The Boss picked 0.60 from the measured range (11:18 PM EST 11-26, GEN.1852: 9.7 events a Gyr against the Earth's Big Five at about 9; it was 0.30 until then, the pick of 5:50 PM EST 11-19, 24 a Gyr)"
         },
         {
           "burn_down": null,
@@ -79103,7 +79141,7 @@
           "fields": [
             [
               "What it is",
-              "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.65 like any event of 100 Myr or more)"
+              "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.90, as for any event of 540 Myr or more)"
             ],
             [
               "The range it moves in",
@@ -79134,7 +79172,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.65 like any event of 100 Myr or more)"
+          "what": "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.90, as for any event of 540 Myr or more)"
         },
         {
           "burn_down": null,

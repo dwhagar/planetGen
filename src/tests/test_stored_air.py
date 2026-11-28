@@ -13,9 +13,9 @@ def _record():
         air_record.RecordStep(0.01, 1800.0, 9.0e6, {"H2O": 6.0e6, "CO2": 3.0e6}, None, None),
         air_record.RecordStep(0.5, 288.0, 1.1e5, {"N2": 7.0e4, "CO2": 3.5e4, "CH4": 2.0}, "reduced", None),
         air_record.RecordStep(2.0, 290.0, 1.0e5, {"N2": 7.9e4, "O2": 2.1e4, "CO2": 40.0}, "plateau", None),
-        air_record.RecordStep(3.0, 289.0, 9.9e4, {"N2": 7.9e4, "O2": 2.0e4, "CO2": 30.0, "Ar": 0.5}, "plateau", (air_events.FLOOD_BASALT, 0.4)),
+        air_record.RecordStep(3.0, 289.0, 9.9e4, {"N2": 7.9e4, "O2": 2.0e4, "CO2": 30.0, "Ar": 0.5}, "plateau", (air_events.FLOOD_BASALT, 0.7)),
     )
-    ages = (life_ages.LifeAge(1, 0.5, 3.0, air_events.FLOOD_BASALT, 0.4), life_ages.LifeAge(2, 3.2, None, None, None))
+    ages = (life_ages.LifeAge(1, 0.5, 3.0, air_events.FLOOD_BASALT, 0.7), life_ages.LifeAge(2, 3.2, None, None, None))
     return air_record.Record(steps, ages)
 
 
@@ -38,8 +38,8 @@ def test_the_temperature_the_pressure_the_extinctions_and_the_life_ages_come_wit
     history = _history()
     assert history["temperature_k"] == [[0.01, 1800.0], [0.5, 288.0], [2.0, 290.0], [3.0, 289.0]]
     assert history["pressure_kpa"][-1] == [3.0, 99.0]
-    assert history["events"] == [{"age_gyr": 3.0, "cause": air_events.FLOOD_BASALT, "kill_share": 0.4}]
-    assert history["life_ages"] == [{"number": 1, "start_gyr": 0.5, "end_gyr": 3.0, "cause": air_events.FLOOD_BASALT, "kill_share": 0.4},
+    assert history["events"] == [{"age_gyr": 3.0, "cause": air_events.FLOOD_BASALT, "kill_share": 0.7}]
+    assert history["life_ages"] == [{"number": 1, "start_gyr": 0.5, "end_gyr": 3.0, "cause": air_events.FLOOD_BASALT, "kill_share": 0.7},
                                     {"number": 2, "start_gyr": 3.2, "end_gyr": None, "cause": None, "kill_share": None}]
 
 
@@ -71,8 +71,8 @@ def test_the_chart_draws_a_line_for_every_gas_each_other_gas_in_a_style_of_its_o
     assert {"life-air-o2", "life-air-co2", "life-air-ch4"} <= set(classes)
     assert svg.count('class="life-air-event"') == 1
     assert view["stored"] is True
-    assert view["extinctions"] == [{"age": "3.00", "cause": "Flood basalt eruptions", "killed": "40 percent"}]
-    assert view["life_ages"][0] == {"number": 1, "span": "0.50 to 3.00", "ended": "Flood basalt eruptions, 40 percent of species"}
+    assert view["extinctions"] == [{"age": "3.00", "cause": "Flood basalt eruptions", "killed": "70 percent"}]
+    assert view["life_ages"][0] == {"number": 1, "span": "0.50 to 3.00", "ended": "the mass extinction at 3.00 Gyr"}
     assert view["life_ages"][1] == {"number": 2, "span": "3.20 to now", "ended": ""}
     assert view["table"]["header"][0] == "Age (Gyr)" and len(view["table"]["header"]) == 7
 

@@ -9,7 +9,7 @@ kills microbial life** ("life finds a way") and that **a large kill may reset th
 `tuning.LIFE_MILESTONES`) keeps its first three steps (abiogenesis, photosynthesis, complex cells) whatever happens, and the last two, the animals (`multicellularity`) and the civilization, are drawn again
 when a large enough extinction falls after the animals had come:
 
-* *Which extinctions.* The kill curve (`air_events.KILL_CURVE`) stops at 0.65 of the species for the events the Earth has once in 100 Myr, and every extinction of the Earth's animal record is of that size or less:
+* *Which extinctions.* The kill curve (`air_events.KILL_CURVE`) gives 0.65 of the species for the events the Earth has once in 100 Myr and 0.90 for the end-Permian's once in 540 Myr, and every extinction of the Earth's animal record is of that size or less:
   the Big Five of the last 540 Myr (the largest impact among them about 10 km) left the animals standing. So an extinction that resets them is one the Earth's animals have not met: an impact the Earth has less
   often than once in `RESET_RECURRENCE_MYR`, 1 Gyr (an impactor of about 37 km on the size law of `air_events`). The flood basalts, which recur every 25 Myr, never do. [Stand-in 6.326 EF1, tier T6, tweak L1.]
 * *Animals.* The animals of the world are gone at the extinction and return `air_events.RECOVERY_GYR` (the origination lag [R5321]) plus `REGROWTH_GYR` later. An extinction that falls before the animals came, or
