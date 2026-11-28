@@ -48947,7 +48947,7 @@
           "fields": [
             [
               "What it is",
-              "air_events.KILL_CURVE fourth point (540 Myr, 0.90): the end-Permian, the Earth's largest extinction, once in the 540 Myr of the Phanerozoic, at 0.90 of species inside the 0.81 to 0.96 the estimates give; the curve is straight in the log from the 100 Myr point (0.65) to it and holds 0.90 for rarer events. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event: that cap was only the last point of the secondary article's table held flat, with no source for it (the sources reachable here, the abstract of Raup 1991 and the PNAS abstract of Raup 1994, give no kill beyond 100 Myr; the 1991 abstract says craters of 100 to 150 km, about 10 km impactors, kill 45 to 60 percent of species, consistent with the curve)"
+              "air_events.KILL_CURVE fourth point (540 Myr, 0.90): the end-Permian, the Earth's largest extinction, once in the 540 Myr of the Phanerozoic, at 0.90 of species inside the 0.81 to 0.96 the estimates give; the curve is straight in the log from the 100 Myr point (0.65) to it and holds 0.90 for rarer events. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event: that cap was only the last point of the secondary article's table held flat, with no source for it (the sources reachable here, the abstract of the 1991 paper and the PNAS abstract of the 1994 paper, both by Raup, give no kill beyond 100 Myr; the 1991 abstract says craters of 100 to 150 km, about 10 km impactors, kill 45 to 60 percent of species, consistent with the curve)"
             ],
             [
               "The range it moves in",
@@ -48963,7 +48963,7 @@
             ],
             [
               "What replaces it",
-              "the kill curve of the paper read in full ([R5320])"
+              "the kill curve of the paper read in full [R5320]"
             ],
             [
               "Evidence",
@@ -48978,7 +48978,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "air_events.KILL_CURVE fourth point (540 Myr, 0.90): the end-Permian, the Earth's largest extinction, once in the 540 Myr of the Phanerozoic, at 0.90 of species inside the 0.81 to 0.96 the estimates give; the curve is straight in the log from the 100 Myr point (0.65) to it and holds 0.90 for rarer events. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event: that cap was only the last point of the secondary article's table held flat, with no source for it (the sources reachable here, the abstract of Raup 1991 and the PNAS abstract of Raup 1994, give no kill beyond 100 Myr; the 1991 abstract says craters of 100 to 150 km, about 10 km impactors, kill 45 to 60 percent of species, consistent with the curve)"
+          "what": "air_events.KILL_CURVE fourth point (540 Myr, 0.90): the end-Permian, the Earth's largest extinction, once in the 540 Myr of the Phanerozoic, at 0.90 of species inside the 0.81 to 0.96 the estimates give; the curve is straight in the log from the 100 Myr point (0.65) to it and holds 0.90 for rarer events. Before GEN.1875 the curve ended at 0.65 for 100 Myr and held it for every rarer event: that cap was only the last point of the secondary article's table held flat, with no source for it (the sources reachable here, the abstract of the 1991 paper and the PNAS abstract of the 1994 paper, both by Raup, give no kill beyond 100 Myr; the 1991 abstract says craters of 100 to 150 km, about 10 km impactors, kill 45 to 60 percent of species, consistent with the curve)"
         },
         {
           "burn_down": null,
