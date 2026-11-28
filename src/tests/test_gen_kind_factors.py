@@ -364,14 +364,17 @@ def test_no_halo_system_carries_more_planets_than_a_disk_one_does_on_average():
 
 
 def test_a_close_binary_proxy_takes_its_primarys_metallicity():
-    from planetgen.generation.binary import BinaryStarProxy
+    from planetgen.generation.pair_host import PairHost
     from planetgen.generation.star import Star
+    from planetgen.physics.system_tree import OrbitNode
     config = SystemConfig()
     primary, secondary = Star(config, star_type="G2V", metallicity_fe_h=-1.4), Star(config, star_type="M5V", metallicity_fe_h=-0.2)
-    proxy = BinaryStarProxy(config, primary, secondary)
-    assert proxy._primary in (primary, secondary)      # the heavier of the two
-    assert proxy.metallicity_fe_h == proxy._primary.metallicity_fe_h
-    assert proxy.metallicity_fe_h in (-1.4, -0.2)
+    assert primary.mass > secondary.mass      # the host takes its stars heavier first, as the tree gives them
+    node = OrbitNode(node_no=0, parent_node_no=None, slot=0, mass_solar=1.2, separation_km=0.1 * 1.495978707e8, eccentricity=0.0, inclination_deg=10.0,
+                     ascending_node_deg=20.0, arg_periapsis_deg=0.0, mean_anomaly_deg=30.0, epoch_unix=0.0, period_years=0.03, kind="close")
+    proxy = PairHost(config, primary, secondary, node)
+    assert proxy._primary is primary
+    assert proxy.metallicity_fe_h == primary.metallicity_fe_h == -1.4
 
 
 # --- The Type Ia share and the old share (GEN.319) --------------------------------------------------------------------

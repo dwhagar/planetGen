@@ -227,15 +227,15 @@ def test_the_due_columns_are_indexed(mysql_config):
     try:
         rows = conn.execute(
             "SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema.STATISTICS"
-            " WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME IN (?, ?)",
-            ("next_update_due", "binary_next_update_due")).fetchall()
+            " WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME IN (?)",
+            ("next_update_due",)).fetchall()
     finally:
         conn.close()
     indexed = {(row["t"], row["c"]) for row in rows}
     for table in ("planets", "moons", "comets", "star_systems", "facilities", "black_holes", "neutron_stars",
                   "nebulae", "supernova_remnants", "rogue_planets", "interstellar_comets", "asteroid_fields"):
         assert (table, "next_update_due") in indexed, table
-    assert ("star_systems", "binary_next_update_due") in indexed
+    assert not [row for row in indexed if row[1].startswith("binary_")]      # the pair has no clock of its own: its node's `epoch_unix` (GEN.640)
 
 
 def test_an_edited_orbit_gets_its_due_time_worked_out_again(mysql_config):

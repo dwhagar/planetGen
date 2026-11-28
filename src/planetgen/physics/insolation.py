@@ -95,7 +95,7 @@ def refresh_system(system):
         first, second = host.stars
         for planet in bodies:
             _set(planet, None if getattr(planet, "body_type", None) == "a" else min(
-                circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass, host.binary_separation_au, planet.distance)
+                circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass, host.pair_orbit.separation_au, planet.distance)
                 + orbit_elements.flux_swing(planet.eccentricity), 1.0))
 
 
@@ -117,7 +117,7 @@ def _variation(system, binary, planet, host, other):
         first, second = proxy.stars
         # the pair's turn and the planet's own orbit, in phase (an upper bound)
         return min(circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass,
-                                      proxy.binary_separation_au, planet.distance)
+                                      proxy.pair_orbit.separation_au, planet.distance)
                    + orbit_elements.flux_swing(planet.eccentricity), 1.0)
     if binary == "wide" and other is not None:
         pair = system.pair_orbit

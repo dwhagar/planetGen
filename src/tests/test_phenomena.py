@@ -159,14 +159,14 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
 def test_compact_remnants_are_stellar_objects():
     """A star, a binary's proxy and a compact remnant share the `StellarObject` family class (GEN.565d); a remnant is
     not a `Star`, which is the drawn star."""
-    from planetgen.generation.binary import BinaryStarProxy
+    from planetgen.generation.pair_host import PairHost
     from planetgen.generation.star import Star
     from planetgen.generation.stellar_object import StellarObject
     assert issubclass(BlackHole, CompactRemnant)
     assert issubclass(NeutronStar, CompactRemnant)
-    for kind in (Star, BinaryStarProxy, CompactRemnant):
+    for kind in (Star, PairHost, CompactRemnant):
         assert issubclass(kind, StellarObject)
-    assert not issubclass(CompactRemnant, Star) and not issubclass(BinaryStarProxy, Star)
+    assert not issubclass(CompactRemnant, Star) and not issubclass(PairHost, Star)
     assert not hasattr(Star(SystemConfig()), "_skip_property_init")
 
 

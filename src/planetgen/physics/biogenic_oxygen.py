@@ -533,6 +533,7 @@ def rebalance_co2(body, burial=0.0):
     room = float("inf") if cap is None else max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0)   # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
 
     started = (body.surface_temperature, getattr(body, "greenhouse_factor", None))
+    first = dict(vars(body))       # GEN.1853: what the body held before the trials, to give back when the sink asks no change of the air
 
     def store(carbon_dioxide):
         """The air with `carbon_dioxide` stored, from the temperature and greenhouse factor the body began with, so every trial works from the same flux and haze start."""
@@ -565,7 +566,12 @@ def rebalance_co2(body, burial=0.0):
         log.warning(f"The carbon dioxide of a world did not settle against its sink: between {low:.4g} and {high:.4g} Pa after {REBALANCE_BISECTIONS} halvings.")
     answer = min(high, room)
     if abs(answer - current) <= REBALANCE_TOLERANCE * max(current, MINIMUM_PA):
-        store(current)          # the trials left the body at the last of them: the air it was given is stored again, solved as the trials were
+        # GEN.1853: the trials left the body at the last of them, and the air it was given solved again is not exactly the air it had (the passes of the warming and the freeze-out end a little
+        # apart): nothing is asked of the air, so what the body held is given back as it was, and what read that air (the doses, the ozone, the ultraviolet index) is still true of it.
+        for name in set(vars(body)) - set(first):
+            delattr(body, name)
+        for name, value in first.items():
+            setattr(body, name, value)
         return False
     store(answer)
     return True

@@ -21,7 +21,7 @@ from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation import habitable_request
 from planetgen.generation.system import StarSystem
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.physics import spin
 from planetgen.physics import constants
 from planetgen import tuning as prog_c
@@ -430,7 +430,7 @@ def test_each_tristate_flag_forced(star_type, value, attr):
             # explicitly for configuration-specific checks.
             assert len(system.stars) == 2
             assert all(s.mass > 0 for s in system.stars)
-            if isinstance(system.star, BinaryStarProxy):
+            if isinstance(system.star, PairHost):
                 assert system.binary_type == "close"
                 assert math.isclose(system.star.mass, sum(s.mass for s in system.stars))
             else:
@@ -576,7 +576,7 @@ def test_binary_system_star_properties_are_sane():
         for _ in range(TRIALS):
             system = StarSystem(system_config=make_config(star_type, BINARY_SYSTEM=True, WIDE_BINARY=False))
             proxy = system.star
-            assert isinstance(proxy, BinaryStarProxy)
+            assert isinstance(proxy, PairHost)
             primary, secondary = proxy.stars
             assert secondary.mass <= primary.mass
             # Not a tighter bound than "positive": doubleStar.py draws the

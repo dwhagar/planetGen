@@ -33,7 +33,7 @@ from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.comet import Comet
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
@@ -203,8 +203,8 @@ def test_starsystem_close_binary_proxy_roundtrip_fuzz():
         star_type = random.choice(_STAR_TYPES)
         cfg.STAR_TYPE = star_type
         system = StarSystem(system_config=cfg)
-        assert isinstance(system.star, BinaryStarProxy)
-        _assert_roundtrip(system.star, BinaryStarProxy, f"BinaryStarProxy seed={seed}", cfg)
+        assert isinstance(system.star, PairHost)
+        _assert_roundtrip(system.star, PairHost, f"PairHost seed={seed}", cfg, system.star.orbit_node, system.star.turned)
 
     from tests.bughunt_support import run_seeded
     run_seeded(check, seeds=_SEEDS)
