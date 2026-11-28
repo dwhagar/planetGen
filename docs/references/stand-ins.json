@@ -14909,11 +14909,11 @@
           "fields": [
             [
               "What it is",
-              "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, the shell following the ocean under it; uniform through the thickness)"
+              "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, uniform through the thickness) and icy_tide.MEMBRANE_FACTOR 2 (8 (1 + nu) / (5 + nu) for nu 1/3), which holds the shell to the stiffness of a membrane on an ocean: its radial Love number is h2 / (1 + h2 Lambda) with Lambda = MEMBRANE_FACTOR * mu / (rho g R) * d / R ([R5376], read in the arXiv text, tier T1 for the form; the strain factor is the argued part)"
             ],
             [
               "The range it moves in",
-              "0.5 to 2"
+              "STRAIN_FACTOR 0.5 to 2"
             ],
             [
               "Where it holds",
@@ -14929,7 +14929,7 @@
             ],
             [
               "Evidence",
-              "Europa 5e11 W in a 31 km shell against 1e11 to 1e12 W and 10 to 30 km; Enceladus 1e11 W against 1.6e10 W radiated"
+              "Europa 5e11 W in a 31 km shell against 1e11 to 1e12 W and 10 to 30 km; Enceladus 5.5e8 W in its shell against 1.6e10 W radiated (the shell's share only: the rest is the rubble core's, IC8)"
             ]
           ],
           "id": "IC1",
@@ -14940,7 +14940,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, the shell following the ocean under it; uniform through the thickness)"
+          "what": "icy_tide.STRAIN_FACTOR 1 (the strain in the ice shell is the tide's amplitude over the body's radius, uniform through the thickness) and icy_tide.MEMBRANE_FACTOR 2 (8 (1 + nu) / (5 + nu) for nu 1/3), which holds the shell to the stiffness of a membrane on an ocean: its radial Love number is h2 / (1 + h2 Lambda) with Lambda = MEMBRANE_FACTOR * mu / (rho g R) * d / R ([R5376], read in the arXiv text, tier T1 for the form; the strain factor is the argued part)"
         },
         {
           "burn_down": null,
@@ -15169,6 +15169,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock CORE_ROCK_DENSITY_KG_M3 2500 over a shell of 1000, [R5377: supplement Table S1]), of rigidity CORE_RIGIDITY_PA 1.6e7 Pa at its central pressure CORE_REFERENCE_PRESSURE_PA 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and CORE_DISSIPATION 1/Q 0.5 ([R5377: supplement], read verbatim), its rubble share exp(-P / CORE_CONSOLIDATION_PA) of 1e8 Pa (Athy compaction), and CORE_COUPLING 0.37 of what an isolated sphere dissipates"
+            ],
+            [
+              "The range it moves in",
+              "1/Q 0.2 to 0.8 and rigidity 1.6e7 to 3e8 Pa [R5377]; coupling 0.1 to 1; consolidation 3e7 to 3e8 Pa"
+            ],
+            [
+              "Where it holds",
+              "an icy body of a few hundred kilometres with an ocean under its shell and a core at under 1e8 Pa (Enceladus and smaller, Mimas)"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_tide::test_the_core_of_a_small_icy_body_is_rubble_that_makes_most_of_its_tide_and_that_of_a_large_one_is_rock_that_makes_none_here"
+            ],
+            [
+              "What replaces it",
+              "a layered Love-number solution of shell, ocean and porous core"
+            ],
+            [
+              "Evidence",
+              "Enceladus 2.1e10 W against 1.6e10 W radiated and a shell of 28 km (20 to 40 km observed); the coupling is the one number set to [R5377]'s 20 GW; the dissipation law is Peale's standard one with the numbers of [R5377: supplement], because its main text (the paper's own law and eccentricity) was not read"
+            ]
+          ],
+          "id": "IC8",
+          "key": "6.23:IC8",
+          "kind": "P",
+          "slug": "6-23-ic8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "icy_tide.core_k2_over_q: the unconsolidated rocky core of a small icy body, a homogeneous sphere of the radius the mean density gives (rock CORE_ROCK_DENSITY_KG_M3 2500 over a shell of 1000, [R5377: supplement Table S1]), of rigidity CORE_RIGIDITY_PA 1.6e7 Pa at its central pressure CORE_REFERENCE_PRESSURE_PA 3e7 Pa (the cube root of the pressure, Hertz-Mindlin) and CORE_DISSIPATION 1/Q 0.5 ([R5377: supplement], read verbatim), its rubble share exp(-P / CORE_CONSOLIDATION_PA) of 1e8 Pa (Athy compaction), and CORE_COUPLING 0.37 of what an isolated sphere dissipates"
         }
       ],
       "slug": "6-23-stand-ins-of-the-tidal-rheology",

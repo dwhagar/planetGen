@@ -59,12 +59,12 @@ def test_europa_gets_a_tide_of_the_published_size_from_its_ice_shell_with_nothin
     assert flux == pytest.approx(7.0e-4 + power / (4.0 * math.pi * 1560.8e3 ** 2), rel=1e-9)
 
 
-def test_enceladus_gets_a_tide_within_a_factor_of_ten_of_what_it_radiates():
-    """Enceladus: 16 GW radiated at its eccentricity of 0.0047; the equilibrium shell of the model makes 1e11 W, six times more (the shell
-    is 6 km against an observed 20 or so), the one body the stand-ins of `icy_tide` overshoot, within the factor of ten they claim."""
+def test_enceladus_gets_a_tide_within_a_factor_of_two_of_what_it_radiates():
+    """Enceladus: 16 GW radiated at its eccentricity of 0.0047. Its shell is stiff against its small gravity (a membrane parameter of 140, GEN.1877) and makes only 5.5e8 W, three percent of it; the unconsolidated
+    rocky core makes the rest ([R5377], GEN.1886: about 20 GW for a rigidity of 1.6e7 Pa and a 1/Q of 0.5), 2.1e10 W in all, in a shell of 28 km."""
     from planetgen.physics import icy_tide
     _, power = icy_tide.flux_from_tide(1.08e20, 252.1e3, SATURN, 2.3802e8, 0.0047, 3.0e-4, 75.0)
-    assert 1.6e9 < power < 1.6e11
+    assert 8.0e9 < power < 3.2e10
 
 
 def test_the_moon_is_flexed_solid_and_heated_by_a_fraction_of_a_percent_of_its_own_heat():
