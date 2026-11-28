@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4855+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The test that no lifeless oxygen world is drawn over 95 percent oxygen no longer demands the oxygen tail that a bookkeeping error had made.
+
+### Fixed
+- `test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen` failed on main since Train 52 (GEN.1891): its lower bound (some draw over 0.5) pinned the oxygen the volcanic gas's own carbon dioxide and sulfur dioxide had left free until GEN.1769 slice 2 (14 of 300 draws over half oxygen, top 0.92). The 95 percent cap, which is the accuracy clause, is unchanged and holds with room (top 0.31); the lower bound, which only guards against a vacuous sample, is 0.25 with the physics stated in the test (the photolysis oxygen that stays is 1 to 10 percent of what the water gives, against 0.01 to 0.2 carbon per water molecule).
+
+generation-affects: none
+
 ## [8.0.4854+db280.gen150.api14] - 2026-11-28
 
 **Headline:** The exobase of an air, solved 17,000 times in the loss histories of one wide binary's planets, is now compiled with the same bits as the Python solve.
