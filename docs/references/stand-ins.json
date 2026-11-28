@@ -18335,7 +18335,7 @@
             ],
             [
               "Evidence",
-              "Pu and Wu 2015 eq. 11 (READ, the law); the age and the retention are the lane's (the later change of orbits is the orbital update, GEN.105)"
+              "Pu and Wu 2015 eq. 11 (READ, the law); the age and the retention are the lane's (the later change of orbits is the orbital update, GEN.105) KNOWN GAP (GEN.1870, 11-28, held at 0.9): the planets over 3 Earth radii inside 100 days are 0.155 a star against the 0.081 of the California-Kepler Survey ([R1478: Table 4]) and the planets of 10 to 30 Earth masses inside 50 days are 0.095 against the 0.048 of Howard et al. 2010, about twice each. Retention 0.55 fixes both but breaks the Earth-size share of the inner systems ([R1459], 0.55 against a limit of 0.42) and the M dwarf to Sun ratio of inner systems (1.44 against 1.8); raising INNER_PLANET_MASS_EARTH to 4.5 to repair those hands the heavy end back and lifts the total 20 percent over the survey (grid: reports/gen1870-joint-fit-2026-11-28/grid.md). The heavy planets are survivors of 3 to 4 mergers whatever the starting count (9 to 3 moves them 8 percent)."
             ]
           ],
           "id": "PA8",
