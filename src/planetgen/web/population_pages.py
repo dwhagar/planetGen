@@ -69,11 +69,19 @@ NOT_RUN_NOTES = {
 
 NO_POLITIES_NOTE = "No species in this galaxy has founded a polity."
 
+NO_SPECIES_NOTES = {
+    "species": "The population pass has run on this galaxy and made no species.",
+    "polities": "The population pass has run on this galaxy and made no species, so it has no polities.",
+}
+"""dict: The line an empty list page shows once the pass has run (its stored watermark, `status["generated"]`) and made no species (UX.323)."""
+
 
 def _empty_note(kind, status):
     """What an empty `kind` list page says: the population pass has not run, or it made none of this kind."""
     if kind == "polities" and status.get("species"):
         return NO_POLITIES_NOTE
+    if status.get("generated"):
+        return NO_SPECIES_NOTES[kind]
     return NOT_RUN_NOTES[kind]
 
 

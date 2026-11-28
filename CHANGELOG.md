@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4871+db281.gen150.api14] - 2026-11-28
+
+**Headline:** Species and Polities pages: an empty list says whether the population pass has run
+
+### Fixed
+
+- UX.323: the empty Species and Polities pages said "The population pass has not run on this galaxy yet" even after the pass had run and made no species. They now read the pass's stored watermark: a pass that ran says it "has run on this galaxy and made no species" (and, on Polities, that there are no polities because there are no species); the "has not run" line stays only for a galaxy with no pass yet.
+
+generation-output: unchanged
+
+## [8.0.4870+db281.gen150.api14] - 2026-11-28
+
+**Headline:** The methane and nitrogen clathrate curves are checked against published equilibrium pressures, not only against their own constants.
+
+### Added
+- A test holds the CH4 and N2 dissociation curves (`physics/clathrate_brine.py`) to the lower quadruple point of the hydrates, which PetroWiki gives as 2.56 MPa for methane and 14.3 MPa for nitrogen near 273 K (reference R5375, secondary, after Sloan and Koh). At the ice point the fits give 2.47 and 14.79 MPa, 3.6 percent under and 3.5 percent over; the test allows 5 percent, about 2 K of the page's "close to 273 K". The CO2 curve was already held to its measured quadruple point. No generator or stored-data change.
+
+generation-output: unchanged
+
 ## [8.0.4869+db281.gen150.api14] - 2026-11-28
 
 **Headline:** The overlap verifier no longer counts a trojan region among the belts a promoted planet's `belt_order` points into.
