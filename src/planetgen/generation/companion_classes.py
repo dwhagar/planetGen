@@ -34,7 +34,7 @@ from planetgen.physics import unit_registry as units
 _yr_to_d = units.converter("yr", "d")
 
 CLOSE_RANGE_AU = (0.05, 0.25)
-"""tuple: The separations of a close (P-type) pair, `generation.binary.BinaryStarProxy`."""
+"""tuple: The separations of a close (P-type) pair, `generation.pair_host.PairHost`."""
 
 INNER_LIMIT_AU = 10.0
 """float: Where the metallicity trend stops ([R3109]: periods under 10^4 days, 10 AU)."""

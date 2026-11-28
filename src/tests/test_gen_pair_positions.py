@@ -56,7 +56,7 @@ def test_a_close_pair_is_tracked_by_the_phase_its_node_puts_it_at():
             continue
         (node,) = system.orbit_nodes
         assert node.eccentricity == 0.0 and node.arg_periapsis_deg == 0.0
-        assert system.star.binary_mutual_orbital_phase_deg == pytest.approx(node.mean_anomaly_deg)
+        assert system.star.pair_orbit.phase_deg == pytest.approx(node.mean_anomaly_deg)
         return
     pytest.fail("no close pair in 80 draws")
 

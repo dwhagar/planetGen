@@ -48,12 +48,9 @@ CONTENT_TABLES = ("sectors",) + tuple(dict.fromkeys(SECTOR_TABLES + SYSTEM_TABLE
 _POSITION = ("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")
 _GALACTIC = ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant", "velocity_x_kms", "velocity_y_kms",
              "velocity_z_kms", "galactic_orbital_phase_deg")
-_BINARY = ("binary_galactic_orbital_phase_deg", "binary_mutual_orbital_phase_deg", "binary_mutual_orbital_speed_kms",
-           "binary_mutual_position_x_km", "binary_mutual_position_y_km", "binary_mutual_position_z_km",
-           "binary_primary_position_x_km", "binary_primary_position_y_km", "binary_primary_position_z_km",
-           "binary_secondary_position_x_km", "binary_secondary_position_y_km", "binary_secondary_position_z_km",
+_BINARY = ("binary_galactic_orbital_phase_deg",
            "binary_planetary_wobble_x_km", "binary_planetary_wobble_y_km", "binary_planetary_wobble_z_km")
-_CLOCKS = ("epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due")
+_CLOCKS = ("epoch_unix", "next_update_due")
 
 VOLATILE_COLUMNS = {
     "sectors": ("storage_checksum", "parity_dirty", "leaf_digest", "content_leaf", "modified_at"),

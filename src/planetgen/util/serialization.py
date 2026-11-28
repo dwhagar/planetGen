@@ -5,7 +5,7 @@ Shared Serialization Helpers
 =============================
 
 Small, generic helpers for the allowlist-based `to_dict`/`from_dict` pattern
-used across the package's classes (`SystemConfig`, `Star`, `BinaryStarProxy`,
+used across the package's classes (`SystemConfig`, `Star`, `PairHost`,
 `Planet`, `AsteroidBelt`, `StarSystem`): each class owns an explicit
 `SERIALIZABLE_FIELDS` list naming exactly the attributes that make up its
 persisted state, and `to_dict`/`from_dict` read/write only those names.

@@ -19,6 +19,7 @@ they're skipped, not failed, when no MySQL test server is configured/
 reachable.
 """
 
+import dataclasses
 import math
 import time
 
@@ -33,7 +34,7 @@ from planetgen.physics import body_state, constants as pc, kepler
 from planetgen.generation.comet import Comet
 from planetgen.generation.phenomena.compact_remnant import BlackHole
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.pair_host import PairHost
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.orbits import orbital_position_au
@@ -244,7 +245,7 @@ def test_a_wide_pairs_star_words_come_back_from_the_names_its_stars_carry(mysql_
 def _make_close_binary_system_with_comets():
     """Retries generation (bounded) until a 'close' (P-type) binary comes
     out with at least one comet -- a close pair's comets are bound to the
-    merged BinaryStarProxy (StarSystem._generate_comets), not either
+    merged PairHost (StarSystem._generate_comets), not either
     individually-stored star row, so insert_comet stores star_id as NULL
     for them (see that function's own docstring); untested by any other
     comet fixture above, all of which use a real star_id."""
@@ -370,7 +371,7 @@ def test_load_star_system_round_trips_binary_system_exactly(mysql_config):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.BINARY_SYSTEM = True
-    cfg.WIDE_BINARY = False  # this test specifically asserts BinaryStarProxy-only behavior
+    cfg.WIDE_BINARY = False  # this test specifically asserts PairHost-only behavior
     cfg.PLANETS = False
     system = StarSystem(system_config=cfg)
 
@@ -382,7 +383,7 @@ def test_load_star_system_round_trips_binary_system_exactly(mysql_config):
     finally:
         conn.close()
 
-    assert isinstance(reloaded.star, BinaryStarProxy)
+    assert isinstance(reloaded.star, PairHost)
     assert len(reloaded.stars) == 2
     assert render_support.text(reloaded) == render_support.text(system)
     assert reloaded.star.mass == system.star.mass
@@ -444,7 +445,7 @@ def test_galactic_orbit_fields_round_trip_exactly(mysql_config):
     binary_cfg = SystemConfig()
     binary_cfg.STAR_TYPE = "G2V"
     binary_cfg.BINARY_SYSTEM = True
-    binary_cfg.WIDE_BINARY = False  # pin to close/P-type -- these assertions are BinaryStarProxy-specific
+    binary_cfg.WIDE_BINARY = False  # pin to close/P-type -- these assertions are PairHost-specific
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
@@ -487,7 +488,7 @@ def test_star_motion_fields_round_trip_exactly(mysql_config):
     binary_cfg = SystemConfig()
     binary_cfg.STAR_TYPE = "G2V"
     binary_cfg.BINARY_SYSTEM = True
-    binary_cfg.WIDE_BINARY = False  # pin to close/P-type -- these assertions are BinaryStarProxy-specific
+    binary_cfg.WIDE_BINARY = False  # pin to close/P-type -- these assertions are PairHost-specific
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
@@ -511,33 +512,12 @@ def test_star_motion_fields_round_trip_exactly(mysql_config):
         proxy.galactic_orbital_phase_deg
     )
 
-    assert reloaded_proxy.binary_mutual_orbital_period_years == pytest.approx(
-        proxy.binary_mutual_orbital_period_years
-    )
-    assert reloaded_proxy.binary_mutual_orbital_speed_kms == pytest.approx(proxy.binary_mutual_orbital_speed_kms)
-    assert reloaded_proxy.binary_mutual_orbital_inclination_deg == pytest.approx(
-        proxy.binary_mutual_orbital_inclination_deg
-    )
-    assert reloaded_proxy.binary_mutual_orbital_ascending_node_deg == pytest.approx(
-        proxy.binary_mutual_orbital_ascending_node_deg
-    )
-    assert reloaded_proxy.binary_mutual_orbital_phase_deg == pytest.approx(proxy.binary_mutual_orbital_phase_deg)
-    assert reloaded_proxy.binary_mutual_min_update_interval_years == pytest.approx(
-        proxy.binary_mutual_min_update_interval_years
-    )
-    assert reloaded_proxy.binary_mutual_position_x == pytest.approx(proxy.binary_mutual_position_x)
-    assert reloaded_proxy.binary_mutual_position_y == pytest.approx(proxy.binary_mutual_position_y)
-    assert reloaded_proxy.binary_mutual_position_z == pytest.approx(proxy.binary_mutual_position_z)
-
-    # The stored position must actually match orbital_position_au at the
-    # stored separation/inclination/ascending_node/phase, not just survive
-    # a round trip unchanged.
+    # The pair's orbit is its node's (GEN.640): what the host reads after the reload is what it read before, and the position is the node's ellipse at its epoch.
+    assert dataclasses.astuple(reloaded_proxy.pair_orbit) == pytest.approx(dataclasses.astuple(proxy.pair_orbit))
+    reloaded_pair = reloaded_proxy.pair_orbit
     expected = orbital_position_au(
-        proxy.binary_separation_au, proxy.binary_mutual_orbital_inclination_deg,
-        proxy.binary_mutual_orbital_ascending_node_deg, proxy.binary_mutual_orbital_phase_deg,
-    )
-    assert (proxy.binary_mutual_position_x, proxy.binary_mutual_position_y, proxy.binary_mutual_position_z) == \
-        pytest.approx(expected)
+        reloaded_pair.separation_au, reloaded_pair.inclination_deg, reloaded_pair.ascending_node_deg, reloaded_pair.phase_deg)
+    assert (reloaded_pair.position_x_au, reloaded_pair.position_y_au, reloaded_pair.position_z_au) == pytest.approx(expected)
 
 
 def test_insert_star_system_respects_foreign_keys(mysql_config):
@@ -729,7 +709,7 @@ def _close_pair_id(conn, binary_system, binary_cfg):
 def test_advance_orbital_phases_advances_the_pair_node_and_the_position_read_from_it(mysql_config):
     """
     GEN.640 slice a (was the v14 lockstep test): `advance_orbital_phases` turns the pair's `orbit_nodes` row by the elapsed time over its
-    period, and the mutual position `orbit_trees.pair_places_km` reads follows it, on the circle the orbit is; no `binary_mutual_*` column is
+    period, and the mutual position `orbit_trees.pair_places_km` reads follows it, on the circle the orbit is; no `binary_mutual_*` column exists to be
     written (the columns keep their generation values until they are dropped).
     """
     binary_cfg = SystemConfig()
@@ -742,7 +722,8 @@ def test_advance_orbital_phases_advances_the_pair_node_and_the_position_read_fro
     conn = store.get_connection(mysql_config)
     try:
         binary_id = _close_pair_id(conn, binary_system, binary_cfg)
-        columns = dict(conn.execute("SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km FROM star_systems WHERE id = ?", (binary_id,)).fetchone())
+        kept = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
+        assert not [name for name in kept if name.startswith(("binary_mutual", "binary_primary_position", "binary_secondary_position"))]      # the pair is its node (GEN.640)
         before = orbit_trees.pair_places_km(conn, binary_id)
         node = before["node"]
 
@@ -750,7 +731,6 @@ def test_advance_orbital_phases_advances_the_pair_node_and_the_position_read_fro
         clock = store.orbit_clock(conn, node.period_years * 137.25)
         store.advance_orbital_phases(conn, clock)
         after = orbit_trees.pair_places_km(conn, binary_id)
-        assert dict(conn.execute("SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km FROM star_systems WHERE id = ?", (binary_id,)).fetchone()) == columns
     finally:
         conn.close()
 
