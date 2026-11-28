@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2055 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2056 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2028 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2029 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,7 +50,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 233 | 23 | 12 | 1 | 0 | 269 |
-| T2 | 190 | 78 | 5 | 0 | 0 | 273 |
+| T2 | 191 | 78 | 5 | 0 | 0 | 274 |
 | T3 | 137 | 71 | 12 | 10 | 0 | 230 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
@@ -58,7 +58,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1168 | 434 | 108 | 279 | 66 | 2055 |
+| All | 1169 | 434 | 108 | 279 | 66 | 2056 |
 
 ## How the labels were given
 
@@ -2396,6 +2396,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | AB1 | P | T9 | L3 | activity.DECAY_EXPONENTS: the exponent b of `L_X/L_bol` after saturation by mass (1.0 up to 0.3 solar masses, 1.35 at 0.45, 1.8 at 0.6, 1.45 at 0.8 and 1.0), tuned so each mass keeps its `L_X/L_bol` at 5 Gyr from the earlier table | each value within 0.3 of the one that reproduces the earlier level; the solar-mass 1.45 inside the Skumanich band | 0.45 to 1.2 solar masses and ages past the saturation age | a measured `L_X/L_bol` of field stars at 1 to 10 Gyr by mass differing from the model's by more than 0.5 dex, or a decay slope of the [R2183] model for the same masses outside 1.0 to 2.0 | the decay of the rotation and X-ray model of [R2183] (the spin-down torque, not read) | test_activity::test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age | predicted only | - | no data |
+| AB2 | P | T2 | L0 | activity.EUV_X_COEFFICIENT 425 and EUV_X_SLOPE -0.42: the EUV (12 to 92 nm) to X-ray (0.1 to 12 nm) ratio of a star is `425 F_X^-0.42` of its X-ray flux at its surface in erg/s/cm2 (Chadney et al. 2015 [R0711], Eq. 2a, a fit of the Sun through its cycle; GEN.1890, which replaced the luminosity law `log L_EUV = 4.80 + 0.860 log L_X` of Sanz-Forcada et al. 2011) | coefficient 300 to 600 and slope -0.35 to -0.5 (the fit's own scatter; the Sun's 6.6 and Proxima's 0.9 to 1.1 sit inside it) | every star with a corona (F, G, K and M dwarfs, subgiants and giants by their own surface); the fit is of one star through its cycle, checked by Chadney et al. against eps Eri, AU Mic and AD Leo (their Table 4 ratios: 1.28, 0.33 and 0.37, against the Sun's 6.13) | a measured EUV to X-ray ratio of a late M dwarf outside 0.5 to 2 (Proxima: 0.9 [R5368], about 1.1 [R5369]) or of a G star outside 4 to 9 for today's Sun (Ribas et al. 2016: 6.6) | the DEM-based XUV spectra of cool dwarfs by mass and age (the MUSCLES and similar spectra, read from the observations) | test_activity::test_the_euv_to_x_ray_ratio_is_the_measured_one_of_the_sun_and_of_proxima_centauri | predicted only | - | - |
 
 ## 6.131 Stand-ins of the halo mass function and the conditional halo
 

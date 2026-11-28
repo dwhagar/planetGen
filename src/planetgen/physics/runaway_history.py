@@ -86,7 +86,7 @@ def _xuv_w(mass_sol, age_yr, luminosity_w, temperature_k, t_sat_gy):
     decay = activity.decay_exponent(mass_sol)
     ratio = activity.lx_lbol_at(age_yr / 1e9, activity.saturated_lx_lbol(mass_sol), t_sat_gy, decay)
     photosphere = luminosity_w * activity.blackbody_fraction_above(activity.XUV_EDGE_EV, temperature_k)
-    return activity.coronal_xuv_w(ratio * luminosity_w) + photosphere
+    return activity.coronal_xuv_w(ratio * luminosity_w, luminosity_w, temperature_k) + photosphere
 
 
 def loss_kg(star, distance_au, mass_kg, radius_km, trace=None):
