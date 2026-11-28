@@ -38,7 +38,7 @@ def sun():
 def test_the_start_is_centered_where_the_valley_was_tuned_and_falls_below_it():
     assert envelope_capture.REFERENCE_MASS_EARTH == radius_valley.CORE_MASS_MEDIAN_EARTH
     assert envelope_capture.START_SPREAD == radius_valley.ENVELOPE_SIGMA
-    assert envelope_capture.MEDIAN_START == 0.025           # GEN.1845: the low edge of the median initial envelope of the Kepler planets, [R3797: Table 1] model I (0.040 +0.015 -0.016); it was 0.04 (GEN.1711)
+    assert envelope_capture.MEDIAN_START == 0.04            # GEN.1711: the median initial envelope of the Kepler planets, [R3797: Table 1] model I (0.040 +0.015 -0.016)
     assert envelope_capture.median_start(10.0) == envelope_capture.median_start(envelope_capture.REFERENCE_MASS_EARTH) == envelope_capture.MEDIAN_START
     assert envelope_capture.median_start(1.0) < 0.005 < envelope_capture.median_start(2.0) < envelope_capture.median_start(3.0)
     assert envelope_capture.median_start(0.3) == envelope_capture.median_start(0.9) == envelope_capture.median_start(1.0)       # GEN.1748: flat under 1 Earth mass, at Young et al.'s 0.2 percent
@@ -47,25 +47,22 @@ def test_the_start_is_centered_where_the_valley_was_tuned_and_falls_below_it():
 
 def test_the_power_law_of_the_light_planets_is_unchanged_and_meets_the_birth_median_at_two_point_seven_earth_masses():
     """GEN.1711: the median start went from 0.1 to 0.04 for the heavy planets; the planets of 1 to 2.7 Earth masses keep the start the power law gave them."""
-    for mass in (1.0, 1.5, 2.0, 2.3):       # GEN.1845: the law meets the median at 2.3 Earth masses now, 2.7 at 0.04
+    for mass in (1.0, 1.5, 2.0, 2.6):
         assert envelope_capture.median_start(mass) == pytest.approx(0.1 * (mass / 3.72) ** 3, rel=1e-12)
     meets = envelope_capture.REFERENCE_MASS_EARTH * (envelope_capture.MEDIAN_START / envelope_capture.MASS_LAW_MEDIAN) ** (1.0 / envelope_capture.MASS_EXPONENT)
-    assert 2.3 < meets < 2.4
+    assert 2.7 < meets < 2.8
     assert envelope_capture.median_start(meets * 0.999) < envelope_capture.MEDIAN_START == envelope_capture.median_start(meets * 1.001)
     assert envelope_capture.median_start(1.0) == pytest.approx(0.0019, rel=0.05)
 
 
-def test_only_bodies_of_a_fifth_to_twenty_earth_masses_draw_a_start_and_the_start_is_capped(monkeypatch):
+def test_only_bodies_of_a_fifth_to_twenty_earth_masses_draw_a_start_and_the_start_is_capped():
     with draw.bound("envelope-capture:start"):
         assert envelope_capture.draw_start(0.1) == 0.0 and envelope_capture.draw_start(25.0) == 0.0     # Mars's 0.1 Earth masses: too small before the disk is gone (Young et al. [R5293], GEN.1748)
         assert envelope_capture.draw_start(0.5) > 0.0
         starts = [envelope_capture.draw_start(8.0) for _ in range(400)]
     assert all(0.0 < value <= envelope_capture.MAX_START <= envelope_escape.MAX_ENVELOPE for value in starts)
     assert statistics.median(starts) == pytest.approx(envelope_capture.MEDIAN_START, rel=0.2)
-    monkeypatch.setattr(envelope_capture, "START_SPREAD", 2.0)       # GEN.1845: at a median of 0.025 the width of 0.6 does not reach the cap in 400 draws, a wide one does
-    with draw.bound("envelope-capture:start"):
-        wide = [envelope_capture.draw_start(8.0) for _ in range(400)]
-    assert max(wide) == envelope_capture.MAX_START      # the tail of the log-normal is held at the top of the radius law's range
+    assert max(starts) == envelope_capture.MAX_START      # the tail of the log-normal is held at the top of the radius law's range
 
 
 def test_a_planet_close_to_its_star_loses_what_one_far_from_it_keeps(sun):

@@ -186,5 +186,6 @@ def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stre
         if source.random() < found:
             core = min(core, _BROWN_DWARF_LIMIT_KG)      # two giants' cores that merged past the deuterium limit leave a planet of at most the limit
             return PlanetMass(max(runaway_mass_kg(star_mass_kg, source), core), core, True)
-    core = saturate_kg(core, tuning.GIANT_NO_GAS_CORE_MAX_EARTH * _EARTH_KG)      # one limit inside and beyond the snow line (GEN.1861)
+    cap = tuning.GIANT_NO_GAS_CORE_MAX_EARTH if distance_au >= snow_line_au else tuning.PLANET_INNER_CORE_MAX_EARTH
+    core = saturate_kg(core, cap * _EARTH_KG)
     return PlanetMass(core, core, False)

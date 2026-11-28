@@ -12,7 +12,7 @@ no generated planet of 1 to 4 Earth radii came out above 2.0 (GEN.1323, found by
 
 * **The start.** A planet of `MIN_MASS_EARTH` to `MAX_MASS_EARTH` Earth masses draws the envelope it had when the disk went: a log-normal
   fraction of its mass, median `MEDIAN_START` (the birth value of the Kepler planets, [R3797: Table 1]), width `START_SPREAD` (the survey's), held at
-  `MAX_START`. Under about 2.3 Earth masses (below `REFERENCE_MASS_EARTH`, the peak of the core masses the valley was tuned on, [R3797]) the median
+  `MAX_START`. Under about 2.7 Earth masses (below `REFERENCE_MASS_EARTH`, the peak of the core masses the valley was tuned on, [R3797]) the median
   falls as the mass over it to the power `MASS_EXPONENT`, through `MASS_LAW_MEDIAN`: a flat start would give every Earth-mass planet an envelope, and the Earth and Venus
   have none. The exponent is a stand-in with no source (registry GEN.725, section 6.206).
 * **The loss.** `envelope_escape.envelope_left_earth` over the planet's real mass, light, host and age, with the mean light of its orbit.
@@ -78,12 +78,12 @@ above 0.3 percent it is held there: the paper does not go further. A body of 1 t
 MAX_MASS_EARTH = 20.0
 """float: The heaviest rocky planet (`planet_kind` turns a heavier core into a giant, whose envelope its interior holds)."""
 
-MEDIAN_START = 0.025
-"""float: STAND-IN EC1 (T1, L1, registry 6.206): the median starting envelope, a fraction of the mass, of a planet of 2.3 Earth masses or more (where the power law of
+MEDIAN_START = 0.04
+"""float: STAND-IN EC1 (T1, L0, registry 6.206): the median starting envelope, a fraction of the mass, of a planet of 2.7 Earth masses or more (where the power law of
 `MASS_LAW_MEDIAN` reaches it): [R3797] fit the birth population of the Kepler planets (log-Gaussians of the core mass and of the initial envelope mass fraction, their
 Table 1, model I) and find a median initial envelope of 0.040 (+0.015, -0.016) for cores of 3.72 Earth masses, "a typical mass fraction of ~4%". It was 0.1, the middle of the recipe bracket
 `f_env0` 0.05 to 0.2 that the valley survey was tuned over, which put the 3 to 6 Earth-mass planets of the habitable zone at 2.7 to 3.8 Earth radii against the 2.1 to 2.6 of the Kepler
-sub-Neptunes (GEN.1711); both valley targets sit inside 1 sigma at 0.04 (z 0.02 and 0.8, 24 surveys of 4000 planets). It is 0.025 since GEN.1845, the low edge of the [R3797] interval (0.040 -0.016, an L1 nudge inside the uncertainty): the starting envelope applies to every planet of 2.7 Earth masses and up, but the generator's inner planets reach 8 to 12 Earth masses (a quarter are over 7.8; the valley survey draws a core-mass width of 0.25 in ln, the disk 1.06), the loss does not touch them at 40 days, and at 0.04 they kept 3 percent and sat at 3 Earth radii: 3.33 to 4.12 Earth radii held 0.089 planets a star against 0.034 [R1478], and the peak ran flat from 2.4 to 3.0. At 0.025 the valley targets hold (slope z 0.16, radius at 10 days z 0.64; 0.02 fails at z 2.4), 3.33 to 4.12 Earth radii hold 0.040 and the peak is at 2.43 to 2.70 (`reports/gen1845-small-planet-radius-census-2026-11-26.md`). The power law of EC2 now meets it at 2.3 Earth masses (it met 0.04 at 2.7)."""
+sub-Neptunes (GEN.1711); both valley targets sit inside 1 sigma at 0.04 (z 0.02 and 0.8, 24 surveys of 4000 planets)."""
 
 MAX_START = bulk_structure.CLOSED_FORM_RANGES["envelope"]["envelope"][1]
 """float: STAND-IN EC5 (T6, L1, registry 6.206): the largest starting envelope a rocky planet draws, 0.2 of its mass: the top of the range the law of Lopez and Fortney was
@@ -103,8 +103,8 @@ none: at 3 the median start of a 1 Earth-mass planet is 0.2 percent of its mass 
 
 MASS_LAW_MEDIAN = 0.1
 """float: STAND-IN EC2 (T7, L3, registry 6.206): the value the power law of `MASS_EXPONENT` has at `REFERENCE_MASS_EARTH`, 0.1: the law was fitted to run through 0.2 percent at 1 Earth mass
-(Young et al., `FLAT_BELOW_MASS_EARTH`), and the planets of 1 to 2.3 Earth masses keep the starts it gave. It is no longer the start of the heavier planets: that is `MEDIAN_START`, 0.025, where the law reaches it
-(2.3 Earth masses; GEN.1711, GEN.1845)."""
+(Young et al., `FLAT_BELOW_MASS_EARTH`), and the planets of 1 to 2.7 Earth masses keep the starts it gave. It is no longer the start of the heavier planets: that is `MEDIAN_START`, 0.04, where the law reaches it
+(2.7 Earth masses; GEN.1711)."""
 
 PUFF_MIN_MASS_EARTH = 2.0
 """float: STAND-IN EC8 (T4, L0, registry 6.206): the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses, [R2609]);

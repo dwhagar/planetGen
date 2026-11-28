@@ -107,11 +107,9 @@ def test_a_solid_core_is_pressed_softly_under_its_cap():
     assert all(value < cap for value in pressed)
 
 
-def test_a_core_inside_the_snow_line_stays_under_the_no_gas_limit_that_holds_beyond_it():
-    """GEN.1861: one limit, `GIANT_NO_GAS_CORE_MAX_EARTH`, inside and beyond the snow line (the tuned 12 Earth masses piled 0.08 planets a star at 11.5 to 12)."""
+def test_a_core_inside_the_snow_line_stays_under_the_inner_cap():
     draws = masses(1.0, count=800, fe_h=0.5)
-    assert max(d.core_kg for d in draws) < tuning.GIANT_NO_GAS_CORE_MAX_EARTH * EARTH_KG
-    assert max(d.core_kg for d in draws) > 12.0 * EARTH_KG
+    assert max(d.core_kg for d in draws) < tuning.PLANET_INNER_CORE_MAX_EARTH * EARTH_KG
 
 
 def test_cooler_stars_keep_more_of_their_solids_than_the_dust_law_gives(monkeypatch):

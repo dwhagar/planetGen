@@ -78,10 +78,12 @@ GIANT_GAS_SURVIVAL_SHARE = 0.79
 # the critical mass before the gas is gone (direct imaging finds giants beyond 10 AU around about 1 percent of stars).
 GIANT_GAS_SURVIVAL_CUT_AU = 9.022
 # A core that finds no gas stops growing near an ice giant's mass (Uranus and Neptune are 14.5 and 17.1 Earth masses): the
-# late solids are not all added to it, and a heavier core binds gas and runs away or is rare (the hot-Neptune desert; the
-# mass function of close-in planets falls above 15 to 30 Earth masses, registry row PM8). Earth masses. It holds inside the snow
-# line too since GEN.1861, which retired the tuned 12 Earth masses that piled 0.08 planets a star at 11.5 to 12.
+# late solids beyond the snow line are not all added to it. Earth masses.
 GIANT_NO_GAS_CORE_MAX_EARTH = 20.0
+# The most a solid core inside the snow line reaches without gas, in Earth masses: heavier rock-and-iron cores bind a hydrogen
+# envelope and either run away or are rare (the hot-Neptune desert; super-Earths top out at 10 to 20 Earth masses: Fulton et al.
+# 2017, Owen and Wu 2013, recalled). A planetGen stand-in (tier L3), tuned with the pull of the outer-disk taper below.
+PLANET_INNER_CORE_MAX_EARTH = 12.0
 # How sharply a core is pressed under its cap (`planet_mass.saturate_kg`): the larger, the closer to its own mass until the cap.
 PLANET_CORE_SATURATION_SHARPNESS = 4.0
 # A runaway giant is at least this heavy: below it the envelope has not yet outweighed the core (Earth masses).
