@@ -47,7 +47,7 @@ from planetgen import tuning
 from planetgen.galaxy import profile
 from planetgen.generation import multistar, scatter_companions, star_population
 from planetgen.generation.phenomena import system_types
-from planetgen.physics import roche
+from planetgen.physics import remnant_mass, roche
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from tests.audit import multiplicity
@@ -82,9 +82,6 @@ GROUP_MASS_RANGE_SOL = (9.0, 60.0)
 
 WHITE_DWARF_MIN_WINDOW_GY = 0.5
 """float: A white dwarf is drawn in the populations whose age window reaches this old (a younger population has made none)."""
-
-WHITE_DWARF_MASS_SOL = 0.6
-"""float: The mass of the white dwarf rows (the audit's, not the generator's: the tree reads it as the placed mass)."""
 
 REGIONS = tuple(representation.REGION_POINTS)
 """tuple: The region classes, by name."""
@@ -168,7 +165,7 @@ def draw_row(sample, region, seed):
         else:
             birth, age_gy = 1.0, max(high, 10.0)
         info = Row(sample, region, population, birth, age_gy, "VII", 0.0, seed)
-        return info, multiplicity._star_row(seed, birth, age_gy, WHITE_DWARF_MASS_SOL, "VII")
+        return info, multiplicity._star_row(seed, birth, age_gy, remnant_mass.white_dwarf_mass_sol(birth), "VII")      # the product's initial-final relation: the merger share and the pair types read the mass
     star = star_population.sample_mass_band_stars(1, multistar.companion_floor_solar(), None, population, rng=draw.Stream(seed))[0]
     row = list(multiplicity._star_row(seed, star["initial_mass_sol"], star["age_gy"], star["mass_kg"] / multiplicity.constants.SOLAR_MASS_TO_KG,
                                       star["yerkes_class"]))
