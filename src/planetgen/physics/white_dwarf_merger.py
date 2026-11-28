@@ -14,7 +14,7 @@ share down to `tuning.WHITE_DWARF_MERGER_FLOOR_SOL`.
 The generator's white dwarfs already have the mass the initial-final relation gives (`remnant_mass`), a tail of heavy ones among them, so
 a merger product is a white dwarf of that mass that the share flags, not one with a mass of its own: a second draw of the mass would
 count the heavy ones twice (a white dwarf of 0.7 solar masses or more is 23 percent of the old ones the relation gives, 11 percent of the
-100 pc sample of [R5354]). Over an old population the share comes to 8 to 12 percent of the white dwarfs, inside [R5354]'s 14 percent
+100 pc sample of [R5354]; from 0.65 it is more). Over an old population the share comes to 8 to 12 percent of the white dwarfs, inside [R5354]'s 14 percent
 with its factor of 2.
 """
 

@@ -2270,9 +2270,11 @@ WHITE_DWARF_MERGER_BELOW_SHARE = 0.25
 """float: The share of the white dwarfs between `WHITE_DWARF_MERGER_FLOOR_SOL` and 0.9 solar masses that are merger products. [R5354]
 puts 25 percent of the stars of 0.7 to 1 solar mass in the secondary peak at 0.80 solar masses, which is also [R5355]'s share at 0.9 to 1;
 the peak is not all mergers, so this is a stand-in. Tier T3, tweak level L0 (registry row WM2)."""
-WHITE_DWARF_MERGER_FLOOR_SOL = 0.7
-"""float: The lightest white dwarf that can be a merger product, solar masses: the lower edge of the secondary peak of [R5354] (stars of
-0.7 to 1 solar mass); no source gives the edge itself. Tier T4, tweak level L0 (registry row WM3)."""
+WHITE_DWARF_MERGER_FLOOR_SOL = 0.65
+"""float: The lightest white dwarf that can be a merger product, solar masses: [R5354]'s secondary peak is of stars of 0.7 to 1 solar mass and
+no source gives the edge itself, so it is nudged below that range's lower edge (0.7) to 0.65, inside its 0.6 to 0.8 uncertainty (GEN.1896): at
+0.7 an old population came to 7.4 percent flagged, under [R5354]'s 8 to 12 percent, at 0.65 it is 10.8 percent. Tier T4, tweak level L1
+(registry row WM3)."""
 
 # The blue stragglers of the globular clusters (GEN.326, docs/design/research/gap-filling-plan.md 6.331, rows BN1 to BN4).
 CLUSTER_BLUE_STRAGGLER_CORE_MASS_EXPONENT = 0.38

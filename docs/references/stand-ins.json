@@ -80047,7 +80047,7 @@
           "fields": [
             [
               "Evidence",
-              "[R5354] reads the secondary peak from stars of 0.7 to 1 solar masses; no source gives the lowest mass of a merger product, so 0.7 is the lower edge of that range, not a measurement"
+              "[R5354] reads the secondary peak from stars of 0.7 to 1 solar masses; no source gives the lowest mass of a merger product, so the floor is nudged from that range's lower edge (0.7) to 0.65 inside its 0.6 to 0.8 uncertainty (GEN.1896): the census of the white dwarf types (TEST.164) found 7.4 percent of old white dwarfs flagged at 0.7, under the 8 to 12 percent of [R5354], and 0.65 gives 10.8 percent (9.7 to 11.9 over the region classes)"
             ],
             [
               "What it is",
@@ -80055,7 +80055,7 @@
             ],
             [
               "The range it moves in",
-              "0.7 solar masses (0.6 to 0.8)"
+              "0.65 solar masses (0.6 to 0.8)"
             ],
             [
               "Where it holds",
@@ -80076,7 +80076,7 @@
           "slug": "6-330-wm3",
           "tier": "T4",
           "tier_code": "T4",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
           "what": "tuning.WHITE_DWARF_MERGER_FLOOR_SOL"
         }

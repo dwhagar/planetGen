@@ -228,12 +228,13 @@ def run(monkeypatch, names=None, sectors=SECTORS, workers=None):
     return audit.Census(regions), fill, names
 
 
-def report(sectors=SECTORS, multiplicity=False):
+def report(sectors=SECTORS, multiplicity=False, catalogue=False):
     """
     Runs the audit and returns `(text, findings)`: the census report of `audit.format_report` for every region, and the
     kinds that broke a rule, the `PLACEMENT_LIMITED` ones included (listed under the report). With `multiplicity` the
     multiplicity audit (TEST.162, `tests.audit.multiplicity`: a million rows of each placed class) follows it, its failed checks
-    among the findings.
+    among the findings; with `catalogue` so does the catalogue type audit (TEST.164, `tests.audit.catalogue`: a million systems of
+    each region class, about an hour).
     """
     import pytest
     patch = pytest.MonkeyPatch()
@@ -248,12 +249,18 @@ def report(sectors=SECTORS, multiplicity=False):
     text += "\nPlacement-limited kinds (never more than the rate allows): " + (
         "all within the rate\n" if not limited else "; ".join(
             f"{f.region}/{f.label()} observed {f.observed}, at most {f.expected:.1f}" for f in limited) + "\n")
+    findings = findings + limited
     if multiplicity:
         from tests.audit import multiplicity as multiplicity_audit
         extra, failed = multiplicity_audit.report()
         text += "\n" + extra
-        return text, findings + limited + failed
-    return text, findings + limited
+        findings = findings + failed
+    if catalogue:
+        from tests.audit import catalogue as catalogue_audit
+        extra, failed = catalogue_audit.report()
+        text += "\n" + extra
+        findings = findings + failed
+    return text, findings
 
 
 def main(argv=None):
@@ -266,8 +273,10 @@ def main(argv=None):
     parser.add_argument("--sectors", type=int, default=SECTORS)
     parser.add_argument("--no-multiplicity", action="store_true",
                         help="leave out the multiplicity audit (TEST.162), which draws a million rows of each placed class and takes minutes")
+    parser.add_argument("--no-catalogue", action="store_true",
+                        help="leave out the catalogue type audit (TEST.164), which draws a million systems of each region class and takes about an hour")
     options = parser.parse_args(argv)
-    text, findings = report(options.sectors, multiplicity=not options.no_multiplicity)
+    text, findings = report(options.sectors, multiplicity=not options.no_multiplicity, catalogue=not options.no_catalogue)
     sys.stdout.write(text)
     if options.path:
         with open(options.path, "w", encoding="utf-8") as handle:
