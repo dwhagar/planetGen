@@ -5725,7 +5725,7 @@
           "fields": [
             [
               "Evidence",
-              "TUNED (the integration of the hydro-based rate of [R2512] starts at this age; from the 10 Myr of disc dispersal every core under 15 Earth masses strips inside 30 days and no valley comes out, so the start that puts the radius valley at 1.84 Earth radii and its slope at -0.11 is taken; the loss before it is folded into the starting envelope); source tier 9, tweak level 3"
+              "TUNED (the integration of the hydro-based rate of [R2512] starts at this age; from the 10 Myr of disc dispersal every core under 15 Earth masses strips inside 30 days and no valley comes out, so the start that puts the radius valley at 1.84 Earth radii and its slope at -0.11 is taken; the loss before it is folded into the starting envelope; GEN.1860 measured it again, with the core-powered loss of [R1734] as the alternative, and kept 1 Gyr: the later starts that flatten the slope at the generator's own core-mass spread (-0.200 at 1 Gyr, -0.180 at 2 Gyr) lower the valley below its target (1.84 at 2 Gyr, 1.73 at 3 Gyr) and fail the slope and Berger mass-slope tests at the tuned width); source tier 9, tweak level 3"
             ],
             [
               "What it is",
@@ -7163,7 +7163,7 @@
           "fields": [
             [
               "What it is",
-              "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
+              "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; the width of the generator's own inner planets is about 0.65 and at it the survey gives slope -0.20 and valley 1.91 Earth radii (GEN.1860), so the slope target holds only at this tuned width; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
             ],
             [
               "The range it moves in",
@@ -7194,7 +7194,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": "by design",
-          "what": "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
+          "what": "radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; the width of the generator's own inner planets is about 0.65 and at it the survey gives slope -0.20 and valley 1.91 Earth radii (GEN.1860), so the slope target holds only at this tuned width; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822)"
         },
         {
           "burn_down": [
@@ -12557,7 +12557,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass)"
+              "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass; inside the snow line too since GEN.1861, which retired the tuned 12 Earth-mass inner cap)"
             ],
             [
               "The range it moves in",
@@ -12565,7 +12565,7 @@
             ],
             [
               "Where it holds",
-              "beyond the snow line"
+              "any solid core, inside or beyond the snow line"
             ],
             [
               "What would show it wrong",
@@ -12577,7 +12577,7 @@
             ],
             [
               "Evidence",
-              "READ-level facts (Uranus 14.5 and Neptune 17.1 Earth masses) with a recalled microlensing occurrence [R4271]"
+              "READ-level facts (Uranus 14.5 and Neptune 17.1 Earth masses) with a recalled microlensing occurrence [R4271]; the generated 10 to 30 Earth-mass share at orbits under 50 days (0.14 a star) runs about 3 times the integrated radial-velocity occurrence [R5371], and the mass function of [R5372] is still to be compared (GEN.1870)"
             ]
           ],
           "id": "PM8",
@@ -12588,7 +12588,7 @@
           "tier_code": "T5",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass)"
+          "what": "tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass; inside the snow line too since GEN.1861, which retired the tuned 12 Earth-mass inner cap)"
         },
         {
           "burn_down": null,
@@ -43809,7 +43809,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
+              "envelope_capture.MEDIAN_START 0.025: the median envelope a rocky planet of 2.3 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711), then 0.04, the fitted value itself; GEN.1845 moved it to 0.025, the low edge of the fitted interval (L1), because heavy cores (8 to 12 Earth masses) were untuned in the valley survey (core-mass width 0.25 against the generator's 1.06 in ln) and kept 3 percent at 40 days: 3.33 to 4.12 Earth radii held 0.089 planets a star against 0.034 of [R1478]"
             ],
             [
               "The range it moves in",
@@ -43817,7 +43817,7 @@
             ],
             [
               "Where it holds",
-              "rocky planets of 2.7 to 20 Earth masses"
+              "rocky planets of 2.3 to 20 Earth masses"
             ],
             [
               "What would show it wrong",
@@ -43829,7 +43829,7 @@
             ],
             [
               "Evidence",
-              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8, 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
+              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8) and at 0.025 (z 0.16 and 0.64; 0.02 fails at z 2.4; 24 surveys of 4000 planets; 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
             ]
           ],
           "id": "EC1",
@@ -43838,9 +43838,9 @@
           "slug": "6-206-ec1",
           "tier": "T1",
           "tier_code": "T1",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
+          "what": "envelope_capture.MEDIAN_START 0.025: the median envelope a rocky planet of 2.3 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711), then 0.04, the fitted value itself; GEN.1845 moved it to 0.025, the low edge of the fitted interval (L1), because heavy cores (8 to 12 Earth masses) were untuned in the valley survey (core-mass width 0.25 against the generator's 1.06 in ln) and kept 3 percent at 40 days: 3.33 to 4.12 Earth radii held 0.089 planets a star against 0.034 of [R1478]"
         },
         {
           "burn_down": [
@@ -43851,7 +43851,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
+              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.3 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, then 0.025 at GEN.1845, the planets of 1 to 2.3 Earth masses keep their starts)"
             ],
             [
               "The range it moves in",
@@ -43882,7 +43882,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
+          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.3 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, then 0.025 at GEN.1845, the planets of 1 to 2.3 Earth masses keep their starts)"
         },
         {
           "burn_down": null,

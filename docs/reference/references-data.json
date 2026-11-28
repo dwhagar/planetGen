@@ -232303,6 +232303,62 @@
    "volume": "329",
    "year": 2010
   },
+  "10.1126/science.1194854": {
+   "arxiv": "1011.0143",
+   "authors": [
+    [
+     "Howard",
+     "A. W."
+    ],
+    [
+     "Marcy",
+     "G. W."
+    ],
+    [
+     "Johnson",
+     "J. A."
+    ],
+    [
+     "Fischer",
+     "D. A."
+    ],
+    [
+     "Wright",
+     "J. T."
+    ],
+    [
+     "Isaacson",
+     "H."
+    ],
+    [
+     "Valenti",
+     "J. A."
+    ],
+    [
+     "Anderson",
+     "J."
+    ],
+    [
+     "Lin",
+     "D. N. C."
+    ],
+    [
+     "Ida",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1194854",
+   "editors": [],
+   "journal": "Science",
+   "page": "653",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "The Occurrence and Mass Distribution of Close-in Super-Earths, Neptunes, and Jupiters",
+   "type": "journal-article",
+   "volume": "330",
+   "year": 2010
+  },
   "10.1126/science.1204054": {
    "authors": [
     [
@@ -279446,6 +279502,76 @@
    "volume": "",
    "year": 2011
   },
+  "arXiv:1109.2497": {
+   "arxiv": "1109.2497",
+   "authors": [
+    [
+     "Mayor",
+     "M."
+    ],
+    [
+     "Marmier",
+     "M."
+    ],
+    [
+     "Lovis",
+     "C."
+    ],
+    [
+     "Udry",
+     "S."
+    ],
+    [
+     "Ségransan",
+     "D."
+    ],
+    [
+     "Pepe",
+     "F."
+    ],
+    [
+     "Benz",
+     "W."
+    ],
+    [
+     "Bertaux",
+     "J. L."
+    ],
+    [
+     "Bouchy",
+     "F."
+    ],
+    [
+     "Dumusque",
+     "X."
+    ],
+    [
+     "Curto",
+     "G. L."
+    ],
+    [
+     "Mordasini",
+     "C."
+    ],
+    [
+     "Queloz",
+     "D."
+    ],
+    [
+     "Santos",
+     "N. C."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "The HARPS search for southern extra-solar planets XXXIV. Occurrence, mass distribution and orbital properties of super-Earths and Neptune-mass planets",
+   "type": "preprint",
+   "volume": "",
+   "year": 2011
+  },
   "arXiv:1109.4588": {
    "arxiv": "1109.4588",
    "authors": [
@@ -288341,7 +288467,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5368,
+ "id_next": 5373,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -292460,6 +292586,7 @@
   "10.1126/science.1190371": "R5018",
   "10.1126/science.1191127": "R0760",
   "10.1126/science.1192448": "R1375",
+  "10.1126/science.1194854": "R5371",
   "10.1126/science.1204054": "R0047",
   "10.1126/science.1209840": "R4447",
   "10.1126/science.1211567": "R3297",
@@ -293563,6 +293690,7 @@
   "arxiv:1010.5550": "R3327",
   "arxiv:1010.5654": "R1029",
   "arxiv:1010.5847": "R4713",
+  "arxiv:1011.0143": "R5371",
   "arxiv:1011.1459": "R1328",
   "arxiv:1011.5655": "R4456",
   "arxiv:1012.3220": "R0335",
@@ -293601,6 +293729,7 @@
   "arxiv:1108.5631": "R0561",
   "arxiv:1108.6206": "R2843",
   "arxiv:1109.0996": "R1143",
+  "arxiv:1109.2497": "R5372",
   "arxiv:1109.4096": "R2931",
   "arxiv:1109.4330": "R1532",
   "arxiv:1109.4588": "R4999",

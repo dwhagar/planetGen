@@ -14808,7 +14808,7 @@
     },
     "R2962": {
       "kind": "paper",
-      "label": "Mayor et al. 2011",
+      "label": "Mayor et al. 2011b",
       "title": "Exoplanets: the quest for Earth twins"
     },
     "R2963": {
@@ -26760,6 +26760,16 @@
       "kind": "paper",
       "label": "Leigh et al. 2012",
       "title": "The origins of blue stragglers and binarity in globular clusters"
+    },
+    "R5371": {
+      "kind": "paper",
+      "label": "Howard et al. 2010",
+      "title": "The Occurrence and Mass Distribution of Close-in Super-Earths, Neptunes, and Jupiters"
+    },
+    "R5372": {
+      "kind": "paper",
+      "label": "Mayor et al. 2011a",
+      "title": "The HARPS search for southern extra-solar planets XXXIV. Occurrence, mass distribution and orbital properties of super-Earths and Neptune-mass planets"
     }
   }
 }

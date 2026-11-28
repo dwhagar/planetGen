@@ -6,10 +6,10 @@
   "papers": {
     "books": 31,
     "datasets": 26,
-    "entries": 5258,
-    "with_arxiv": 1559,
-    "with_doi": 5016,
-    "without_doi": 242
+    "entries": 5260,
+    "with_arxiv": 1561,
+    "with_doi": 5017,
+    "without_doi": 243
   },
   "stand_ins": {
     "by_tier": {
@@ -24,8 +24,8 @@
       "T9": 245
     },
     "by_tweak": {
-      "L0": 1168,
-      "L1": 434,
+      "L0": 1167,
+      "L1": 435,
       "L2": 108,
       "L3": 279,
       "L4": 66

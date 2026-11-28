@@ -199,7 +199,7 @@ def test_a_rogue_planet_keeps_the_whole_envelope_it_started_with(host_star, mass
             start = rogue.build.captured_envelope
             assert rogue.envelope_mass_fraction == pytest.approx(start)      # no light, no loss: what it started with
             assert 0.0 < start <= envelope_capture.MAX_START + 1e-9
-            assert rogue.radius > rogue.build.bare_core["radius"] * 1.15
+            assert rogue.radius > rogue.build.bare_core["radius"] * 1.05       # 1.15 until GEN.1845: a start of 1.2 percent on a 12 Earth-mass core (the thin tail of the median 0.025) adds 10 percent
             assert planet_type.planet_type(rogue) in (planet_type.TRANSITIONAL, planet_type.TERRESTRIAL)
             assert planet_classes.classify(rogue) == rogue.planet_class
             if rogue.envelope_mass_fraction >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
