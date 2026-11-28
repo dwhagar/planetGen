@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2056 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2057 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2029 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2030 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,14 +51,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 233 | 23 | 12 | 1 | 0 | 269 |
 | T2 | 190 | 78 | 5 | 0 | 0 | 273 |
-| T3 | 137 | 71 | 12 | 10 | 0 | 230 |
+| T3 | 137 | 72 | 12 | 10 | 0 | 231 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
 | T6 | 258 | 146 | 43 | 85 | 8 | 540 |
 | T7 | 78 | 48 | 11 | 31 | 0 | 168 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 56 | 20 | 7 | 120 | 42 | 245 |
-| All | 1168 | 434 | 109 | 279 | 66 | 2056 |
+| All | 1168 | 435 | 109 | 279 | 66 | 2057 |
 
 ## How the labels were given
 
@@ -3661,3 +3661,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | BHM1 | P | T6 | L2 | `fryer_remnants.mass_trend` over the stars of `remnant_progenitors.kind_windows("black-hole")` at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and `tuning.BLACK_HOLE_MASS_TOP_SOLAR` 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50 | the top 40 to 56 (the lower edge of the pair-instability gap 45, the carbon-oxygen reaction rate's one-sigma range, [R5365]); the windows' shape (the failed share) | stellar-mass black holes of any place with a metallicity (members, composition, scattered and filled holes); not the intermediate-mass or supermassive holes | a measured mass distribution of the holes of a metal-poor population (a dwarf galaxy, the halo) with no hole heavier than 20 solar masses, or the disk's holes as heavy as the halo's | a mass from the progenitor itself once the progenitor is drawn before the mass (the standalone remnants draw the mass first, `docs/design/systems/black-hole-mass-by-metals.md`) | [R1466]'s fits are of the delayed engine's baryonic masses at the paper's grid of metallicities, and at the sun they leave the wind-stripped stars of the top of the failure windows at 2 to 3 solar masses, below any observed hole, so only their trend is used; the anchor holds the observed holes of the disk (the X-ray binaries of [R3397], 7.8 +- 1.2 chosen by flux, and the 5 to 28 of [R1328]) and the simulated 14.2 and 11.7 of [R3348]; observed in the Galaxy's X-ray binaries and in gravitational waves (the heavy holes of the metal-poor places, tens of solar masses) | predicted only | - | - |
+
+## 6.338 Stand-in of the heaviest star that holds planets (GEN.1866)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PH1 | B | T3 | L1 | `tuning.PLANET_HOST_MAX_MASS_SOLAR` 10: a star of 10 solar masses at birth or more holds no planet; below it the generator is unchanged | 6 to 15 solar masses | stars with a birth mass at and above the cut, single or the primary of a pair | a planet found around a single star over 10 solar masses, or a disk survey of O stars with disks past 1 Myr | a smooth decline of the share of stars that hold giants from 3 to 10 solar masses (the radial-velocity occurrence falls off above about 2.5 to 3), and a formation-time model of the disks of the O and early B stars | b Cen (AB)b: host 6 to 10 solar masses, one giant at 556 AU [R5369]; mu2 Sco b: host about 9 solar masses [R5370]; the occurrence of giants falls above 2.5 to 3 solar masses [R2172, R5368]; all second hand, the papers not read; the generator holds no giant-core growth time and the disk law is flat above 1.3 solar masses, so the cut cannot be derived from them | predicted only | - | - |

@@ -45,7 +45,7 @@ Minimum separation (Hill spheres)
 Random placement (`add_system` with no explicit `position`) keeps two systems
 from landing so close together that they'd gravitationally interfere with
 each other, using physics this package already computes for every system:
-each `Star`/`BinaryStarProxy` has a `system_perimeter` (its Hill sphere
+each `Star`/`PairHost` has a `system_perimeter` (its Hill sphere
 *relative to the Milky Way* -- see `Star.calculate_system_perimeter` --
 i.e. the radius beyond which the galaxy's own gravity dominates over the
 star's, roughly the same concept that sets the outer edge of the Oort
@@ -259,7 +259,7 @@ def hill_radius_ly(obj):
     galaxy, in light-years -- see "Minimum separation (Hill spheres)" in
     the module docstring.
 
-    Every generated `Star` (and `BinaryStarProxy`, for binary systems)
+    Every generated `Star` (and `PairHost`, for binary systems)
     already computes this at generation time as `system_perimeter`, in AU
     (see `Star.calculate_system_perimeter`). Accepts either a `StarSystem`
     (reading `.star.system_perimeter`) or a bare `Star`-like object that

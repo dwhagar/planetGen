@@ -130588,6 +130588,133 @@
    "volume": "600",
    "year": 2021
   },
+  "10.1038/s41586-021-04124-8": {
+   "authors": [
+    [
+     "Janson",
+     "M."
+    ],
+    [
+     "Gratton",
+     "R."
+    ],
+    [
+     "Rodet",
+     "L."
+    ],
+    [
+     "Vigan",
+     "A."
+    ],
+    [
+     "Bonnefoy",
+     "M."
+    ],
+    [
+     "Delorme",
+     "P."
+    ],
+    [
+     "Mamajek",
+     "E. E."
+    ],
+    [
+     "Reffert",
+     "S."
+    ],
+    [
+     "Stock",
+     "L."
+    ],
+    [
+     "Marleau",
+     "G. D."
+    ],
+    [
+     "Langlois",
+     "M."
+    ],
+    [
+     "Chauvin",
+     "G."
+    ],
+    [
+     "Desidera",
+     "S."
+    ],
+    [
+     "Ringqvist",
+     "S."
+    ],
+    [
+     "Mayer",
+     "L."
+    ],
+    [
+     "Viswanath",
+     "G."
+    ],
+    [
+     "Squicciarini",
+     "V."
+    ],
+    [
+     "Meyer",
+     "M. R."
+    ],
+    [
+     "Samland",
+     "M."
+    ],
+    [
+     "Petrus",
+     "S."
+    ],
+    [
+     "Helled",
+     "R."
+    ],
+    [
+     "Kenworthy",
+     "M. A."
+    ],
+    [
+     "Quanz",
+     "S. P."
+    ],
+    [
+     "Biller",
+     "B."
+    ],
+    [
+     "Henning",
+     "T."
+    ],
+    [
+     "Mesa",
+     "D."
+    ],
+    [
+     "Engler",
+     "N."
+    ],
+    [
+     "Carson",
+     "J. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41586-021-04124-8",
+   "editors": [],
+   "journal": "Nature",
+   "page": "231",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A wide-orbit giant planet in the high-mass b Centauri binary system",
+   "type": "journal-article",
+   "volume": "600",
+   "year": 2021
+  },
   "10.1038/s41586-021-04286-5": {
    "authors": [
     [
@@ -138510,6 +138637,41 @@
    "type": "journal-article",
    "volume": "563",
    "year": 2014
+  },
+  "10.1051/0004-6361/201322360": {
+   "authors": [
+    [
+     "Reffert",
+     "S."
+    ],
+    [
+     "Bergmann",
+     "C."
+    ],
+    [
+     "Quirrenbach",
+     "A."
+    ],
+    [
+     "Trifonov",
+     "T."
+    ],
+    [
+     "Künstler",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201322360",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A116",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Precise radial velocities of giant stars",
+   "type": "journal-article",
+   "volume": "574",
+   "year": 2015
   },
   "10.1051/0004-6361/201322531": {
    "authors": [
@@ -146926,6 +147088,129 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "667",
+   "year": 2022
+  },
+  "10.1051/0004-6361/202243675": {
+   "authors": [
+    [
+     "Squicciarini",
+     "V."
+    ],
+    [
+     "Gratton",
+     "R."
+    ],
+    [
+     "Janson",
+     "M."
+    ],
+    [
+     "Mamajek",
+     "E. E."
+    ],
+    [
+     "Chauvin",
+     "G."
+    ],
+    [
+     "Delorme",
+     "P."
+    ],
+    [
+     "Langlois",
+     "M."
+    ],
+    [
+     "Vigan",
+     "A."
+    ],
+    [
+     "Ringqvist",
+     "S. C."
+    ],
+    [
+     "Meeus",
+     "G."
+    ],
+    [
+     "Reffert",
+     "S."
+    ],
+    [
+     "Kenworthy",
+     "M."
+    ],
+    [
+     "Meyer",
+     "M. R."
+    ],
+    [
+     "Bonnefoy",
+     "M."
+    ],
+    [
+     "Bonavita",
+     "M."
+    ],
+    [
+     "Mesa",
+     "D."
+    ],
+    [
+     "Samland",
+     "M."
+    ],
+    [
+     "Desidera",
+     "S."
+    ],
+    [
+     "D’Orazi",
+     "V."
+    ],
+    [
+     "Engler",
+     "N."
+    ],
+    [
+     "Alecian",
+     "E."
+    ],
+    [
+     "Miglio",
+     "A."
+    ],
+    [
+     "Henning",
+     "T."
+    ],
+    [
+     "Quanz",
+     "S. P."
+    ],
+    [
+     "Mayer",
+     "L."
+    ],
+    [
+     "Flasseur",
+     "O."
+    ],
+    [
+     "Marleau",
+     "G. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202243675",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A9",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "A scaled-up planetary system around a supernova progenitor",
+   "type": "journal-article",
+   "volume": "664",
    "year": 2022
   },
   "10.1051/0004-6361/202244164": {
@@ -288404,7 +288689,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5370,
+ "id_next": 5371,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -290125,6 +290410,7 @@
   "10.1038/s41586-021-03869-6": "R0415",
   "10.1038/s41586-021-03912-6": "R2701",
   "10.1038/s41586-021-04095-w": "R3161",
+  "10.1038/s41586-021-04124-8": "R5369",
   "10.1038/s41586-021-04286-5": "R4916",
   "10.1038/s41586-022-05591-3": "R0064",
   "10.1038/s41586-022-05629-6": "R3155",
@@ -290264,6 +290550,7 @@
   "10.1051/0004-6361/201322284": "R1088",
   "10.1051/0004-6361/201322342": "R3439",
   "10.1051/0004-6361/201322343": "R3897",
+  "10.1051/0004-6361/201322360": "R5368",
   "10.1051/0004-6361/201322531": "R3523",
   "10.1051/0004-6361/201322597": "R5305",
   "10.1051/0004-6361/201322631": "R0349",
@@ -290405,6 +290692,7 @@
   "10.1051/0004-6361/202243251": "R3722",
   "10.1051/0004-6361/202243377": "R4800",
   "10.1051/0004-6361/202243612": "R0718",
+  "10.1051/0004-6361/202243675": "R5370",
   "10.1051/0004-6361/202244164": "R2466",
   "10.1051/0004-6361/202244308": "R1167",
   "10.1051/0004-6361/202245625": "R2013",

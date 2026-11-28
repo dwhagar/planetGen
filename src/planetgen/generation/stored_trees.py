@@ -9,7 +9,7 @@ nothing draws the same tree (`multistar.draw_member_tree`) around its primary. E
 and orbits: `plan` turns a stored tree, and `drawn` a tree just drawn, into what `StarSystem(member_tree=...)` takes, and
 the build draws no companion of its own.
 
-The pair class (`binary.BinaryStarProxy`, and `pair_orbit.PairOrbit` for the pair's orbit) holds exactly two ordinary stars, so a system
+The pair class (`pair_host.PairHost`, and `pair_orbit.PairOrbit` for the pair's orbit) holds exactly two ordinary stars, so a system
 built from a tree has one pair, the two stars of a node whose children are both stars (the node of the placed
 object when it is one, else the heaviest), and every other star hangs in the tree as one of the system's `member_stars` (GEN.630). A tree
 builds when each member is a star `Star` makes from a birth mass and an age. Any other stored tree (a neutron star, a
