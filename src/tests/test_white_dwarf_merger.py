@@ -12,7 +12,7 @@ from planetgen.generation import multistar
 from planetgen.physics import imf, ms_lifetime, remnant_mass, white_dwarf_merger
 
 
-@pytest.mark.parametrize("mass, share", [(0.5, 0.0), (0.69, 0.0), (0.7, 0.25), (0.89, 0.25), (0.9, 0.25), (1.0, 0.36), (1.1, 0.78),
+@pytest.mark.parametrize("mass, share", [(0.5, 0.0), (0.64, 0.0), (0.65, 0.25), (0.69, 0.25), (0.7, 0.25), (0.89, 0.25), (0.9, 0.25), (1.0, 0.36), (1.1, 0.78),
                                          (1.2, 0.49), (1.3, 0.38), (1.35, 0.38), (1.4, 0.38)])
 def test_the_share_of_a_mass_is_the_bin_it_is_in(mass, share):
     assert white_dwarf_merger.merger_fraction(mass) == share
