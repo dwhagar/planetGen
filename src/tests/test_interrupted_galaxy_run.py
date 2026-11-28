@@ -26,10 +26,13 @@ START_WAIT_SECONDS = 480
 not a speed: a gate that saturates the machine took longer than 120 s, and a run that dies fails at once whatever this is."""
 
 GALAXY_SHELL = 5
-# Enough systems per sector that a loaded machine cannot finish the whole
-# run between the first sector being saved and the test's signal landing
-# (TEST.101: with 6 the run sometimes ended on its own, exit status 0).
-NUM_SYSTEMS = 16
+# The test is about interrupting a run, not about generation size, so a sector holds two systems (more than one, so the
+# signal can land between two systems of a sector): the first sector is saved in an eighth of the time (TEST.822 and
+# TEST.851: with 16 systems at about 27 s each the first sector took 425 s on a quiet box, and with 4 systems one of three
+# cases took 350 s and two passed 480 s while the box was shared, too close to START_WAIT_SECONDS). The run still cannot end on its own between the first sector being
+# saved and the test's signal landing (TEST.101): shell 5 plans 296 sectors for 2 workers, so after the first sector
+# the run has about 147 more rounds of sectors to go, hours of work, and the signal lands within seconds of the save.
+NUM_SYSTEMS = 2
 
 
 def _sector_counts(config):
