@@ -310,10 +310,6 @@ system's navigation frame) with <code>heliopause_open_space_au</code>
 shape, not the generation object graph&quot; relationship to
 <code>planetgen.db.store.load_star_system(...).to_dict()</code> as <code>/api/sectors/&lt;id&gt;</code>
 above.</li>
-<li><code>GET /api/moons/&lt;id&gt;/description</code> — the description of a moon of a free planet (UX.138): a moon that circles a wanderer belongs to no
-system, so it has no system description to read its words from. The same Document shape as above, one <code>moon</code> section holding the
-moon's own facts, ratings, composition and prose (no sky: a free planet has no star). 404 for an id that is no moon and for a moon of a
-planet in a system, whose words are in the system's description.</li>
 <li><code>GET /api/systems/&lt;id&gt;/description</code> — the system's description (API.25,
 <code>planetgen/describe/</code>, <code>docs/design/architecture/system-description.md</code>): <code>{&quot;kind&quot;: &quot;system&quot;, &quot;ref&quot;, &quot;title&quot;, &quot;sections&quot;: [...]}</code>. A section has a <code>kind</code>
 (<code>system</code>, <code>star</code>, <code>pair</code>, <code>planet</code>, <code>moon</code>, <code>belt</code>, <code>comet</code>), a <code>ref</code>

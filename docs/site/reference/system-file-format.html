@@ -300,8 +300,8 @@ A real class that the draws cannot reach at that place is listed as an
 unmet requirement in the generated system.</li>
 </ul>
 <h2 id="planet-classes">Planet classes</h2>
-<p>These are the class letters valid for <code>slots[].planet_class</code>: every letter below (no letter is reserved now:
-Q names the hot world again, GEN.1618). A class is not drawn first. It is read off the finished body: the generator builds the whole planet (mass,
+<p>These are the class letters valid for <code>slots[].planet_class</code>: every letter below (Q is the only reserved letter and is
+not valid). A class is not drawn first. It is read off the finished body: the generator builds the whole planet (mass,
 make, air, temperature, water), then gives it the class it fits best. Every class has its own conditions in
 <code>src/planetgen/physics/data/planet_class_fit.json</code>; a condition just outside its edge lowers the match instead of ruling
 the class out, and the class with the highest match wins (a tie goes to the class with more conditions, then to the
@@ -328,7 +328,7 @@ web interface lists them for each letter.</p>
 <td><code>T</code></td>
 <td>Gas dwarf</td>
 <td>gas giant</td>
-<td>Hydrogen 30 percent or more of the air and under 10 Earth masses, a thick hydrogen and helium envelope over a solid interior.</td>
+<td>Under 10 Earth masses. A rocky body with a hydrogen and helium envelope of 0.5 percent of its mass or more is judged by the giant classes.</td>
 </tr>
 <tr>
 <td><code>I</code></td>
@@ -442,7 +442,7 @@ web interface lists them for each letter.</p>
 <td><code>O</code></td>
 <td>Ocean world</td>
 <td>terrestrial</td>
-<td>M's too wet: water over 95 percent of the surface (a global ocean with at most islands), mean 275 to 312 K, oxygen 16 to 35.5 kPa.</td>
+<td>M's too wet: water over 80 percent of the surface, mean 275 to 312 K, oxygen 16 to 35.5 kPa.</td>
 </tr>
 <tr>
 <td><code>H</code></td>
@@ -454,7 +454,7 @@ web interface lists them for each letter.</p>
 <td><code>M</code></td>
 <td>Temperate world</td>
 <td>terrestrial</td>
-<td>Mean 275 to 305 K, liquid water over 20 to 95 percent of the surface, oxygen 16 to 35.5 kPa, carbon dioxide under 1 kPa, air 50 to 250 kPa, 0.75 to 2 g.</td>
+<td>Mean 275 to 305 K, liquid water over 20 to 80 percent of the surface, oxygen 16 to 35.5 kPa, carbon dioxide under 1 kPa, air 50 to 250 kPa, 0.75 to 2 g.</td>
 </tr>
 <tr>
 <td><code>R</code></td>
