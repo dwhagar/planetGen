@@ -38,15 +38,9 @@ def _star_offsets_au(system):
             system.orbit_nodes[0].epoch_unix, dark)))
     if len(stars) < 2:
         return [(stars[0], (0.0, 0.0, 0.0))]
-    if getattr(system, "binary_type", None) == "wide":
-        pair, template = system.pair_orbit, "{which}_position_{axis}_au"
-    else:
-        pair, template = system.star, "binary_{which}_position_{axis}"
-    offsets = []
-    for star, which in zip(stars, ("primary", "secondary")):
-        offsets.append((star, tuple(float(getattr(pair, template.format(which=which, axis=axis), 0.0) or 0.0)
-                                    for axis in _AXES)))
-    return offsets
+    pair = system.pair_orbit    # the pair's node, wide or close alike (GEN.640): each star's place about the pair's center of mass
+    return [(star, tuple(float(getattr(pair, f"{which}_position_{axis}_au")) for axis in _AXES))
+            for star, which in zip(stars, ("primary", "secondary"))]
 
 
 def galactic_velocity_ms(position, speed_kms):
