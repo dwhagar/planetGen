@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4856+db280.gen150.api14] - 2026-11-28
+
+**Headline:** The remake-after-an-orbit-change test keeps drawing systems until it has seen a moon carried to a new orbit, so it no longer depends on six seeds holding one.
+
+### Fixed
+- **`test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_present_state_out_again` failed on main with `'period' not in` the fields that moved (TEST.855).** A planet's own period does not move when the test pushes its distance out 12 percent and makes it again; the period that moves belongs to a moon the tide carries to a new orbit in the remake (`moon_history.apply` through `move_orbit`). The six seeds the test drew held such a moon on 11-17 (seed 2) and no longer do (seed 0 has one moon, already settled), so the check on the period failed with no fault in the product: moon numbers over 30 seeds are 33 on 519 rocky planets now against 32 on 403 on 11-17, and seed 7 shows the period move. The test now draws at least six seeds and goes on, to 40, only while the period, the temperature or the orbital speed has not yet been seen to move; the birth-field checks run on every body it draws. A seventh seed brought a second fault of the test: it held each solid fraction to 1e-6 of its first value, but the air takes its share out of the solids, and a planet with 3e-6 of its mass in air moves them by that much (`rock_mass_fraction` 0.7499969 against 0.75). A solid and the envelope are now held to the air's own share, before or after, which is what `envelope_share.fill` does; the air's helium and heavy-element shares keep 1e-6.
+
+generation-affects: none
+generation-output: unchanged
+
 ## [8.0.4855+db280.gen150.api14] - 2026-11-28
 
 **Headline:** The test that no lifeless oxygen world is drawn over 95 percent oxygen no longer demands the oxygen tail that a bookkeeping error had made.
