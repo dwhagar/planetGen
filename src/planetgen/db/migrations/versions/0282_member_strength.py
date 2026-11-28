@@ -1,6 +1,6 @@
 """The roundness ratio, yield strength and binding energy of a belt or field member (GEN.1159), and the tilt and the fallen moons a planet keeps (GEN.1874).
 
-Schema v281 (a placeholder: the train that merges this renumbers it to the next free revision). `belt_members`, `field_members` and `irregular_moons` gain `roundness_ratio` (DOUBLE, the mean radius over the round
+Schema v282 (a placeholder: the train that merges this renumbers it to the next free revision). `belt_members`, `field_members` and `irregular_moons` gain `roundness_ratio` (DOUBLE, the mean radius over the round
 radius, 1 or more is round), `yield_strength_pa` (DOUBLE, Pa) and `binding_energy_j` (DOUBLE, J), worked out by `physics/body_strength.py` from the member's own mass, size and makeup at the cold
 strength, the same code a comet goes through. All three are NULL here: a belt or a field made before gets them when its sector is regenerated, and a migration does not draw.
 
@@ -14,8 +14,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0281"
-down_revision = "0280"
+revision = "0282"
+down_revision = "0281"
 branch_labels = None
 depends_on = None
 

@@ -3647,7 +3647,7 @@ CREATE TABLE IF NOT EXISTS belt_members (
     status            VARCHAR(16) NOT NULL,  -- planet, dwarf planet, minor body or moon (`physics/body_status.py`)
     soter_mu          DOUBLE NULL,  -- Soter's mu, NULL where the zone holds nothing else
     scatter_tag       VARCHAR(24) NULL,  -- the population the scatter step put it in (GEN.1092), NULL until that step is wired
-    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a member stored before v281
+    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a member stored before v282
     yield_strength_pa DOUBLE NULL,  -- the whole-body strength of its material mix at the cold strength, Pa
     binding_energy_j  DOUBLE NULL,  -- the energy that assembling it from infinity releases, J
 
@@ -3673,7 +3673,7 @@ CREATE TABLE IF NOT EXISTS field_members (
     water_fraction    DOUBLE NOT NULL,
     ice_fraction      DOUBLE NOT NULL,
     status            VARCHAR(16) NOT NULL,  -- dwarf planet or minor body (`physics/body_status.py`)
-    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a member stored before v281
+    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a member stored before v282
     yield_strength_pa DOUBLE NULL,  -- the whole-body strength of its material mix at the cold strength, Pa
     binding_energy_j  DOUBLE NULL,  -- the energy that assembling it from infinity releases, J
 
@@ -3726,7 +3726,7 @@ CREATE TABLE IF NOT EXISTS irregular_moons (
     mean_anomaly_deg  DOUBLE NOT NULL,
     belt_order        INT NULL,  -- v224 (GEN.1085): for a body caught from an inner belt, the belt's number among the belts of the planet's star, nearest first
     belt_rank         INT NULL,  -- v224 (GEN.1085): when it was a stored member of that belt, its rank there, which it keeps in its designation
-    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a body stored before v281
+    roundness_ratio   DOUBLE NULL,  -- the mean radius over the round radius, 1 or more is round (GEN.1159, `physics/body_strength.py`), NULL for a body stored before v282
     yield_strength_pa DOUBLE NULL,  -- the whole-body strength of its material mix at the cold strength, Pa
     binding_energy_j  DOUBLE NULL,  -- the energy that assembling it from infinity releases, J
 
@@ -5536,7 +5536,7 @@ CREATE TABLE IF NOT EXISTS lost_moons (
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- v281 (GEN.1874): `body_history` gains `tilt_chaotic` (1 when the planet's tilt wanders chaotically, the quantity oddities W6 and W61 read) and `fallen_moons` keeps the moons a planet's tide brought
+-- v282 (GEN.1874): `body_history` gains `tilt_chaotic` (1 when the planet's tilt wanders chaotically, the quantity oddities W6 and W61 read) and `fallen_moons` keeps the moons a planet's tide brought
 -- inside its Roche limit with the years after the planet formed that each fell (`fall_index` is the place in the planet's list), which its rings are made from. A galaxy made earlier has NULL and no rows,
 -- which reads as 'not kept'.
 CREATE TABLE IF NOT EXISTS fallen_moons (
