@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4871+db281.gen150.api14] - 2026-11-28
+
+**Headline:** Species and Polities pages: an empty list says whether the population pass has run
+
+### Fixed
+
+- UX.323: the empty Species and Polities pages said "The population pass has not run on this galaxy yet" even after the pass had run and made no species. They now read the pass's stored watermark: a pass that ran says it "has run on this galaxy and made no species" (and, on Polities, that there are no polities because there are no species); the "has not run" line stays only for a galaxy with no pass yet.
+
+generation-output: unchanged
+
 ## [8.0.4870+db281.gen150.api14] - 2026-11-28
 
 **Headline:** The methane and nitrogen clathrate curves are checked against published equilibrium pressures, not only against their own constants.
