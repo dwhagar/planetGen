@@ -142686,6 +142686,38 @@
    "volume": "605",
    "year": 2017
   },
+  "10.1051/0004-6361/201730582": {
+   "arxiv": "1704.08449",
+   "authors": [
+    [
+     "Ribas",
+     "I."
+    ],
+    [
+     "Gregg",
+     "M. D."
+    ],
+    [
+     "Boyajian",
+     "T. S."
+    ],
+    [
+     "Bolmont",
+     "E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201730582",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A58",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "The full spectral radiative properties of Proxima Centauri",
+   "type": "journal-article",
+   "volume": "603",
+   "year": 2017
+  },
   "10.1051/0004-6361/201730728": {
    "arxiv": "1707.06051",
    "authors": [
@@ -280337,6 +280369,68 @@
    "volume": "",
    "year": 2016
   },
+  "arXiv:1608.06813": {
+   "arxiv": "1608.06813",
+   "authors": [
+    [
+     "Ribas",
+     "I."
+    ],
+    [
+     "Bolmont",
+     "E."
+    ],
+    [
+     "Selsis",
+     "F."
+    ],
+    [
+     "Reiners",
+     "A."
+    ],
+    [
+     "Leconte",
+     "J."
+    ],
+    [
+     "Raymond",
+     "S. N."
+    ],
+    [
+     "Engle",
+     "S. G."
+    ],
+    [
+     "Guinan",
+     "E. F."
+    ],
+    [
+     "Morin",
+     "J."
+    ],
+    [
+     "Turbet",
+     "M."
+    ],
+    [
+     "Forget",
+     "F."
+    ],
+    [
+     "Anglada-Escude",
+     "G."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "A&A 596, A111 (2016)",
+   "page": "",
+   "src": "arxiv",
+   "title": "The habitability of Proxima Centauri b. I. Irradiation, rotation and volatile inventory from formation to the present",
+   "type": "preprint",
+   "volume": "",
+   "year": 2016
+  },
   "arXiv:1609.05344": {
    "arxiv": "1609.05344",
    "authors": [
@@ -288684,7 +288778,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5375,
+ "id_next": 5380,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -290608,6 +290702,7 @@
   "10.1051/0004-6361/201730535": "R1062",
   "10.1051/0004-6361/201730547": "R4478",
   "10.1051/0004-6361/201730560": "R0346",
+  "10.1051/0004-6361/201730582": "R5379",
   "10.1051/0004-6361/201730728": "R4413",
   "10.1051/0004-6361/201730743": "R4248",
   "10.1051/0004-6361/201731004": "R4024",
@@ -294337,6 +294432,7 @@
   "arxiv:1608.05284": "R1965",
   "arxiv:1608.06286": "R0536",
   "arxiv:1608.06772": "R1501",
+  "arxiv:1608.06813": "R5378",
   "arxiv:1608.08620": "R3014",
   "arxiv:1609.01626": "R2787",
   "arxiv:1609.01785": "R0518",
@@ -294393,6 +294489,7 @@
   "arxiv:1704.05413": "R4438",
   "arxiv:1704.06308": "R0826",
   "arxiv:1704.07345": "R0885",
+  "arxiv:1704.08449": "R5379",
   "arxiv:1704.08749": "R0258",
   "arxiv:1705.03555": "R3496",
   "arxiv:1705.03999": "R4490",
